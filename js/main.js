@@ -186,14 +186,17 @@ function sizeCanvas() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
-/* x position of the ribbon at a given y, for the current clock */
-function ribbonX(yN, time, phase, amp) {
+/* x position of the wave at a given y, for the current clock.
+   `k` offsets a trailing strand so the band reads as one wave, not one wire. */
+function ribbonX(yN, time, phase, amp, k = 0) {
   /* envelope keeps the ends tucked toward centre */
   const env = Math.sin(Math.PI * clamp(yN, 0, 1)) ** 0.75;
-  const a = amp * env;
+  /* swell: amplitude breathes along the length so crests aren't uniform */
+  const swell = 0.78 + 0.22 * Math.sin(yN * 2.4 - time * 0.5 + phase * 0.5);
+  const a = amp * env * swell;
   return W * 0.5
-    + Math.sin(yN * 3.1 + time * 0.35 + phase) * a
-    + Math.sin(yN * 6.7 - time * 0.22 + phase * 1.6) * a * 0.32;
+    + Math.sin(yN * 3.1 + time * 0.35 + phase + k * 0.17) * a
+    + Math.sin(yN * 6.7 - time * 0.22 + phase * 1.6 + k * 0.24) * a * 0.32;
 }
 
 const sparks = Array.from({ length: 26 }, () => ({
@@ -207,13 +210,16 @@ function drawRibbon(p, vel, time) {
   const amp   = Math.min(W * 0.17, 190) * (0.55 + Math.min(Math.abs(vel) * 55, 0.85));
   const g     = glowRGB;
 
-  const pts = [];
-  for (let i = 0; i <= 60; i++) {
-    const yN = -0.08 + (i / 60) * 1.16;
-    pts.push([ribbonX(yN, time, phase, amp), yN * H]);
-  }
+  const buildPts = (k) => {
+    const pts = [];
+    for (let i = 0; i <= 64; i++) {
+      const yN = -0.08 + (i / 64) * 1.16;
+      pts.push([ribbonX(yN, time, phase, amp, k), yN * H]);
+    }
+    return pts;
+  };
 
-  const stroke = (width, alpha) => {
+  const stroke = (pts, width, alpha) => {
     ctx.beginPath();
     ctx.moveTo(pts[0][0], pts[0][1]);
     for (let i = 1; i < pts.length - 1; i++) {
@@ -227,11 +233,21 @@ function drawRibbon(p, vel, time) {
     ctx.stroke();
   };
 
-  /* layered passes stand in for an expensive per-frame blur */
-  stroke(26, 0.05);
-  stroke(12, 0.10);
-  stroke(4.5, 0.30);
-  stroke(1.6, 0.85);
+  /* trailing strands either side of the crest: the band reads as a wave
+     rolling through the page rather than a single glowing wire */
+  const STRANDS = 5;
+  for (let k = STRANDS; k >= 1; k--) {
+    const fade = 0.14 * (1 - k / STRANDS) + 0.035;
+    stroke(buildPts(k),  1.15, fade);
+    stroke(buildPts(-k), 1.15, fade);
+  }
+
+  /* the crest itself — layered passes stand in for a costly per-frame blur */
+  const main = buildPts(0);
+  stroke(main, 30, 0.045);
+  stroke(main, 14, 0.09);
+  stroke(main, 5,  0.28);
+  stroke(main, 1.7, 0.9);
 
   sparks.forEach(s => {
     s.y += s.speed + Math.abs(vel) * 0.35;
@@ -350,6 +366,36 @@ burger.addEventListener('click', () => {
   navEl.classList.toggle('open', open);
   burger.setAttribute('aria-expanded', String(open));
 });
+
+/* ---------------------------------------------------------
+   Company profile
+   On a normal host the plain link opens the PDF. Inside the artifact viewer
+   a relative file isn't reachable and page-initiated downloads are blocked,
+   so hand the embedded copy to the downloads capability instead.
+   --------------------------------------------------------- */
+(async function wireProfile() {
+  const btn = $('#profileLink');
+  if (!btn || !window.__PROFILE_PDF || !window.claude || !window.claude.use) return;
+
+  const dl = await window.claude.use('downloads');
+  if (!dl) return;   /* not available in this view — leave the plain link alone */
+
+  btn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const raw = atob(window.__PROFILE_PDF);
+    const bytes = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+    const label = btn.textContent;
+    try {
+      btn.textContent = 'Preparing…';
+      await dl.save({ filename: 'wewave-profile.pdf', data: bytes });
+      btn.textContent = label;
+    } catch (err) {
+      btn.textContent = (err && err.code === 'declined') ? label : 'Unavailable here';
+      if (err && err.code !== 'declined') setTimeout(() => { btn.textContent = label; }, 2600);
+    }
+  });
+})();
 
 /* ---------------------------------------------------------
    Boot: loader → intro statement → chrome in

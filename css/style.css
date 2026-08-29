@@ -65,7 +65,19 @@ canvas{display:block;}
   transition:opacity .7s var(--ease),visibility .7s var(--ease);
 }
 .loader.out{opacity:0;visibility:hidden;}
-.loader-mark svg{width:62px;height:40px;filter:drop-shadow(0 0 14px rgba(46,139,87,.6));}
+/* The logo mark is painted as a mask so it inherits the live stage colour
+   instead of being locked to one fill. */
+.mark{
+  display:block;flex:none;
+  background-color:currentColor;
+  -webkit-mask:url(../assets/wewave-mark.png) center/contain no-repeat;
+  mask:url(../assets/wewave-mark.png) center/contain no-repeat;
+}
+.mark-lg{width:74px;height:57px;color:var(--accent);filter:drop-shadow(0 0 16px rgba(46,139,87,.55));}
+.sr-only{
+  position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;
+}
 .loader-bar{width:min(240px,52vw);height:1px;background:rgba(255,255,255,.16);position:relative;overflow:hidden;}
 .loader-bar span{position:absolute;inset:0 auto 0 0;width:0;background:var(--accent);box-shadow:0 0 10px var(--accent);}
 .loader-pct{font-family:var(--mono);font-size:11px;letter-spacing:.28em;color:rgba(255,255,255,.5);}
@@ -106,7 +118,7 @@ canvas{display:block;}
 }
 .chrome-top.on{opacity:1;transform:none;}
 .brand{display:flex;align-items:center;gap:10px;color:var(--ink);}
-.brand-mark{width:30px;height:19px;color:var(--glow);flex:none;}
+.brand-mark{width:34px;height:26px;color:var(--glow);}
 .brand-word{font-family:var(--display);font-size:20px;letter-spacing:.04em;line-height:1;}
 
 .nav{display:flex;gap:clamp(16px,2.4vw,34px);}

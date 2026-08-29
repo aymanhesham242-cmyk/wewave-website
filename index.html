@@ -15,7 +15,7 @@
 <!-- ============ Loader ============ -->
 <div class="loader" id="loader">
   <div class="loader-mark" id="loaderMark">
-    <svg viewBox="0 0 64 40" aria-hidden="true"><path d="M4 24 Q 14 6, 24 24 T 44 24 T 60 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+    <span class="mark mark-lg" role="img" aria-label="WeWave"></span>
   </div>
   <div class="loader-bar"><span id="loaderFill"></span></div>
   <div class="loader-pct" id="loaderPct">0%</div>
@@ -34,7 +34,7 @@
 <!-- ============ Fixed chrome ============ -->
 <header class="chrome-top" id="chromeTop">
   <a href="#hero" class="brand" data-goto="hero">
-    <svg viewBox="0 0 64 40" class="brand-mark" aria-hidden="true"><path d="M4 24 Q 14 6, 24 24 T 44 24 T 60 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>
+    <span class="mark brand-mark" aria-hidden="true"></span>
     <span class="brand-word">WeWave</span>
   </a>
 
@@ -123,18 +123,22 @@
     <div class="stage-inner center">
       <p class="eyebrow" data-anim>Clients</p>
       <h2 class="display md" data-anim><span class="ln"><i>Brands we move.</i></span></h2>
-      <!-- Placeholder wordmarks — swap for real client names once cleared for public display. -->
+      <!-- Marquee is decorative/duplicated; the real roster is the visually-hidden list below it. -->
       <div class="ticker" aria-hidden="true">
         <div class="ticker-row" data-dir="1">
-          <span>Client One</span><span>Client Two</span><span>Client Three</span><span>Client Four</span><span>Client Five</span>
-          <span>Client One</span><span>Client Two</span><span>Client Three</span><span>Client Four</span><span>Client Five</span>
+          <span>Hayah</span><span>Cheerfulness Makers</span><span>elhelow style</span><span>Khalid Khoory Cargo</span><span>Hub Vet Clinic</span>
+          <span>Hayah</span><span>Cheerfulness Makers</span><span>elhelow style</span><span>Khalid Khoory Cargo</span><span>Hub Vet Clinic</span>
         </div>
         <div class="ticker-row" data-dir="-1">
-          <span>Client Six</span><span>Client Seven</span><span>Client Eight</span><span>Client Nine</span><span>Client Ten</span>
-          <span>Client Six</span><span>Client Seven</span><span>Client Eight</span><span>Client Nine</span><span>Client Ten</span>
+          <span>Credit</span><span>Mersal</span><span>Maleha</span><span>Swimfit</span><span>Chowze</span>
+          <span>Credit</span><span>Mersal</span><span>Maleha</span><span>Swimfit</span><span>Chowze</span>
         </div>
       </div>
-      <p class="body-copy center-copy" data-anim>Placeholder roster — replace with the brands you want front and centre.</p>
+      <ul class="sr-only">
+        <li>Hayah</li><li>Cheerfulness Makers</li><li>elhelow style</li><li>Khalid Khoory Cargo</li><li>Hub Vet Clinic</li>
+        <li>Credit</li><li>Mersal</li><li>Maleha</li><li>Swimfit</li><li>Chowze</li>
+      </ul>
+      <p class="body-copy center-copy" data-anim>Retail, logistics, clinics, fashion, and hospitality — brands we have shaped attention for.</p>
     </div>
   </section>
 
@@ -162,7 +166,8 @@
       <p class="body-copy center-copy" data-anim>Tell us what you are building, launching, or rethinking — and we will tell you how WeWave moves it.</p>
       <div class="cta-row" data-anim>
         <a class="btn" href="mailto:hello@wewave.studio">Start a brief</a>
-        <a class="btn ghost" href="#" aria-label="Instagram">Instagram</a>
+        <a class="btn ghost" id="profileLink" href="assets/wewave-profile.pdf" target="_blank" rel="noopener">Company profile</a>
+        <a class="btn ghost" href="https://instagram.com/wewaveagency" target="_blank" rel="noopener">Instagram</a>
       </div>
     </div>
   </section>
