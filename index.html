@@ -123,12 +123,21 @@
     <div class="stage-inner center">
       <p class="eyebrow" data-anim>Clients</p>
       <h2 class="display md" data-anim><span class="ln"><i>Brands we move.</i></span></h2>
-      <ul class="logo-grid">
-        <li data-anim><img src="assets/clients/housh.png" alt="Housh" loading="lazy"></li>
-        <li data-anim><img src="assets/clients/cheerfulness-makers.png" alt="Cheerfulness Makers" loading="lazy"></li>
-        <li data-anim><img src="assets/clients/elhelow-style.png" alt="elhelow style" loading="lazy"></li>
-        <li data-anim><img src="assets/clients/hub-vet-clinic.png" alt="Hub Vet Clinic" loading="lazy"></li>
-        <li data-anim><img src="assets/clients/credit.png" alt="Credit" loading="lazy"></li>
+      <!-- Each row repeats its set exactly twice so the drift can loop seamlessly
+           (driftTicker measures scrollWidth / 2). Decorative: the roster is the
+           visually-hidden list below. -->
+      <div class="ticker" aria-hidden="true">
+        <div class="ticker-row" data-dir="1">
+          <span class="chip housh"></span><span class="chip cheerfulness"></span><span class="chip elhelow"></span><span class="chip hubvet"></span><span class="chip credit"></span>
+          <span class="chip housh"></span><span class="chip cheerfulness"></span><span class="chip elhelow"></span><span class="chip hubvet"></span><span class="chip credit"></span>
+        </div>
+        <div class="ticker-row" data-dir="-1">
+          <span class="chip credit"></span><span class="chip hubvet"></span><span class="chip elhelow"></span><span class="chip cheerfulness"></span><span class="chip housh"></span>
+          <span class="chip credit"></span><span class="chip hubvet"></span><span class="chip elhelow"></span><span class="chip cheerfulness"></span><span class="chip housh"></span>
+        </div>
+      </div>
+      <ul class="sr-only">
+        <li>Housh</li><li>Cheerfulness Makers</li><li>elhelow style</li><li>Hub Vet Clinic</li><li>Credit</li>
       </ul>
       <p class="body-copy center-copy" data-anim>Hospitality, events, retail, veterinary care, and finance — brands we have shaped attention for.</p>
     </div>

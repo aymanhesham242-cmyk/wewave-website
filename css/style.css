@@ -265,24 +265,35 @@ canvas{display:block;}
 }
 .steps p{font-size:14.5px;line-height:1.6;color:var(--dim);max-width:52ch;}
 
-/* ---------- Clients logo wall ---------- */
-.logo-grid{
-  display:grid;grid-template-columns:repeat(5,1fr);
-  gap:clamp(10px,1.2vw,18px);
-  width:100%;margin-top:clamp(26px,3.4vw,46px);
+/* ---------- Clients ticker ---------- */
+.ticker{
+  width:100vw;margin:clamp(26px,3.6vw,46px) 0 0;
+  display:flex;flex-direction:column;gap:clamp(10px,1.3vw,20px);
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
 }
-.logo-grid li{
-  background:var(--white);border-radius:16px;
-  aspect-ratio:1.28;
-  display:flex;align-items:center;justify-content:center;
-  padding:clamp(12px,1.7vw,24px);
-  transition:transform .5s var(--ease),box-shadow .45s var(--ease);
+.ticker-row{display:flex;gap:clamp(10px,1.3vw,20px);width:max-content;will-change:transform;}
+/* Logos sit on light chips: several marks are navy or black line art and would
+   disappear against the dark stage. Painted as backgrounds rather than <img>
+   so each logo is embedded once and the chips have their size before any
+   image decodes (the drift measures the row width). */
+.chip{
+  flex:none;display:block;
+  width:clamp(128px,13vw,178px);
+  height:clamp(84px,8.4vw,116px);
+  border-radius:14px;
+  background-color:var(--white);
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:72% auto;
+  transition:transform .45s var(--ease),box-shadow .4s var(--ease);
 }
-.logo-grid li:hover{transform:translateY(-7px);box-shadow:0 20px 40px rgba(0,0,0,.3);}
-.logo-grid img{
-  max-width:100%;max-height:100%;
-  width:auto;height:auto;object-fit:contain;display:block;
-}
+.chip:hover{transform:translateY(-5px);box-shadow:0 16px 32px rgba(0,0,0,.28);}
+.chip.housh{background-image:url(../assets/clients/housh.png);}
+.chip.cheerfulness{background-image:url(../assets/clients/cheerfulness-makers.png);}
+.chip.elhelow{background-image:url(../assets/clients/elhelow-style.png);}
+.chip.hubvet{background-image:url(../assets/clients/hub-vet-clinic.png);}
+.chip.credit{background-image:url(../assets/clients/credit.png);}
 
 /* ---------- Voices ---------- */
 .quotes{
@@ -335,7 +346,6 @@ canvas{display:block;}
   .quotes{grid-template-columns:1fr;}
   .quotes blockquote:nth-child(3){display:none;}
   .stage{padding-top:calc(var(--pad) + 64px);}
-  .logo-grid{grid-template-columns:repeat(3,1fr);}
 }
 @media (max-width:560px){
   .steps li{gap:14px;}
@@ -343,8 +353,7 @@ canvas{display:block;}
   .body-copy{font-size:15px;}
   .scard{flex-basis:76vw;}
   .quotes blockquote:nth-child(2){display:none;}
-  .logo-grid{grid-template-columns:repeat(2,1fr);gap:9px;}
-  .logo-grid li{border-radius:13px;}
+  .chip{border-radius:11px;}
 }
 
 /* =========================================================
@@ -366,6 +375,9 @@ canvas{display:block;}
   .chrome-top{background:var(--deep);}
   .rail{flex-wrap:wrap;padding-left:0;transform:none!important;}
   .scard{flex-basis:280px;}
-  .logo-grid{grid-template-columns:repeat(3,1fr);}
+  /* no drift: let the logos wrap into a static wall instead */
+  .ticker{width:auto;-webkit-mask-image:none;mask-image:none;}
+  .ticker-row{flex-wrap:wrap;width:auto;justify-content:center;transform:none!important;}
+  .ticker-row:nth-child(2){display:none;}
   body{background:var(--deep);}
 }

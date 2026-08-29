@@ -23,11 +23,13 @@ js = (ROOT / "js/main.js").read_text(encoding="utf-8")
 mark_b64 = base64.b64encode((ROOT / "assets/wewave-mark-sm.png").read_bytes()).decode()
 css = css.replace("../assets/wewave-mark.png", f"data:image/png;base64,{mark_b64}")
 
-# client logos -> data URIs (the hosted page can't reach assets/ either)
+# client logos -> data URIs in the CSS (the hosted page can't reach assets/).
+# They live in background-image rules, so each logo is embedded once no matter
+# how many times the ticker repeats it.
 for logo in sorted((ROOT / "assets/clients").glob("*.png")):
     b64 = base64.b64encode(logo.read_bytes()).decode()
-    html = html.replace(
-        f'src="assets/clients/{logo.name}"', f'src="data:image/png;base64,{b64}"'
+    css = css.replace(
+        f"../assets/clients/{logo.name}", f"data:image/png;base64,{b64}"
     )
 
 # the web-weight profile rides along so the hosted page can still hand it over
