@@ -186,38 +186,38 @@ function sizeCanvas() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
-/* x position of the wave at a given y, for the current clock.
-   `k` offsets a trailing strand so the band reads as one wave, not one wire. */
-function ribbonX(yN, time, phase, amp, k = 0) {
-  /* envelope keeps the ends tucked toward centre */
-  const env = Math.sin(Math.PI * clamp(yN, 0, 1)) ** 0.75;
-  /* swell: amplitude breathes along the length so crests aren't uniform */
-  const swell = 0.78 + 0.22 * Math.sin(yN * 2.4 - time * 0.5 + phase * 0.5);
-  const a = amp * env * swell;
-  return W * 0.5
-    + Math.sin(yN * 3.1 + time * 0.35 + phase + k * 0.17) * a
-    + Math.sin(yN * 6.7 - time * 0.22 + phase * 1.6 + k * 0.24) * a * 0.32;
+/* Horizontal wave bands. A vertical snaking line reads as a thread; crests
+   running left-to-right read as water — and echo the brand mark's squiggle. */
+const TAU = Math.PI * 2;
+const WAVES = [
+  { yr: 0.46, amp: 0.070, freq: 1.45, sp: 0.50, w: 2.0, a: 0.95 },  /* crest */
+  { yr: 0.53, amp: 0.105, freq: 1.00, sp: 0.34, w: 1.3, a: 0.46 },
+  { yr: 0.61, amp: 0.058, freq: 2.05, sp: 0.66, w: 1.0, a: 0.30 },
+  { yr: 0.69, amp: 0.090, freq: 1.28, sp: 0.24, w: 0.9, a: 0.18 }
+];
+
+/* y of one band at horizontal position xN (0..1) */
+function waveY(wv, xN, time, phase, boost, shift) {
+  /* taper toward both edges so bands don't end abruptly at the viewport */
+  const env = Math.sin(Math.PI * clamp(xN, 0, 1)) ** 0.55;
+  const a = H * wv.amp * boost * env;
+  return H * wv.yr + shift
+    + Math.sin(xN * TAU * wv.freq + time * wv.sp + phase) * a
+    + Math.sin(xN * TAU * wv.freq * 2.3 - time * wv.sp * 0.7 + phase * 1.4) * a * 0.28;
 }
 
-const sparks = Array.from({ length: 26 }, () => ({
-  y: Math.random(), speed: 0.00022 + Math.random() * 0.0006, size: 0.7 + Math.random() * 1.9
+/* foam riding the leading crest */
+const sparks = Array.from({ length: 30 }, () => ({
+  x: Math.random(), speed: 0.0004 + Math.random() * 0.0011, size: 0.7 + Math.random() * 1.8,
+  off: Math.random() * 1000
 }));
 
 function drawRibbon(p, vel, time) {
   ctx.clearRect(0, 0, W, H);
 
-  const phase = p * Math.PI * 5;
-  const amp   = Math.min(W * 0.17, 190) * (0.55 + Math.min(Math.abs(vel) * 55, 0.85));
   const g     = glowRGB;
-
-  const buildPts = (k) => {
-    const pts = [];
-    for (let i = 0; i <= 64; i++) {
-      const yN = -0.08 + (i / 64) * 1.16;
-      pts.push([ribbonX(yN, time, phase, amp, k), yN * H]);
-    }
-    return pts;
-  };
+  const phase = p * TAU * 2;                                   /* scroll advances the swell */
+  const boost = 1 + Math.min(Math.abs(vel) * 42, 0.75);        /* scrolling steepens it */
 
   const stroke = (pts, width, alpha) => {
     ctx.beginPath();
@@ -233,44 +233,39 @@ function drawRibbon(p, vel, time) {
     ctx.stroke();
   };
 
-  /* trailing strands either side of the crest: the band reads as a wave
-     rolling through the page rather than a single glowing wire */
-  const STRANDS = 5;
-  for (let k = STRANDS; k >= 1; k--) {
-    const fade = 0.14 * (1 - k / STRANDS) + 0.035;
-    stroke(buildPts(k),  1.15, fade);
-    stroke(buildPts(-k), 1.15, fade);
+  /* back bands first so the crest sits on top */
+  for (let i = WAVES.length - 1; i >= 0; i--) {
+    const wv = WAVES[i];
+    /* each band drifts vertically at its own rate -> parallax with scroll */
+    const shift = (p - 0.5) * H * (0.26 + i * 0.1);
+    const pts = [];
+    for (let s = 0; s <= 88; s++) {
+      const xN = s / 88;
+      pts.push([xN * W, waveY(wv, xN, time, phase, boost, shift)]);
+    }
+    if (i === 0) {
+      /* layered passes stand in for a costly per-frame blur */
+      stroke(pts, 28, 0.045);
+      stroke(pts, 13, 0.09);
+      stroke(pts, 5,  0.26);
+      stroke(pts, wv.w, wv.a);
+    } else {
+      stroke(pts, wv.w + 6, wv.a * 0.12);
+      stroke(pts, wv.w, wv.a);
+    }
   }
 
-  /* the crest itself — layered passes stand in for a costly per-frame blur */
-  const main = buildPts(0);
-  stroke(main, 30, 0.045);
-  stroke(main, 14, 0.09);
-  stroke(main, 5,  0.28);
-  stroke(main, 1.7, 0.9);
-
+  const crest = WAVES[0];
+  const crestShift = (p - 0.5) * H * 0.26;
   sparks.forEach(s => {
-    s.y += s.speed + Math.abs(vel) * 0.35;
-    if (s.y > 1.08) s.y = -0.08;
-    const x = ribbonX(s.y, time, phase, amp);
-    const tw = 0.45 + 0.55 * Math.sin(time * 2 + s.y * 22);
+    s.x += s.speed + Math.abs(vel) * 0.5;
+    if (s.x > 1.04) s.x = -0.04;
+    const y = waveY(crest, s.x, time, phase, boost, crestShift);
+    const tw = 0.45 + 0.55 * Math.sin(time * 2 + s.off);
     ctx.beginPath();
-    ctx.arc(x, s.y * H, s.size, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(${g[0]},${g[1]},${g[2]},${(0.5 + tw * 0.5).toFixed(3)})`;
+    ctx.arc(s.x * W, y, s.size, 0, TAU);
+    ctx.fillStyle = `rgba(${g[0]},${g[1]},${g[2]},${(0.45 + tw * 0.55).toFixed(3)})`;
     ctx.fill();
-  });
-}
-
-/* ---------------------------------------------------------
-   Clients ticker — continuous drift, opposite directions
-   --------------------------------------------------------- */
-const tickerRows = $$('.ticker-row').map(el => ({ el, dir: +el.dataset.dir || 1, w: 0 }));
-function measureTicker() { tickerRows.forEach(r => { r.w = r.el.scrollWidth / 2; }); }
-function driftTicker(time) {
-  tickerRows.forEach(r => {
-    if (!r.w) return;
-    const x = -((time * 28 * r.dir) % r.w);
-    r.el.style.transform = `translate3d(${r.dir > 0 ? x : x - r.w}px,0,0)`;
   });
 }
 
@@ -314,7 +309,6 @@ function frame(now) {
 
   applyState(smooth);
   drawRibbon(smooth, vel, time);
-  driftTicker(time);
 
   requestAnimationFrame(frame);
 }
@@ -441,7 +435,7 @@ function runLoader() {
 /* ---------------------------------------------------------
    Wiring
    --------------------------------------------------------- */
-function measureAll() { sizeCanvas(); measureRail(); measureTicker(); }
+function measureAll() { sizeCanvas(); measureRail(); }
 
 if (REDUCED) {
   /* static, readable document — no timeline, no canvas */

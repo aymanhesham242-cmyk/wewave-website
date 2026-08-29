@@ -265,20 +265,24 @@ canvas{display:block;}
 }
 .steps p{font-size:14.5px;line-height:1.6;color:var(--dim);max-width:52ch;}
 
-/* ---------- Clients ticker ---------- */
-.ticker{
-  width:100vw;margin:clamp(26px,3.6vw,46px) 0 0;
-  display:flex;flex-direction:column;gap:clamp(8px,1.1vw,16px);
-  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
-  mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
+/* ---------- Clients logo wall ---------- */
+.logo-grid{
+  display:grid;grid-template-columns:repeat(5,1fr);
+  gap:clamp(10px,1.2vw,18px);
+  width:100%;margin-top:clamp(26px,3.4vw,46px);
 }
-.ticker-row{display:flex;gap:clamp(26px,3.4vw,52px);width:max-content;will-change:transform;}
-.ticker-row span{
-  font-family:var(--display);font-weight:400;text-transform:uppercase;
-  font-size:clamp(26px,4.4vw,58px);letter-spacing:.03em;color:var(--dim);
-  white-space:nowrap;transition:color .35s;
+.logo-grid li{
+  background:var(--white);border-radius:16px;
+  aspect-ratio:1.28;
+  display:flex;align-items:center;justify-content:center;
+  padding:clamp(12px,1.7vw,24px);
+  transition:transform .5s var(--ease),box-shadow .45s var(--ease);
 }
-.ticker-row span:hover{color:var(--glow);}
+.logo-grid li:hover{transform:translateY(-7px);box-shadow:0 20px 40px rgba(0,0,0,.3);}
+.logo-grid img{
+  max-width:100%;max-height:100%;
+  width:auto;height:auto;object-fit:contain;display:block;
+}
 
 /* ---------- Voices ---------- */
 .quotes{
@@ -331,6 +335,7 @@ canvas{display:block;}
   .quotes{grid-template-columns:1fr;}
   .quotes blockquote:nth-child(3){display:none;}
   .stage{padding-top:calc(var(--pad) + 64px);}
+  .logo-grid{grid-template-columns:repeat(3,1fr);}
 }
 @media (max-width:560px){
   .steps li{gap:14px;}
@@ -338,6 +343,8 @@ canvas{display:block;}
   .body-copy{font-size:15px;}
   .scard{flex-basis:76vw;}
   .quotes blockquote:nth-child(2){display:none;}
+  .logo-grid{grid-template-columns:repeat(2,1fr);gap:9px;}
+  .logo-grid li{border-radius:13px;}
 }
 
 /* =========================================================
@@ -359,6 +366,6 @@ canvas{display:block;}
   .chrome-top{background:var(--deep);}
   .rail{flex-wrap:wrap;padding-left:0;transform:none!important;}
   .scard{flex-basis:280px;}
-  .ticker-row{animation:none;}
+  .logo-grid{grid-template-columns:repeat(3,1fr);}
   body{background:var(--deep);}
 }
