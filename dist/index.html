@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WeWave — Social &amp; Content Studio</title>
+<meta name="description" content="WeWave is a social and content studio blending strategy, creative, and performance into growth systems for ambitious brands.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============ Loader ============ -->
+<div class="loader" id="loader">
+  <div class="loader-mark" id="loaderMark">
+    <span class="mark mark-lg" role="img" aria-label="WeWave"></span>
+  </div>
+  <div class="loader-bar"><span id="loaderFill"></span></div>
+  <div class="loader-pct" id="loaderPct">0%</div>
+</div>
+
+<!-- ============ Intro statement ============ -->
+<div class="intro" id="intro">
+  <p class="intro-line"><span>Attention is earned.</span></p>
+  <p class="intro-line"><span>Never assumed.</span></p>
+  <button class="intro-skip" id="introSkip">Skip</button>
+</div>
+
+<!-- ============ Fixed canvas: the ribbon ============ -->
+<canvas id="ribbon" aria-hidden="true"></canvas>
+
+<!-- ============ Fixed chrome ============ -->
+<header class="chrome-top" id="chromeTop">
+  <a href="#hero" class="brand" data-goto="hero">
+    <span class="mark brand-mark" aria-hidden="true"></span>
+    <span class="brand-word">WeWave</span>
+  </a>
+
+  <nav class="nav" id="nav">
+    <a href="#manifesto" data-goto="manifesto">Manifesto</a>
+    <a href="#services"  data-goto="services">Services</a>
+    <a href="#process"   data-goto="process">Process</a>
+    <a href="#clients"   data-goto="clients">Clients</a>
+    <a href="#voices"    data-goto="voices">Voices</a>
+  </nav>
+
+  <a href="#contact" class="pill" data-goto="contact">Start a brief</a>
+  <button class="burger" id="burger" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>
+</header>
+
+<div class="chrome-bottom">
+  <span class="chrome-label" id="sectionLabel">Index</span>
+  <span class="chrome-label chrome-copy">&copy; <span id="year"></span> WeWave</span>
+</div>
+
+<div class="progress-rail"><span id="progressFill"></span></div>
+
+<!-- ============ Fixed stages ============ -->
+<main class="stagewrap" id="stagewrap">
+
+  <!-- 0 · HERO -->
+  <section class="stage stage-hero" data-stage="hero">
+    <div class="stage-inner center">
+      <p class="eyebrow" data-anim>Social &amp; Content Studio</p>
+      <h1 class="display xl" data-anim>
+        <span class="ln"><i>WeWave</i></span>
+      </h1>
+      <p class="tagline" data-anim>Attention, engineered.</p>
+      <p class="scroll-hint" data-anim><span class="hint-rail"><em></em></span>Scroll to explore</p>
+    </div>
+  </section>
+
+  <!-- 1 · MANIFESTO -->
+  <section class="stage stage-manifesto" data-stage="manifesto">
+    <div class="stage-inner">
+      <p class="eyebrow" data-anim>Manifesto</p>
+      <h2 class="display lg" data-anim>
+        <span class="ln"><i>Not posted.</i></span>
+        <span class="ln"><i>Directed.</i></span>
+      </h2>
+      <p class="body-copy" data-anim>We treat a feed like a business, not a calendar to fill. Strategy sets the intent, creative earns the stop, and performance decides what runs again.</p>
+      <p class="body-copy dim" data-anim>WeWave partners with fashion, F&amp;B, and lifestyle brands to turn attention into customers — not impressions into vanity metrics.</p>
+    </div>
+  </section>
+
+  <!-- 2 · SERVICES -->
+  <section class="stage stage-services" data-stage="services">
+    <div class="stage-head">
+      <p class="eyebrow" data-anim>Services</p>
+      <h2 class="display md" data-anim><span class="ln"><i>What we run.</i></span></h2>
+    </div>
+    <div class="rail" id="servicesRail">
+      <article class="scard"><span class="scard-num">01</span><h3>Competitor &amp; Market Analysis</h3><p>We map who is winning attention in your category, and why, before a single caption is written.</p></article>
+      <article class="scard"><span class="scard-num">02</span><h3>Content Strategy &amp; Calendars</h3><p>Posts, carousels, and reels planned against real objectives — not a grid that needs filling.</p></article>
+      <article class="scard"><span class="scard-num">03</span><h3>Media Buying</h3><p>Campaigns built, launched, and optimised across platforms with budget accountability.</p></article>
+      <article class="scard"><span class="scard-num">04</span><h3>Photography &amp; Reels</h3><p>Product and lifestyle shoots cut for pacing, sound, colour, and motion that stops a thumb.</p></article>
+      <article class="scard"><span class="scard-num">05</span><h3>Copywriting</h3><p>Hooks, captions, and scripts written in your voice — sharp, specific, never generic.</p></article>
+      <article class="scard"><span class="scard-num">06</span><h3>Brand &amp; Visual Identity</h3><p>Logos, colour systems, and guidelines that keep every post unmistakably yours.</p></article>
+      <article class="scard"><span class="scard-num">07</span><h3>Trend Monitoring</h3><p>We track what is moving on the platforms that matter and adapt the plan in real time.</p></article>
+      <article class="scard"><span class="scard-num">08</span><h3>Performance Reporting</h3><p>Clear numbers in plain language — what worked, what did not, and what happens next.</p></article>
+    </div>
+  </section>
+
+  <!-- 3 · PROCESS -->
+  <section class="stage stage-process" data-stage="process">
+    <div class="stage-inner">
+      <p class="eyebrow" data-anim>Process</p>
+      <h2 class="display md" data-anim><span class="ln"><i>Signal to system.</i></span></h2>
+      <ol class="steps" id="steps">
+        <li><span class="step-n">01</span><div><h3>Brief</h3><p>We define the objective, the audience, and the constraints worth designing against.</p></div></li>
+        <li><span class="step-n">02</span><div><h3>Research</h3><p>Competitors, trends, and platform behaviour studied before a calendar is touched.</p></div></li>
+        <li><span class="step-n">03</span><div><h3>Build</h3><p>Strategy becomes work — reels, carousels, captions, campaigns, and creative tests.</p></div></li>
+        <li><span class="step-n">04</span><div><h3>Launch</h3><p>Every post and every ad ships on a plan, with intent behind the timing.</p></div></li>
+        <li><span class="step-n">05</span><div><h3>Sharpen</h3><p>We read the numbers, report them clearly, and put budget behind what performs.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 4 · CLIENTS -->
+  <section class="stage stage-clients" data-stage="clients">
+    <div class="stage-inner center">
+      <p class="eyebrow" data-anim>Clients</p>
+      <h2 class="display md" data-anim><span class="ln"><i>Brands we move.</i></span></h2>
+      <!-- Each row repeats its set exactly twice so the drift can loop seamlessly
+           (driftTicker measures scrollWidth / 2). Decorative: the roster is the
+           visually-hidden list below. -->
+      <div class="ticker" aria-hidden="true">
+        <div class="ticker-row" data-dir="1">
+          <span class="chip housh"></span><span class="chip cheerfulness"></span><span class="chip elhelow"></span><span class="chip hubvet"></span><span class="chip credit"></span>
+          <span class="chip housh"></span><span class="chip cheerfulness"></span><span class="chip elhelow"></span><span class="chip hubvet"></span><span class="chip credit"></span>
+        </div>
+        <div class="ticker-row" data-dir="-1">
+          <span class="chip credit"></span><span class="chip hubvet"></span><span class="chip elhelow"></span><span class="chip cheerfulness"></span><span class="chip housh"></span>
+          <span class="chip credit"></span><span class="chip hubvet"></span><span class="chip elhelow"></span><span class="chip cheerfulness"></span><span class="chip housh"></span>
+        </div>
+      </div>
+      <ul class="sr-only">
+        <li>Housh</li><li>Cheerfulness Makers</li><li>elhelow style</li><li>Hub Vet Clinic</li><li>Credit</li>
+      </ul>
+      <p class="body-copy center-copy" data-anim>Hospitality, events, retail, veterinary care, and finance — brands we have shaped attention for.</p>
+    </div>
+  </section>
+
+  <!-- 5 · VOICES -->
+  <section class="stage stage-voices" data-stage="voices">
+    <div class="stage-inner">
+      <p class="eyebrow" data-anim>Voices</p>
+      <!-- Placeholder quotes — replace with real, attributable client testimonials. -->
+      <div class="quotes">
+        <blockquote><p>They stopped guessing for us. The plan had a reason behind every post, and the DMs followed.</p><cite>Placeholder — Fashion</cite></blockquote>
+        <blockquote><p>The reporting changed how we spend. We finally know what is working and what to cut.</p><cite>Placeholder — F&amp;B</cite></blockquote>
+        <blockquote><p>Fast, organised, and the craft was well past what we were paying for elsewhere.</p><cite>Placeholder — Lifestyle</cite></blockquote>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · CONTACT -->
+  <section class="stage stage-contact" data-stage="contact">
+    <div class="stage-inner center">
+      <p class="eyebrow" data-anim>Contact</p>
+      <h2 class="display lg" data-anim>
+        <span class="ln"><i>Your next move</i></span>
+        <span class="ln"><i>needs direction.</i></span>
+      </h2>
+      <p class="body-copy center-copy" data-anim>Tell us what you are building, launching, or rethinking — and we will tell you how WeWave moves it.</p>
+      <div class="cta-row" data-anim>
+        <a class="btn" href="mailto:hello@wewave.studio">Start a brief</a>
+        <a class="btn ghost" id="profileLink" href="assets/wewave-profile-web.pdf" target="_blank" rel="noopener">Company profile</a>
+        <a class="btn ghost" href="https://instagram.com/wewaveagency" target="_blank" rel="noopener">Instagram</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Scroll driver: supplies the scroll length the stages are choreographed against -->
+<div class="driver" id="driver" aria-hidden="true"></div>
+
+<script src="js/main.js"></script>
+</body>
+</html>

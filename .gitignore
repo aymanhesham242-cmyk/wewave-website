@@ -1,5 +1,6 @@
 assets/_work/
 *.pyc
 __pycache__/
-dist/
 node_modules/
+.vercel/
+.wrangler/
