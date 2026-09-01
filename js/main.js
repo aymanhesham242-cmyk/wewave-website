@@ -275,6 +275,84 @@ function driftTicker(time) {
 }
 
 /* ---------------------------------------------------------
+   Hero lamp — a hanging object, not a looping animation.
+
+   Angle is integrated as a damped spring pendulum, so the motion has real
+   inertia: it accelerates and decelerates on its own, overshoots slightly,
+   and settles. Scroll and cursor apply torque rather than setting position,
+   which is what keeps it feeling like weight being pushed around instead of
+   a keyframe being scrubbed.
+   --------------------------------------------------------- */
+const lampEl    = $('#heroLamp');
+const lampSwing = $('#lampSwing');
+
+const LAMP = {
+  a: 5.5, av: 0,        /* angle (deg) + angular velocity — starts off-centre so it swings in */
+  dy: -34, dyv: 0,      /* drop-in offset (px) + velocity */
+  lit: 0,               /* brightness 0..1, written to --lit */
+  pointerTorque: 0,     /* decays each frame */
+  lean: 0,              /* gentle bias toward the cursor */
+  t: 0
+};
+
+const SPRING = 9.0;     /* ~2s period — a heavy fixture, not a light trinket */
+const DAMP   = 1.05;    /* settles in a few swings without looking bouncy */
+
+let lampPointer = 0;    /* -1..1 horizontal cursor offset from the lamp */
+let lampNear    = 0;    /* 0..1 cursor proximity */
+
+if (!REDUCED && lampEl) {
+  window.addEventListener('mousemove', e => {
+    const r = lampEl.getBoundingClientRect();
+    if (!r.width) return;
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height * 0.42;
+    /* horizontal offset drives the lean; distance drives brightness */
+    lampPointer = clamp((e.clientX - cx) / (window.innerWidth * 0.45), -1, 1);
+    const d = Math.hypot(e.clientX - cx, e.clientY - cy);
+    lampNear = clamp(1 - d / (window.innerWidth * 0.42), 0, 1);
+    /* a flick of the cursor nudges the fixture */
+    LAMP.pointerTorque += clamp(e.movementX || 0, -40, 40) * 0.05;
+  }, { passive: true });
+}
+
+function updateLamp(dt, scrollVel) {
+  if (!lampSwing || REDUCED) return;
+  LAMP.t += dt;
+
+  /* torque: restoring + damping + scroll shove + cursor flick + lean */
+  const target = lampPointer * 2.6;                       /* it hangs toward the cursor */
+  LAMP.lean += (target - LAMP.lean) * Math.min(dt * 2.2, 1);
+  const ext = (-scrollVel * 520) + LAMP.pointerTorque + (LAMP.lean - LAMP.a) * 1.8;
+
+  const acc = -SPRING * LAMP.a - DAMP * LAMP.av + ext;
+  LAMP.av += acc * dt;
+  LAMP.a  += LAMP.av * dt;
+  LAMP.pointerTorque *= Math.pow(0.02, dt);               /* frame-rate independent decay */
+
+  /* drop-in: same spring, slightly stiffer, so it lands with a small overshoot */
+  const dacc = -20 * LAMP.dy - 5.2 * LAMP.dyv;
+  LAMP.dyv += dacc * dt;
+  LAMP.dy  += LAMP.dyv * dt;
+
+  /* brightness: warm-up flicker, then a slow breath, brighter near the cursor */
+  let lit;
+  if (LAMP.t < 1.5) {
+    const f = LAMP.t / 1.5;
+    /* two stutters before it holds — reads as a filament catching */
+    const stutter = (LAMP.t < 0.34 || (LAMP.t > 0.52 && LAMP.t < 0.66)) ? 0.18 : 1;
+    lit = f * stutter;
+  } else {
+    lit = 0.62 + Math.sin(LAMP.t * 0.85) * 0.07 + lampNear * 0.3;
+  }
+  LAMP.lit += (clamp(lit, 0, 1) - LAMP.lit) * Math.min(dt * 5, 1);
+
+  lampSwing.style.transform =
+    `translateY(${LAMP.dy.toFixed(2)}px) rotate(${LAMP.a.toFixed(3)}deg)`;
+  lampEl.style.setProperty('--lit', LAMP.lit.toFixed(3));
+}
+
+/* ---------------------------------------------------------
    Main loop — one clock for everything
    --------------------------------------------------------- */
 let target = 0;   /* raw scroll progress */
@@ -306,7 +384,11 @@ function readScroll() {
 }
 
 function frame(now) {
+  /* real delta, clamped: a tab that was backgrounded must not hand the
+     physics a huge dt and fling the lamp across the hero */
+  const dt = lastFrame ? Math.min((now - lastFrame) / 1000, 0.05) : 0.016;
   lastFrame = now;
+
   const time = now / 1000;
   const prev = smooth;
   smooth += (target - smooth) * 0.085;   /* the interpolation that softens everything */
@@ -315,6 +397,7 @@ function frame(now) {
   applyState(smooth);
   drawRibbon(smooth, vel, time);
   driftTicker(time);
+  updateLamp(dt, vel);
 
   requestAnimationFrame(frame);
 }

@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/service-shots.css">
 </head>
 <body>
 
@@ -64,20 +65,23 @@
   <section class="stage stage-hero" data-stage="hero">
     <!-- Original mark: a bulb whose filament is the WeWave wave — the studio
          as the thing making the light, not a bulb borrowed from elsewhere. -->
-    <div class="hero-lamp" aria-hidden="true">
-      <svg viewBox="0 0 120 170" fill="none" stroke="currentColor"
-           stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-        <!-- glass -->
-        <path class="lamp-glass" d="M60 14C39 14 22 31 22 52c0 16 10 27 18 38v12h40V90c8-11 18-22 18-38 0-21-17-38-38-38z"/>
-        <!-- screw base -->
-        <path class="lamp-base" d="M42 112h36M42 124h36M47 136h26"/>
-        <!-- filament: the wave -->
-        <path class="lamp-wave" d="M34 60q11-19 22 0t22 0" stroke-width="3.4"/>
-        <!-- rays -->
-        <g class="lamp-rays" stroke-width="2.2">
-          <path d="M60 2v-0.5M8 52H4M116 52h-4M22 16l-3-3M98 16l3-3"/>
-        </g>
-      </svg>
+    <div class="hero-lamp" id="heroLamp" aria-hidden="true">
+      <!-- .lamp-swing pivots from the cord anchor; JS drives it as a damped
+           pendulum, so cord and bulb rotate together like one hanging object. -->
+      <div class="lamp-swing" id="lampSwing">
+        <span class="lamp-cord"></span>
+        <div class="lamp-body">
+          <span class="lamp-cast"></span>   <!-- light thrown downward -->
+          <span class="lamp-halo"></span>   <!-- ambient falloff -->
+          <span class="lamp-core"></span>   <!-- hot centre -->
+          <svg viewBox="0 0 120 170" fill="none" stroke="currentColor"
+               stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path class="lamp-glass" d="M60 14C39 14 22 31 22 52c0 16 10 27 18 38v12h40V90c8-11 18-22 18-38 0-21-17-38-38-38z"/>
+            <path class="lamp-base" d="M42 112h36M42 124h36M47 136h26"/>
+            <path class="lamp-wave" d="M34 60q11-19 22 0t22 0" stroke-width="3.4"/>
+          </svg>
+        </div>
+      </div>
     </div>
     <div class="stage-inner center">
       <p class="eyebrow" data-anim>Social &amp; Content Studio</p>

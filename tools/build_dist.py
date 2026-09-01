@@ -12,6 +12,8 @@ Run:  python tools/build_dist.py
 """
 import pathlib
 import shutil
+import subprocess
+import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DIST = ROOT / "dist"
@@ -26,7 +28,9 @@ html = (ROOT / "index.html").read_text(encoding="utf-8")
 html = html.replace("assets/wewave-profile.pdf", "assets/wewave-profile-web.pdf")
 (DIST / "index.html").write_text(html, encoding="utf-8")
 
-for rel in ("css/style.css", "css/service.css", "js/main.js"):
+subprocess.run([sys.executable, str(ROOT / "tools" / "build_shots.py")], check=True)
+
+for rel in ("css/style.css", "css/service-shots.css", "css/service.css", "js/main.js"):
     dest = DIST / rel
     dest.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(ROOT / rel, dest)

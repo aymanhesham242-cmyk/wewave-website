@@ -253,49 +253,91 @@ canvas{display:block;}
   100%{transform:translateY(100%);}
 }
 
-/* ---------- Hero lamp ---------- */
+/* ---------- Hero lamp ----------
+   A hanging object: .lamp-swing pivots from the cord anchor and is driven by
+   a damped-spring pendulum in JS. Everything animated here is transform or
+   opacity only, so it stays on the compositor.
+   Brightness rides one custom property (--lit, 0..1) that JS writes each
+   frame; every light layer reads from it, so the whole fixture brightens and
+   dims as one lamp rather than as separate effects. */
 .hero-lamp{
   position:absolute;z-index:2;pointer-events:none;
   right:clamp(20px,8vw,150px);
-  top:50%;transform:translateY(-50%);
+  top:0;height:70%;
   width:clamp(112px,14vw,215px);
   color:var(--glow);
-  opacity:0;
-  transition:opacity 1.1s var(--ease) .5s;
+  --lit:0;
+  opacity:0;transition:opacity .9s var(--ease) .35s;
 }
 .stage.in .hero-lamp{opacity:1;}
-.hero-lamp svg{width:100%;height:auto;display:block;position:relative;z-index:1;}
 
-/* the light it casts */
-.hero-lamp::before{
-  content:'';position:absolute;left:50%;top:34%;
-  width:165%;aspect-ratio:1;transform:translate(-50%,-50%);
+.lamp-swing{
+  position:absolute;inset:0;
+  transform-origin:50% 0;          /* pivot at the cord anchor */
+  will-change:transform;
+}
+.lamp-cord{
+  position:absolute;left:50%;top:0;width:1.5px;height:36%;
+  transform:translateX(-50%);
+  background:linear-gradient(180deg,
+    color-mix(in srgb,var(--ink) 22%,transparent),
+    color-mix(in srgb,var(--ink) 42%,transparent));
+}
+.lamp-body{
+  position:absolute;left:50%;top:36%;width:100%;
+  transform:translateX(-50%);
+  will-change:transform;
+}
+.hero-lamp svg{width:64%;margin:0 auto;height:auto;display:block;position:relative;z-index:2;}
+
+/* --- light layers, tightest first --- */
+.lamp-core,.lamp-halo,.lamp-cast{position:absolute;pointer-events:none;}
+.lamp-core{
+  left:50%;top:30%;width:62%;aspect-ratio:1;
+  transform:translate(-50%,-50%) scale(calc(.86 + var(--lit) * .22));
   background:radial-gradient(circle,
-    color-mix(in srgb,var(--glow) 42%,transparent) 0%,
-    color-mix(in srgb,var(--glow) 12%,transparent) 38%,
-    transparent 66%);
-  filter:blur(10px);
-  animation:lampGlow 4.6s ease-in-out infinite;
+    color-mix(in srgb,var(--glow) 78%,transparent) 0%,
+    color-mix(in srgb,var(--glow) 30%,transparent) 42%,
+    transparent 70%);
+  filter:blur(6px);
+  opacity:calc(.32 + var(--lit) * .68);
+  z-index:1;
 }
-.lamp-glass{opacity:.5;}
-.lamp-base{opacity:.42;}
-.lamp-rays{opacity:.45;animation:lampRays 4.6s ease-in-out infinite;}
-/* the filament is the brightest thing — it's the brand doing the work */
-.lamp-wave{
-  opacity:1;
-  filter:drop-shadow(0 0 7px color-mix(in srgb,var(--glow) 85%,transparent));
-  animation:lampFilament 4.6s ease-in-out infinite;
+.lamp-halo{                        /* ambient falloff into the page */
+  left:50%;top:30%;width:210%;aspect-ratio:1;
+  transform:translate(-50%,-50%) scale(calc(.9 + var(--lit) * .16));
+  background:radial-gradient(circle,
+    color-mix(in srgb,var(--glow) 26%,transparent) 0%,
+    color-mix(in srgb,var(--glow) 9%,transparent) 30%,
+    color-mix(in srgb,var(--glow) 3%,transparent) 52%,
+    transparent 72%);
+  filter:blur(16px);
+  opacity:calc(.28 + var(--lit) * .72);
 }
-@keyframes lampGlow{
-  0%,100%{opacity:.5;transform:translate(-50%,-50%) scale(.9);}
-  50%    {opacity:1;transform:translate(-50%,-50%) scale(1.07);}
+.lamp-cast{                        /* light thrown down onto the section */
+  left:50%;top:34%;width:150%;height:150%;
+  transform:translateX(-50%) scaleY(calc(.88 + var(--lit) * .2));
+  transform-origin:50% 0;
+  background:radial-gradient(ellipse 50% 62% at 50% 0%,
+    color-mix(in srgb,var(--glow) 20%,transparent) 0%,
+    color-mix(in srgb,var(--glow) 7%,transparent) 38%,
+    transparent 74%);
+  filter:blur(20px);
+  opacity:calc(.2 + var(--lit) * .6);
 }
-@keyframes lampFilament{0%,100%{opacity:.72;}50%{opacity:1;}}
-@keyframes lampRays{0%,100%{opacity:.25;}50%{opacity:.6;}}
+
+/* the glass reads as lit rather than drawn */
+.lamp-glass{opacity:calc(.34 + var(--lit) * .3);}
+.lamp-base{opacity:calc(.3 + var(--lit) * .18);}
+.lamp-wave{                        /* the filament — brightest element */
+  opacity:calc(.5 + var(--lit) * .5);
+  filter:drop-shadow(0 0 calc(3px + var(--lit) * 9px)
+    color-mix(in srgb,var(--glow) 90%,transparent));
+}
 
 @media (prefers-reduced-motion:reduce){
-  .hero-lamp::before,.lamp-wave,.lamp-rays{animation:none;}
-  .hero-lamp{opacity:1;transition:none;}
+  .hero-lamp{opacity:1;transition:none;--lit:.72;}
+  .lamp-swing,.lamp-body{transform:none!important;}
 }
 
 /* ---------- Services rail ---------- */
@@ -360,15 +402,6 @@ canvas{display:block;}
 .scard:hover::before{opacity:.5;transform:scale(1);}
 .scard:hover::after{opacity:1;}
 
-.scard[href*="competitor-market-analysis"]{--shot:url(../assets/services/competitor-market-analysis.jpg);}
-.scard[href*="content-strategy"]{--shot:url(../assets/services/content-strategy.jpg);}
-.scard[href*="media-buying"]{--shot:url(../assets/services/media-buying.jpg);}
-.scard[href*="photography-reels"]{--shot:url(../assets/services/photography-reels.jpg);}
-.scard[href*="copywriting"]{--shot:url(../assets/services/copywriting.jpg);}
-.scard[href*="brand-identity"]{--shot:url(../assets/services/brand-identity.jpg);}
-.scard[href*="trend-monitoring"]{--shot:url(../assets/services/trend-monitoring.jpg);}
-.scard[href*="performance-reporting"]{--shot:url(../assets/services/performance-reporting.jpg);}
-.scard[href*="web-development"]{--shot:url(../assets/services/web-development.jpg);}
 
 .scard-more{
   margin-top:auto;padding-top:16px;
@@ -522,6 +555,11 @@ canvas{display:block;}
   body{background:var(--deep);}
 }
 
+/* GENERATED by tools/build_shots.py - do not edit by hand.
+   A rule appears here only when the matching image exists, so missing
+   photography costs no requests. Add files to assets/services/ and
+   re-run the script. */
+
 </style>
 
 
@@ -577,20 +615,23 @@ canvas{display:block;}
   <section class="stage stage-hero" data-stage="hero">
     <!-- Original mark: a bulb whose filament is the WeWave wave — the studio
          as the thing making the light, not a bulb borrowed from elsewhere. -->
-    <div class="hero-lamp" aria-hidden="true">
-      <svg viewBox="0 0 120 170" fill="none" stroke="currentColor"
-           stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-        <!-- glass -->
-        <path class="lamp-glass" d="M60 14C39 14 22 31 22 52c0 16 10 27 18 38v12h40V90c8-11 18-22 18-38 0-21-17-38-38-38z"/>
-        <!-- screw base -->
-        <path class="lamp-base" d="M42 112h36M42 124h36M47 136h26"/>
-        <!-- filament: the wave -->
-        <path class="lamp-wave" d="M34 60q11-19 22 0t22 0" stroke-width="3.4"/>
-        <!-- rays -->
-        <g class="lamp-rays" stroke-width="2.2">
-          <path d="M60 2v-0.5M8 52H4M116 52h-4M22 16l-3-3M98 16l3-3"/>
-        </g>
-      </svg>
+    <div class="hero-lamp" id="heroLamp" aria-hidden="true">
+      <!-- .lamp-swing pivots from the cord anchor; JS drives it as a damped
+           pendulum, so cord and bulb rotate together like one hanging object. -->
+      <div class="lamp-swing" id="lampSwing">
+        <span class="lamp-cord"></span>
+        <div class="lamp-body">
+          <span class="lamp-cast"></span>   <!-- light thrown downward -->
+          <span class="lamp-halo"></span>   <!-- ambient falloff -->
+          <span class="lamp-core"></span>   <!-- hot centre -->
+          <svg viewBox="0 0 120 170" fill="none" stroke="currentColor"
+               stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path class="lamp-glass" d="M60 14C39 14 22 31 22 52c0 16 10 27 18 38v12h40V90c8-11 18-22 18-38 0-21-17-38-38-38z"/>
+            <path class="lamp-base" d="M42 112h36M42 124h36M47 136h26"/>
+            <path class="lamp-wave" d="M34 60q11-19 22 0t22 0" stroke-width="3.4"/>
+          </svg>
+        </div>
+      </div>
     </div>
     <div class="stage-inner center">
       <p class="eyebrow" data-anim>Social &amp; Content Studio</p>
@@ -1036,6 +1077,84 @@ function driftTicker(time) {
 }
 
 /* ---------------------------------------------------------
+   Hero lamp — a hanging object, not a looping animation.
+
+   Angle is integrated as a damped spring pendulum, so the motion has real
+   inertia: it accelerates and decelerates on its own, overshoots slightly,
+   and settles. Scroll and cursor apply torque rather than setting position,
+   which is what keeps it feeling like weight being pushed around instead of
+   a keyframe being scrubbed.
+   --------------------------------------------------------- */
+const lampEl    = $('#heroLamp');
+const lampSwing = $('#lampSwing');
+
+const LAMP = {
+  a: 5.5, av: 0,        /* angle (deg) + angular velocity — starts off-centre so it swings in */
+  dy: -34, dyv: 0,      /* drop-in offset (px) + velocity */
+  lit: 0,               /* brightness 0..1, written to --lit */
+  pointerTorque: 0,     /* decays each frame */
+  lean: 0,              /* gentle bias toward the cursor */
+  t: 0
+};
+
+const SPRING = 9.0;     /* ~2s period — a heavy fixture, not a light trinket */
+const DAMP   = 1.05;    /* settles in a few swings without looking bouncy */
+
+let lampPointer = 0;    /* -1..1 horizontal cursor offset from the lamp */
+let lampNear    = 0;    /* 0..1 cursor proximity */
+
+if (!REDUCED && lampEl) {
+  window.addEventListener('mousemove', e => {
+    const r = lampEl.getBoundingClientRect();
+    if (!r.width) return;
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height * 0.42;
+    /* horizontal offset drives the lean; distance drives brightness */
+    lampPointer = clamp((e.clientX - cx) / (window.innerWidth * 0.45), -1, 1);
+    const d = Math.hypot(e.clientX - cx, e.clientY - cy);
+    lampNear = clamp(1 - d / (window.innerWidth * 0.42), 0, 1);
+    /* a flick of the cursor nudges the fixture */
+    LAMP.pointerTorque += clamp(e.movementX || 0, -40, 40) * 0.05;
+  }, { passive: true });
+}
+
+function updateLamp(dt, scrollVel) {
+  if (!lampSwing || REDUCED) return;
+  LAMP.t += dt;
+
+  /* torque: restoring + damping + scroll shove + cursor flick + lean */
+  const target = lampPointer * 2.6;                       /* it hangs toward the cursor */
+  LAMP.lean += (target - LAMP.lean) * Math.min(dt * 2.2, 1);
+  const ext = (-scrollVel * 520) + LAMP.pointerTorque + (LAMP.lean - LAMP.a) * 1.8;
+
+  const acc = -SPRING * LAMP.a - DAMP * LAMP.av + ext;
+  LAMP.av += acc * dt;
+  LAMP.a  += LAMP.av * dt;
+  LAMP.pointerTorque *= Math.pow(0.02, dt);               /* frame-rate independent decay */
+
+  /* drop-in: same spring, slightly stiffer, so it lands with a small overshoot */
+  const dacc = -20 * LAMP.dy - 5.2 * LAMP.dyv;
+  LAMP.dyv += dacc * dt;
+  LAMP.dy  += LAMP.dyv * dt;
+
+  /* brightness: warm-up flicker, then a slow breath, brighter near the cursor */
+  let lit;
+  if (LAMP.t < 1.5) {
+    const f = LAMP.t / 1.5;
+    /* two stutters before it holds — reads as a filament catching */
+    const stutter = (LAMP.t < 0.34 || (LAMP.t > 0.52 && LAMP.t < 0.66)) ? 0.18 : 1;
+    lit = f * stutter;
+  } else {
+    lit = 0.62 + Math.sin(LAMP.t * 0.85) * 0.07 + lampNear * 0.3;
+  }
+  LAMP.lit += (clamp(lit, 0, 1) - LAMP.lit) * Math.min(dt * 5, 1);
+
+  lampSwing.style.transform =
+    `translateY(${LAMP.dy.toFixed(2)}px) rotate(${LAMP.a.toFixed(3)}deg)`;
+  lampEl.style.setProperty('--lit', LAMP.lit.toFixed(3));
+}
+
+/* ---------------------------------------------------------
    Main loop — one clock for everything
    --------------------------------------------------------- */
 let target = 0;   /* raw scroll progress */
@@ -1067,7 +1186,11 @@ function readScroll() {
 }
 
 function frame(now) {
+  /* real delta, clamped: a tab that was backgrounded must not hand the
+     physics a huge dt and fling the lamp across the hero */
+  const dt = lastFrame ? Math.min((now - lastFrame) / 1000, 0.05) : 0.016;
   lastFrame = now;
+
   const time = now / 1000;
   const prev = smooth;
   smooth += (target - smooth) * 0.085;   /* the interpolation that softens everything */
@@ -1076,6 +1199,7 @@ function frame(now) {
   applyState(smooth);
   drawRibbon(smooth, vel, time);
   driftTicker(time);
+  updateLamp(dt, vel);
 
   requestAnimationFrame(frame);
 }

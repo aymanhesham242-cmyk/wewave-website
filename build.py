@@ -17,6 +17,9 @@ PROFILE_URL = sys.argv[1] if len(sys.argv) > 1 else "assets/wewave-profile.pdf"
 
 html = (ROOT / "index.html").read_text(encoding="utf-8")
 css = (ROOT / "css/style.css").read_text(encoding="utf-8")
+shots = ROOT / "css/service-shots.css"
+if shots.exists():
+    css += "\n" + shots.read_text(encoding="utf-8")
 js = (ROOT / "js/main.js").read_text(encoding="utf-8")
 
 # logo -> data URI so the page carries its own artwork
