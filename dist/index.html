@@ -140,7 +140,12 @@
               <!-- filament: the wave, hot core over a warm halo -->
               <path class="b-wave" d="M118 168q21-46 42 0t42 0" fill="none" stroke="#FFCF6B" stroke-width="13" stroke-linecap="round" filter="url(#gWire)"/>
               <path class="b-wave-mid" d="M118 168q21-46 42 0t42 0" fill="none" stroke="#FFE9AE" stroke-width="6" stroke-linecap="round"/>
-              <path class="b-wave-core" d="M118 168q21-46 42 0t42 0" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/>
+              <!-- a tight dash over the filament reads as coil windings, which is
+                   what separates an incandescent filament from a neon line -->
+              <path class="b-coil" d="M118 168q21-46 42 0t42 0" fill="none" stroke="#FFF8E2" stroke-width="10.5" stroke-linecap="butt" stroke-dasharray="2.2 4.6"/>
+              <path class="b-wave-core" d="M118 168q21-46 42 0t42 0" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/>
+              <!-- light bouncing off the inside of the far wall -->
+              <path class="b-inner" d="M96 192c16 30 48 47 84 44" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" filter="url(#gSoft)"/>
               <!-- reflections riding the inside of the wall -->
               <ellipse class="b-spec" cx="108" cy="96" rx="19" ry="42" fill="#FFFFFF" opacity=".34" transform="rotate(-26 108 96)" filter="url(#gSoft)"/>
               <ellipse class="b-spec2" cx="215" cy="188" rx="10" ry="26" fill="#FFFFFF" opacity=".18" transform="rotate(18 215 188)" filter="url(#gSoft)"/>
@@ -168,6 +173,9 @@
             <g stroke="#FFFFFF" stroke-opacity=".3" stroke-width="1.4">
               <path d="M117 320h86M120 344h80M124 368h72M129 392h62"/>
             </g>
+            <!-- specular band down the metal, so the base reads as a cylinder -->
+            <rect x="131" y="316" width="13" height="94" fill="#FFFFFF" opacity=".16" filter="url(#gSoft)"/>
+            <rect x="184" y="316" width="7" height="94" fill="#FFFFFF" opacity=".08" filter="url(#gSoft)"/>
             <!-- contact tip -->
             <path d="M137 408h46v22c0 10-9 18-20 18h-6c-11 0-20-8-20-18z" fill="#1A1A1F"/>
             <ellipse cx="160" cy="430" rx="17" ry="9" fill="#3A3A42"/>

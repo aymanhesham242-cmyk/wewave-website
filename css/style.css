@@ -343,6 +343,8 @@ canvas{display:block;}
 .b-bloom{opacity:calc(.2 + var(--lit) * .62);}
 .b-wave{opacity:calc(.45 + var(--lit) * .55);}
 .b-wave-mid{opacity:calc(.5 + var(--lit) * .5);}
+.b-coil{opacity:calc(.3 + var(--lit) * .45);}
+.b-inner{opacity:calc(.07 + var(--lit) * .16);}
 .b-wave-core{
   opacity:calc(.42 + var(--lit) * .58);
   filter:drop-shadow(0 0 calc(4px + var(--lit) * 12px) #FFD98A);
@@ -532,10 +534,15 @@ canvas{display:block;}
   .brand{margin-left:0;}
   /* Below this width the hero text fills the row, so the lamp moves above it
      rather than beside it — its glow would otherwise wash over the headline. */
+  /* Container is full-height, so translate(-50%,-50%) would lift it clean off
+     the screen. Give it an explicit box and sit it above the hero text. */
   .hero-lamp{
-    width:92px;right:auto;left:50%;
-    top:17%;transform:translate(-50%,-50%);
+    left:50%;right:auto;
+    top:2%;height:300px;width:168px;
+    transform:translateX(-50%);
   }
+  .lamp-cord{height:9%;}
+  .lamp-body{top:9%;}
 }
 @media (max-width:560px){
   .steps li{gap:14px;}
@@ -544,7 +551,7 @@ canvas{display:block;}
   .scard{flex-basis:76vw;}
   .quotes blockquote:nth-child(2){display:none;}
   .chip{border-radius:11px;}
-  .hero-lamp{width:74px;top:15%;}
+  .hero-lamp{width:140px;height:252px;top:1.5%;}
   .scard-art{width:104px;opacity:.15;}
 }
 

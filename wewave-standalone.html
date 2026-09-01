@@ -349,6 +349,8 @@ canvas{display:block;}
 .b-bloom{opacity:calc(.2 + var(--lit) * .62);}
 .b-wave{opacity:calc(.45 + var(--lit) * .55);}
 .b-wave-mid{opacity:calc(.5 + var(--lit) * .5);}
+.b-coil{opacity:calc(.3 + var(--lit) * .45);}
+.b-inner{opacity:calc(.07 + var(--lit) * .16);}
 .b-wave-core{
   opacity:calc(.42 + var(--lit) * .58);
   filter:drop-shadow(0 0 calc(4px + var(--lit) * 12px) #FFD98A);
@@ -538,10 +540,15 @@ canvas{display:block;}
   .brand{margin-left:0;}
   /* Below this width the hero text fills the row, so the lamp moves above it
      rather than beside it — its glow would otherwise wash over the headline. */
+  /* Container is full-height, so translate(-50%,-50%) would lift it clean off
+     the screen. Give it an explicit box and sit it above the hero text. */
   .hero-lamp{
-    width:92px;right:auto;left:50%;
-    top:17%;transform:translate(-50%,-50%);
+    left:50%;right:auto;
+    top:2%;height:300px;width:168px;
+    transform:translateX(-50%);
   }
+  .lamp-cord{height:9%;}
+  .lamp-body{top:9%;}
 }
 @media (max-width:560px){
   .steps li{gap:14px;}
@@ -550,7 +557,7 @@ canvas{display:block;}
   .scard{flex-basis:76vw;}
   .quotes blockquote:nth-child(2){display:none;}
   .chip{border-radius:11px;}
-  .hero-lamp{width:74px;top:15%;}
+  .hero-lamp{width:140px;height:252px;top:1.5%;}
   .scard-art{width:104px;opacity:.15;}
 }
 
@@ -716,7 +723,12 @@ canvas{display:block;}
               <!-- filament: the wave, hot core over a warm halo -->
               <path class="b-wave" d="M118 168q21-46 42 0t42 0" fill="none" stroke="#FFCF6B" stroke-width="13" stroke-linecap="round" filter="url(#gWire)"/>
               <path class="b-wave-mid" d="M118 168q21-46 42 0t42 0" fill="none" stroke="#FFE9AE" stroke-width="6" stroke-linecap="round"/>
-              <path class="b-wave-core" d="M118 168q21-46 42 0t42 0" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/>
+              <!-- a tight dash over the filament reads as coil windings, which is
+                   what separates an incandescent filament from a neon line -->
+              <path class="b-coil" d="M118 168q21-46 42 0t42 0" fill="none" stroke="#FFF8E2" stroke-width="10.5" stroke-linecap="butt" stroke-dasharray="2.2 4.6"/>
+              <path class="b-wave-core" d="M118 168q21-46 42 0t42 0" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/>
+              <!-- light bouncing off the inside of the far wall -->
+              <path class="b-inner" d="M96 192c16 30 48 47 84 44" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" filter="url(#gSoft)"/>
               <!-- reflections riding the inside of the wall -->
               <ellipse class="b-spec" cx="108" cy="96" rx="19" ry="42" fill="#FFFFFF" opacity=".34" transform="rotate(-26 108 96)" filter="url(#gSoft)"/>
               <ellipse class="b-spec2" cx="215" cy="188" rx="10" ry="26" fill="#FFFFFF" opacity=".18" transform="rotate(18 215 188)" filter="url(#gSoft)"/>
@@ -744,6 +756,9 @@ canvas{display:block;}
             <g stroke="#FFFFFF" stroke-opacity=".3" stroke-width="1.4">
               <path d="M117 320h86M120 344h80M124 368h72M129 392h62"/>
             </g>
+            <!-- specular band down the metal, so the base reads as a cylinder -->
+            <rect x="131" y="316" width="13" height="94" fill="#FFFFFF" opacity=".16" filter="url(#gSoft)"/>
+            <rect x="184" y="316" width="7" height="94" fill="#FFFFFF" opacity=".08" filter="url(#gSoft)"/>
             <!-- contact tip -->
             <path d="M137 408h46v22c0 10-9 18-20 18h-6c-11 0-20-8-20-18z" fill="#1A1A1F"/>
             <ellipse cx="160" cy="430" rx="17" ry="9" fill="#3A3A42"/>
@@ -1229,9 +1244,22 @@ if (!REDUCED && lampEl) {
      than "somewhere in the hero". */
   const body = $('.lamp-body', lampEl);
   if (body) {
-    body.addEventListener('mouseenter', () => { lampHover = 1; });
-    body.addEventListener('mouseleave', () => { lampHover = 0; });
+    /* pointer events fire for mouse and pen alike, and unlike mouseenter they
+       still arrive if the button is held while leaving */
+    body.addEventListener('pointerenter', () => { lampHover = 1; });
+    body.addEventListener('pointerleave', () => { lampHover = 0; });
+    body.addEventListener('pointercancel', () => { lampHover = 0; });
   }
+
+  /* Belt and braces: if the cursor leaves the window straight off the bulb,
+     or the tab loses focus, pointerleave can never arrive and the lamp would
+     stay lit forever. Clear it from the document edge too. */
+  const release = () => { lampHover = 0; lampNear = 0; };
+  document.addEventListener('mouseleave', release);
+  window.addEventListener('blur', release);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') release();
+  });
 
   window.addEventListener('mousemove', e => {
     const r = lampEl.getBoundingClientRect();
@@ -1274,8 +1302,15 @@ function updateLamp(dt, scrollVel) {
     const stutter = (LAMP.t < 0.34 || (LAMP.t > 0.52 && LAMP.t < 0.66)) ? 0.18 : 1;
     lit = f * stutter;
   } else {
-    lit = 0.62 + Math.sin(LAMP.t * 0.85) * 0.07 + lampNear * 0.22;
+    /* Resting state is dim enough that hover is a clear change and there is
+       no standing halo. Proximity only leans it slightly. */
+    lit = 0.34 + Math.sin(LAMP.t * 0.85) * 0.05 + lampNear * 0.16;
   }
+
+  /* Proximity is only refreshed by mousemove, so it has to bleed off on its
+     own — otherwise parking the cursor near the bulb (or leaving the window)
+     would hold the glow up indefinitely. */
+  lampNear *= Math.pow(0.06, dt);
   /* Hovering the bulb drives it to full: the filament, the glass, the halo
      and the cast light all read from --lit, so one value lifts the whole
      fixture together instead of flipping a colour. */

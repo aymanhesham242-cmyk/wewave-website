@@ -308,9 +308,22 @@ if (!REDUCED && lampEl) {
      than "somewhere in the hero". */
   const body = $('.lamp-body', lampEl);
   if (body) {
-    body.addEventListener('mouseenter', () => { lampHover = 1; });
-    body.addEventListener('mouseleave', () => { lampHover = 0; });
+    /* pointer events fire for mouse and pen alike, and unlike mouseenter they
+       still arrive if the button is held while leaving */
+    body.addEventListener('pointerenter', () => { lampHover = 1; });
+    body.addEventListener('pointerleave', () => { lampHover = 0; });
+    body.addEventListener('pointercancel', () => { lampHover = 0; });
   }
+
+  /* Belt and braces: if the cursor leaves the window straight off the bulb,
+     or the tab loses focus, pointerleave can never arrive and the lamp would
+     stay lit forever. Clear it from the document edge too. */
+  const release = () => { lampHover = 0; lampNear = 0; };
+  document.addEventListener('mouseleave', release);
+  window.addEventListener('blur', release);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') release();
+  });
 
   window.addEventListener('mousemove', e => {
     const r = lampEl.getBoundingClientRect();
@@ -353,8 +366,15 @@ function updateLamp(dt, scrollVel) {
     const stutter = (LAMP.t < 0.34 || (LAMP.t > 0.52 && LAMP.t < 0.66)) ? 0.18 : 1;
     lit = f * stutter;
   } else {
-    lit = 0.62 + Math.sin(LAMP.t * 0.85) * 0.07 + lampNear * 0.22;
+    /* Resting state is dim enough that hover is a clear change and there is
+       no standing halo. Proximity only leans it slightly. */
+    lit = 0.34 + Math.sin(LAMP.t * 0.85) * 0.05 + lampNear * 0.16;
   }
+
+  /* Proximity is only refreshed by mousemove, so it has to bleed off on its
+     own — otherwise parking the cursor near the bulb (or leaving the window)
+     would hold the glow up indefinitely. */
+  lampNear *= Math.pow(0.06, dt);
   /* Hovering the bulb drives it to full: the filament, the glass, the halo
      and the cast light all read from --lit, so one value lifts the whole
      fixture together instead of flipping a colour. */
