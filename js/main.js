@@ -7,6 +7,10 @@
    ========================================================= */
 
 const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* Coarse pointer / small screen: the phone path. Declared here because the
+   canvas setup below reads it at module scope. */
+const TOUCH = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+const SMALL = window.matchMedia('(max-width: 900px)').matches;
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
@@ -175,12 +179,17 @@ function processSteps(lp) {
    Ribbon canvas — a continuously travelling glow whose shape
    is bent by scroll position and scroll velocity.
    --------------------------------------------------------- */
+/* One switch for the phone-weight render path. */
+const LIGHT = TOUCH || SMALL;
+
 const cv  = $('#ribbon');
 const ctx = cv.getContext('2d');
 let W = 0, H = 0;
 
 function sizeCanvas() {
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  /* Cap the buffer on phones: at 2x this canvas is redrawn every frame and
+     the fill rate, not the maths, is what costs. */
+  const dpr = Math.min(window.devicePixelRatio || 1, TOUCH || SMALL ? 1 : 2);
   W = window.innerWidth; H = window.innerHeight;
   cv.width = W * dpr; cv.height = H * dpr;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -199,7 +208,7 @@ function ribbonX(yN, time, phase, amp, k = 0) {
     + Math.sin(yN * 6.7 - time * 0.22 + phase * 1.6 + k * 0.24) * a * 0.32;
 }
 
-const sparks = Array.from({ length: 26 }, () => ({
+const sparks = Array.from({ length: LIGHT ? 9 : 26 }, () => ({
   y: Math.random(), speed: 0.00022 + Math.random() * 0.0006, size: 0.7 + Math.random() * 1.9
 }));
 
@@ -212,8 +221,9 @@ function drawRibbon(p, vel, time) {
 
   const buildPts = (k) => {
     const pts = [];
-    for (let i = 0; i <= 64; i++) {
-      const yN = -0.08 + (i / 64) * 1.16;
+    const SEG = LIGHT ? 34 : 64;
+    for (let i = 0; i <= SEG; i++) {
+      const yN = -0.08 + (i / SEG) * 1.16;
       pts.push([ribbonX(yN, time, phase, amp, k), yN * H]);
     }
     return pts;
@@ -235,7 +245,7 @@ function drawRibbon(p, vel, time) {
 
   /* trailing strands either side of the crest: the band reads as a wave
      rolling through the page rather than a single glowing wire */
-  const STRANDS = 5;
+  const STRANDS = LIGHT ? 2 : 5;
   for (let k = STRANDS; k >= 1; k--) {
     const fade = 0.14 * (1 - k / STRANDS) + 0.035;
     stroke(buildPts(k),  1.15, fade);
@@ -298,45 +308,47 @@ const LAMP = {
 const SPRING = 9.0;     /* ~2s period — a heavy fixture, not a light trinket */
 const DAMP   = 1.05;    /* settles in a few swings without looking bouncy */
 
-let lampPointer = 0;    /* -1..1 horizontal cursor offset from the lamp */
-let lampNear    = 0;    /* 0..1 cursor proximity */
-
-let lampHover = 0;      /* eased 0..1 — the bulb is being pointed at */
+let lampPointer = 0;    /* -1..1 horizontal cursor offset — drives the lean only */
+let lampHover   = 0;    /* 0 or 1 — the bulb is being pointed at or held */
 
 if (!REDUCED && lampEl) {
-  /* Only the bulb takes the cursor, so hovering it is unambiguous rather
-     than "somewhere in the hero". */
   const body = $('.lamp-body', lampEl);
+  const release = () => { lampHover = 0; };
+
   if (body) {
-    /* pointer events fire for mouse and pen alike, and unlike mouseenter they
-       still arrive if the button is held while leaving */
+    /* Pointer events cover mouse, pen and touch from one path: on a phone
+       pointerenter fires on tap and pointerleave on lift. */
     body.addEventListener('pointerenter', () => { lampHover = 1; });
-    body.addEventListener('pointerleave', () => { lampHover = 0; });
-    body.addEventListener('pointercancel', () => { lampHover = 0; });
+    body.addEventListener('pointerleave', release);
+    body.addEventListener('pointercancel', release);
+    /* Explicit touch fallback for browsers that don't map touch to pointer. */
+    body.addEventListener('touchstart', () => { lampHover = 1; }, { passive: true });
+    body.addEventListener('touchend', release, { passive: true });
+    body.addEventListener('touchcancel', release, { passive: true });
   }
 
-  /* Belt and braces: if the cursor leaves the window straight off the bulb,
-     or the tab loses focus, pointerleave can never arrive and the lamp would
-     stay lit forever. Clear it from the document edge too. */
-  const release = () => { lampHover = 0; lampNear = 0; };
+  /* Every way the lamp could otherwise be left lit: cursor leaving the window
+     straight off the bulb, tab losing focus, or a tap landing elsewhere. */
   document.addEventListener('mouseleave', release);
   window.addEventListener('blur', release);
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState !== 'visible') release();
   });
-
-  window.addEventListener('mousemove', e => {
-    const r = lampEl.getBoundingClientRect();
-    if (!r.width) return;
-    const cx = r.left + r.width / 2;
-    const cy = r.top + r.height * 0.42;
-    /* horizontal offset drives the lean; distance drives brightness */
-    lampPointer = clamp((e.clientX - cx) / (window.innerWidth * 0.45), -1, 1);
-    const d = Math.hypot(e.clientX - cx, e.clientY - cy);
-    lampNear = clamp(1 - d / (window.innerWidth * 0.42), 0, 1);
-    /* a flick of the cursor nudges the fixture */
-    LAMP.pointerTorque += clamp(e.movementX || 0, -40, 40) * 0.05;
+  document.addEventListener('pointerdown', e => {
+    if (!body || !body.contains(e.target)) release();
   }, { passive: true });
+
+  /* Cursor tracking is desktop-only — on a phone it is pure cost for an
+     effect nobody can see. */
+  if (!TOUCH) {
+    window.addEventListener('mousemove', e => {
+      const r = lampEl.getBoundingClientRect();
+      if (!r.width) return;
+      const cx = r.left + r.width / 2;
+      lampPointer = clamp((e.clientX - cx) / (window.innerWidth * 0.45), -1, 1);
+      LAMP.pointerTorque += clamp(e.movementX || 0, -40, 40) * 0.05;
+    }, { passive: true });
+  }
 }
 
 function updateLamp(dt, scrollVel) {
@@ -358,32 +370,17 @@ function updateLamp(dt, scrollVel) {
   LAMP.dyv += dacc * dt;
   LAMP.dy  += LAMP.dyv * dt;
 
-  /* brightness: warm-up flicker, then a slow breath, brighter near the cursor */
-  let lit;
-  if (LAMP.t < 1.5) {
-    const f = LAMP.t / 1.5;
-    /* two stutters before it holds — reads as a filament catching */
-    const stutter = (LAMP.t < 0.34 || (LAMP.t > 0.52 && LAMP.t < 0.66)) ? 0.18 : 1;
-    lit = f * stutter;
-  } else {
-    /* Resting state is dim enough that hover is a clear change and there is
-       no standing halo. Proximity only leans it slightly. */
-    lit = 0.34 + Math.sin(LAMP.t * 0.85) * 0.05 + lampNear * 0.16;
-  }
+  /* The lamp is OFF unless it is being pointed at or held. No resting glow,
+     no ambient halo, no proximity lift — until you touch it the bulb is just
+     a physical object. --lit therefore has exactly two targets: 0 and 1. */
+  const lit = lampHover;
 
-  /* Proximity is only refreshed by mousemove, so it has to bleed off on its
-     own — otherwise parking the cursor near the bulb (or leaving the window)
-     would hold the glow up indefinitely. */
-  lampNear *= Math.pow(0.06, dt);
-  /* Hovering the bulb drives it to full: the filament, the glass, the halo
-     and the cast light all read from --lit, so one value lifts the whole
-     fixture together instead of flipping a colour. */
-  lit = Math.max(lit, lampHover);
-
-  /* Eased both ways, and slower on the way out — a filament cooling takes
-     longer than it takes to brighten. */
-  const rate = lit > LAMP.lit ? 6.5 : 3.0;
-  LAMP.lit += (clamp(lit, 0, 1) - LAMP.lit) * Math.min(dt * rate, 1);
+  /* Eased both ways, slower on the way out: a filament cools more slowly
+     than it lights. Because the target is a hard 0, the fade always lands
+     fully off instead of settling on a residual value. */
+  const rate = lit > LAMP.lit ? 6.5 : 3.4;
+  LAMP.lit += (lit - LAMP.lit) * Math.min(dt * rate, 1);
+  if (LAMP.lit < 0.002) LAMP.lit = 0;   /* snap the tail so it truly reaches off */
 
   lampSwing.style.transform =
     `translateY(${LAMP.dy.toFixed(2)}px) rotate(${LAMP.a.toFixed(3)}deg)`;

@@ -311,7 +311,7 @@ canvas{display:block;}
     color-mix(in srgb,var(--bulb-warm) 34%,transparent) 40%,
     transparent 70%);
   filter:blur(14px);
-  opacity:calc(.3 + var(--lit) * .7);
+  opacity:calc(var(--lit) * .95);
   z-index:1;
 }
 .lamp-halo{                        /* ambient falloff into the page */
@@ -323,7 +323,7 @@ canvas{display:block;}
     color-mix(in srgb,var(--bulb-warm) 4%,transparent) 48%,
     transparent 70%);
   filter:blur(30px);
-  opacity:calc(.26 + var(--lit) * .74);
+  opacity:calc(var(--lit) * .8);
 }
 .lamp-cast{                        /* warm wash thrown onto the section */
   left:50%;top:30%;width:170%;height:150%;
@@ -334,20 +334,21 @@ canvas{display:block;}
     color-mix(in srgb,var(--bulb-warm) 5%,transparent) 40%,
     transparent 74%);
   filter:blur(34px);
-  opacity:calc(.18 + var(--lit) * .55);
+  opacity:calc(var(--lit) * .6);
 }
 
 /* Glass, filament and reflections all read from --lit, so raising brightness
    lifts the whole fixture the way a dimmer does — not a colour switching. */
-.b-fill{opacity:calc(.52 + var(--lit) * .48);}
-.b-bloom{opacity:calc(.2 + var(--lit) * .62);}
-.b-wave{opacity:calc(.45 + var(--lit) * .55);}
-.b-wave-mid{opacity:calc(.5 + var(--lit) * .5);}
-.b-coil{opacity:calc(.3 + var(--lit) * .45);}
-.b-inner{opacity:calc(.07 + var(--lit) * .16);}
+.b-fill{opacity:calc(.34 + var(--lit) * .62);}
+.b-bloom{opacity:calc(var(--lit) * .72);}
+.b-wave{opacity:calc(.16 + var(--lit) * .74);}
+.b-wave-mid{opacity:calc(.2 + var(--lit) * .68);}
+.b-coil{opacity:calc(.14 + var(--lit) * .5);}
+.b-inner{opacity:calc(.05 + var(--lit) * .18);}
 .b-wave-core{
-  opacity:calc(.42 + var(--lit) * .58);
-  filter:drop-shadow(0 0 calc(4px + var(--lit) * 12px) #FFD98A);
+  opacity:calc(.3 + var(--lit) * .7);
+  /* no bloom at rest — the drop-shadow only grows once it is lit */
+  filter:drop-shadow(0 0 calc(var(--lit) * 13px) #FFD98A);
 }
 .b-wire,.b-stem{opacity:calc(.34 + var(--lit) * .3);}
 .b-spec{opacity:calc(.16 + var(--lit) * .3);}
@@ -534,15 +535,23 @@ canvas{display:block;}
   .brand{margin-left:0;}
   /* Below this width the hero text fills the row, so the lamp moves above it
      rather than beside it — its glow would otherwise wash over the headline. */
-  /* Container is full-height, so translate(-50%,-50%) would lift it clean off
-     the screen. Give it an explicit box and sit it above the hero text. */
+  /* Beside the headline, not above it. Explicit box (the container is
+     full-height on desktop, so a -50% Y translate would lift it off-screen),
+     tucked to the right and layered behind the type so the wordmark stays
+     legible where they overlap. */
   .hero-lamp{
-    left:50%;right:auto;
-    top:2%;height:300px;width:168px;
-    transform:translateX(-50%);
+    left:auto;right:0;
+    top:34%;height:264px;width:150px;
+    transform:none;
+    z-index:1;
   }
-  .lamp-cord{height:9%;}
-  .lamp-body{top:9%;}
+  .lamp-cord{height:7%;}
+  .lamp-body{top:7%;}
+  .stage-hero .stage-inner{position:relative;z-index:3;}
+  /* lighter blurs: these are the expensive part on a phone */
+  .lamp-core{filter:blur(8px);}
+  .lamp-halo{filter:blur(16px);}
+  .lamp-cast{display:none;}
 }
 @media (max-width:560px){
   .steps li{gap:14px;}
@@ -551,7 +560,7 @@ canvas{display:block;}
   .scard{flex-basis:76vw;}
   .quotes blockquote:nth-child(2){display:none;}
   .chip{border-radius:11px;}
-  .hero-lamp{width:140px;height:252px;top:1.5%;}
+  .hero-lamp{width:124px;height:218px;top:36%;right:0;}
   .scard-art{width:104px;opacity:.15;}
 }
 
