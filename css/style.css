@@ -547,7 +547,10 @@ canvas{display:block;}
   }
   .lamp-cord{height:7%;}
   .lamp-body{top:7%;}
-  .stage-hero .stage-inner{position:relative;z-index:3;}
+  /* Text stays visually above the bulb, but must not swallow the touch that
+     belongs to it: this layer sits over the lamp and is pure copy, nothing
+     interactive, so it is transparent to pointers. */
+  .stage-hero .stage-inner{position:relative;z-index:3;pointer-events:none;}
   /* lighter blurs: these are the expensive part on a phone */
   .lamp-core{filter:blur(8px);}
   .lamp-halo{filter:blur(16px);}
