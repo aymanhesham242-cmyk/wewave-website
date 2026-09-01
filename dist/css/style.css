@@ -247,6 +247,51 @@ canvas{display:block;}
   100%{transform:translateY(100%);}
 }
 
+/* ---------- Hero lamp ---------- */
+.hero-lamp{
+  position:absolute;z-index:2;pointer-events:none;
+  right:clamp(20px,8vw,150px);
+  top:50%;transform:translateY(-50%);
+  width:clamp(112px,14vw,215px);
+  color:var(--glow);
+  opacity:0;
+  transition:opacity 1.1s var(--ease) .5s;
+}
+.stage.in .hero-lamp{opacity:1;}
+.hero-lamp svg{width:100%;height:auto;display:block;position:relative;z-index:1;}
+
+/* the light it casts */
+.hero-lamp::before{
+  content:'';position:absolute;left:50%;top:34%;
+  width:165%;aspect-ratio:1;transform:translate(-50%,-50%);
+  background:radial-gradient(circle,
+    color-mix(in srgb,var(--glow) 42%,transparent) 0%,
+    color-mix(in srgb,var(--glow) 12%,transparent) 38%,
+    transparent 66%);
+  filter:blur(10px);
+  animation:lampGlow 4.6s ease-in-out infinite;
+}
+.lamp-glass{opacity:.5;}
+.lamp-base{opacity:.42;}
+.lamp-rays{opacity:.45;animation:lampRays 4.6s ease-in-out infinite;}
+/* the filament is the brightest thing — it's the brand doing the work */
+.lamp-wave{
+  opacity:1;
+  filter:drop-shadow(0 0 7px color-mix(in srgb,var(--glow) 85%,transparent));
+  animation:lampFilament 4.6s ease-in-out infinite;
+}
+@keyframes lampGlow{
+  0%,100%{opacity:.5;transform:translate(-50%,-50%) scale(.9);}
+  50%    {opacity:1;transform:translate(-50%,-50%) scale(1.07);}
+}
+@keyframes lampFilament{0%,100%{opacity:.72;}50%{opacity:1;}}
+@keyframes lampRays{0%,100%{opacity:.25;}50%{opacity:.6;}}
+
+@media (prefers-reduced-motion:reduce){
+  .hero-lamp::before,.lamp-wave,.lamp-rays{animation:none;}
+  .hero-lamp{opacity:1;transition:none;}
+}
+
 /* ---------- Services rail ---------- */
 .stage-services{flex-direction:column;justify-content:center;align-items:flex-start;}
 .stage-head{width:100%;max-width:1180px;margin:0 auto clamp(24px,3.4vw,44px);}
@@ -426,6 +471,12 @@ canvas{display:block;}
   .quotes{grid-template-columns:1fr;}
   .quotes blockquote:nth-child(3){display:none;}
   .stage{padding-top:calc(var(--pad) + 64px);}
+  /* Below this width the hero text fills the row, so the lamp moves above it
+     rather than beside it — its glow would otherwise wash over the headline. */
+  .hero-lamp{
+    width:92px;right:auto;left:50%;
+    top:17%;transform:translate(-50%,-50%);
+  }
 }
 @media (max-width:560px){
   .steps li{gap:14px;}
@@ -434,6 +485,7 @@ canvas{display:block;}
   .scard{flex-basis:76vw;}
   .quotes blockquote:nth-child(2){display:none;}
   .chip{border-radius:11px;}
+  .hero-lamp{width:74px;top:15%;}
   .scard-art{width:104px;opacity:.15;}
 }
 
