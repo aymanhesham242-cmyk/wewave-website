@@ -123,8 +123,30 @@ canvas{display:block;}
   transition:opacity .8s var(--ease),transform .8s var(--ease);
 }
 .chrome-top.on{opacity:1;transform:none;}
-.brand{display:flex;align-items:center;gap:10px;color:var(--ink);}
-.brand-mark{width:34px;height:26px;color:var(--glow);}
+/* "Light in the dark": the mark itself is the light source. A soft halo
+   breathes behind it and fades out as the page moves onto pale stages, where
+   a glow would read as haze rather than light. */
+.brand{display:flex;align-items:center;gap:10px;color:var(--ink);position:relative;}
+.brand::before{
+  content:'';position:absolute;left:-13px;top:50%;
+  width:60px;height:60px;border-radius:50%;
+  background:radial-gradient(circle,
+    color-mix(in srgb,var(--glow) 62%,transparent) 0%,
+    color-mix(in srgb,var(--glow) 20%,transparent) 45%,
+    transparent 72%);
+  filter:blur(5px);
+  transform:translateY(-50%);
+  animation:lamp 4.2s ease-in-out infinite;
+  pointer-events:none;z-index:-1;
+}
+.brand-mark{width:34px;height:26px;color:var(--glow);position:relative;}
+@keyframes lamp{
+  0%,100%{opacity:.42;transform:translateY(-50%) scale(.9);}
+  50%    {opacity:.85;transform:translateY(-50%) scale(1.08);}
+}
+@media (prefers-reduced-motion:reduce){
+  .brand::before{animation:none;opacity:.55;}
+}
 .brand-word{font-family:var(--display);font-size:20px;letter-spacing:.04em;line-height:1;}
 
 .nav{display:flex;gap:clamp(16px,2.4vw,34px);}
@@ -269,6 +291,39 @@ canvas{display:block;}
   pointer-events:none;
 }
 .scard:hover .scard-art{opacity:.22;transform:translate(-4px,-4px) rotate(-4deg);}
+
+/* Photo revealed on hover. Desaturated and washed back so the card keeps the
+   palette rather than the photograph setting the tone. A missing file simply
+   paints nothing -- no broken-image state -- so the cards are correct now and
+   improve the moment real photography lands in assets/services/. */
+.scard::before{
+  content:'';position:absolute;inset:0;z-index:-3;
+  background-image:var(--shot);background-size:cover;background-position:center;
+  filter:grayscale(1) contrast(.92);
+  opacity:0;transform:scale(1.06);
+  transition:opacity .55s var(--ease),transform .8s var(--ease);
+  pointer-events:none;
+}
+.scard::after{                       /* wash that keeps the text legible */
+  content:'';position:absolute;inset:0;z-index:-2;
+  background:linear-gradient(165deg,
+    color-mix(in srgb,var(--bg) 55%,transparent),
+    color-mix(in srgb,var(--bg) 88%,transparent));
+  opacity:0;transition:opacity .55s var(--ease);
+  pointer-events:none;
+}
+.scard:hover::before{opacity:.5;transform:scale(1);}
+.scard:hover::after{opacity:1;}
+
+.scard[href*="competitor-market-analysis"]{--shot:url(../assets/services/competitor-market-analysis.jpg);}
+.scard[href*="content-strategy"]{--shot:url(../assets/services/content-strategy.jpg);}
+.scard[href*="media-buying"]{--shot:url(../assets/services/media-buying.jpg);}
+.scard[href*="photography-reels"]{--shot:url(../assets/services/photography-reels.jpg);}
+.scard[href*="copywriting"]{--shot:url(../assets/services/copywriting.jpg);}
+.scard[href*="brand-identity"]{--shot:url(../assets/services/brand-identity.jpg);}
+.scard[href*="trend-monitoring"]{--shot:url(../assets/services/trend-monitoring.jpg);}
+.scard[href*="performance-reporting"]{--shot:url(../assets/services/performance-reporting.jpg);}
+.scard[href*="web-development"]{--shot:url(../assets/services/web-development.jpg);}
 
 .scard-more{
   margin-top:auto;padding-top:16px;
