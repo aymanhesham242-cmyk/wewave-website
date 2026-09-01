@@ -5,24 +5,24 @@
    ========================================================= */
 
 :root{
-  /* Black / white / gold. Everything else is a grey step between them —
-     the accent only means something if nothing competes with it. */
-  --black:#0A0A0B;
-  --char:#141417;
-  --coal:#1C1C20;
-  --gold:#F4C11F;
-  --gold-hot:#FFD54A;
-  --gold-deep:#C2941A;
+  /* brand palette */
+  --primary:#1F6B45;
+  --dark:#123C2A;
+  --accent:#2E8B57;
+  --light-green:#DDEFE5;
+  --mint:#F1F8F4;
+  --warm:#FAF8F2;
+  --text:#17231D;
+  --text-2:#66736B;
   --white:#FFFFFF;
-  --grey:#8A8A90;
-  --deep:#0A0A0B;
+  --deep:#0C2A1C;
 
   /* live stage tokens (JS writes these) */
-  --bg:#0A0A0B;
+  --bg:#0C2A1C;
   --ink:#FFFFFF;
-  --dim:rgba(255,255,255,.6);
-  --line:rgba(255,255,255,.09);
-  --glow:#F4C11F;
+  --dim:rgba(255,255,255,.58);
+  --line:rgba(255,255,255,.16);
+  --glow:#2E8B57;
 
   --display:'Bebas Neue',Impact,sans-serif;
   --mono:'DM Mono',ui-monospace,monospace;
@@ -61,7 +61,7 @@ canvas{display:block;}
 .loader{
   position:fixed;inset:0;z-index:900;background:var(--deep);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
-  color:var(--gold);
+  color:var(--accent);
   transition:opacity .7s var(--ease),visibility .7s var(--ease);
 }
 .loader.out{opacity:0;visibility:hidden;}
@@ -73,13 +73,13 @@ canvas{display:block;}
   -webkit-mask:url(../assets/wewave-mark.png) center/contain no-repeat;
   mask:url(../assets/wewave-mark.png) center/contain no-repeat;
 }
-.mark-lg{width:74px;height:57px;color:var(--gold);filter:drop-shadow(0 0 16px rgba(244,193,31,.5));}
+.mark-lg{width:74px;height:57px;color:var(--accent);filter:drop-shadow(0 0 16px rgba(46,139,87,.55));}
 .sr-only{
   position:absolute;width:1px;height:1px;padding:0;margin:-1px;
   overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;
 }
 .loader-bar{width:min(240px,52vw);height:1px;background:rgba(255,255,255,.16);position:relative;overflow:hidden;}
-.loader-bar span{position:absolute;inset:0 auto 0 0;width:0;background:var(--gold);box-shadow:0 0 10px var(--gold);}
+.loader-bar span{position:absolute;inset:0 auto 0 0;width:0;background:var(--accent);box-shadow:0 0 10px var(--accent);}
 .loader-pct{font-family:var(--mono);font-size:11px;letter-spacing:.28em;color:rgba(255,255,255,.5);}
 
 .intro{
@@ -111,7 +111,7 @@ canvas{display:block;}
    ========================================================= */
 .chrome-top{
   position:fixed;top:0;left:0;right:0;z-index:300;
-  display:flex;align-items:center;justify-content:space-between;gap:20px;
+  display:flex;align-items:flex-start;justify-content:space-between;gap:20px;
   padding:clamp(16px,2.2vw,26px) var(--pad);
   opacity:0;transform:translateY(-8px);
   transition:opacity .8s var(--ease),transform .8s var(--ease);
@@ -120,32 +120,39 @@ canvas{display:block;}
 /* "Light in the dark": the mark itself is the light source. A soft halo
    breathes behind it and fades out as the page moves onto pale stages, where
    a glow would read as haze rather than light. */
-.brand{display:flex;align-items:center;gap:10px;color:var(--ink);position:relative;}
+/* Logo presentation follows the reference: a stacked block — mark above the
+   wordmark — roughly 7% of viewport width, set in from the left edge rather
+   than flush to it. Our own mark and colours, only the treatment matches. */
+.brand{
+  display:flex;flex-direction:column;align-items:center;gap:9px;
+  color:var(--ink);position:relative;
+  margin-left:clamp(0px,4.2vw,58px);
+}
 .brand::before{
-  content:'';position:absolute;left:-13px;top:50%;
-  width:60px;height:60px;border-radius:50%;
+  content:'';position:absolute;left:50%;top:32%;
+  width:132px;height:132px;border-radius:50%;
   background:radial-gradient(circle,
-    color-mix(in srgb,var(--glow) 62%,transparent) 0%,
-    color-mix(in srgb,var(--glow) 20%,transparent) 45%,
+    color-mix(in srgb,var(--glow) 52%,transparent) 0%,
+    color-mix(in srgb,var(--glow) 17%,transparent) 45%,
     transparent 72%);
-  filter:blur(5px);
-  transform:translateY(-50%);
+  filter:blur(9px);
+  transform:translate(-50%,-50%);
   animation:lamp 4.2s ease-in-out infinite;
   pointer-events:none;z-index:-1;
 }
-.brand-mark{width:34px;height:26px;color:var(--glow);position:relative;}
+.brand-mark{width:clamp(58px,6vw,88px);height:auto;aspect-ratio:1.304;color:var(--glow);position:relative;}
 @keyframes lamp{
-  0%,100%{opacity:.42;transform:translateY(-50%) scale(.9);}
-  50%    {opacity:.85;transform:translateY(-50%) scale(1.08);}
+  0%,100%{opacity:.42;transform:translate(-50%,-50%) scale(.9);}
+  50%    {opacity:.85;transform:translate(-50%,-50%) scale(1.08);}
 }
 @media (prefers-reduced-motion:reduce){
   .brand::before{animation:none;opacity:.55;}
 }
-.brand-word{font-family:var(--display);font-size:20px;letter-spacing:.04em;line-height:1;}
+.brand-word{font-family:var(--display);font-size:clamp(19px,1.9vw,26px);letter-spacing:.05em;line-height:1;}
 
-.nav{display:flex;gap:clamp(16px,2.4vw,34px);}
+.nav{display:flex;gap:clamp(16px,2.4vw,34px);margin-top:clamp(10px,1.6vw,24px);}
 .nav a{
-  position:relative;font-family:var(--mono);font-weight:500;font-size:11px;
+  position:relative;font-family:var(--mono);font-size:10.5px;
   letter-spacing:.2em;text-transform:uppercase;color:var(--dim);
   transition:color .35s var(--ease);
 }
@@ -153,23 +160,19 @@ canvas{display:block;}
   content:'';position:absolute;left:0;bottom:-5px;height:1px;width:0;background:var(--glow);
   transition:width .4s var(--ease);
 }
-.nav a:hover{color:var(--ink);}
-.nav a.active{color:var(--glow);}
+.nav a:hover,.nav a.active{color:var(--ink);}
 .nav a:hover::after,.nav a.active::after{width:100%;}
 
 .pill{
-  font-family:var(--mono);font-weight:500;font-size:11px;letter-spacing:.18em;
-  text-transform:uppercase;background:var(--glow);color:#0A0A0B;
-  border:1px solid var(--glow);border-radius:2px;
-  padding:12px 24px;white-space:nowrap;
-  transition:background-color .3s,border-color .3s,transform .3s var(--ease),box-shadow .35s;
+  margin-top:clamp(8px,1.4vw,20px);
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink);border:1px solid var(--line);border-radius:999px;
+  padding:9px 20px;white-space:nowrap;
+  transition:border-color .35s,background-color .35s,color .35s;
 }
-.pill:hover{
-  background:var(--gold-hot);border-color:var(--gold-hot);transform:translateY(-2px);
-  box-shadow:0 10px 26px color-mix(in srgb,var(--glow) 32%,transparent);
-}
+.pill:hover{border-color:var(--glow);background:var(--glow);color:var(--white);}
 
-.burger{display:none;flex-direction:column;gap:5px;background:none;border:0;cursor:pointer;padding:6px;z-index:320;}
+.burger{margin-top:clamp(8px,1.4vw,18px);display:none;flex-direction:column;gap:5px;background:none;border:0;cursor:pointer;padding:6px;z-index:320;}
 .burger span{width:22px;height:1.5px;background:var(--ink);transition:transform .35s var(--ease),opacity .25s;}
 
 .chrome-bottom{
@@ -194,7 +197,7 @@ canvas{display:block;}
 .stage{
   position:fixed;inset:0;
   display:flex;align-items:center;
-  padding:calc(var(--pad) + 54px) var(--pad);
+  padding:calc(var(--pad) + 104px) var(--pad) calc(var(--pad) + 54px);
   opacity:0;visibility:hidden;pointer-events:none;
   will-change:opacity,transform;
 }
@@ -216,9 +219,8 @@ canvas{display:block;}
   font-family:var(--mono);font-size:10.5px;letter-spacing:.3em;
   text-transform:uppercase;color:var(--glow);margin-bottom:clamp(14px,1.8vw,22px);
 }
-.display{font-family:var(--display);font-weight:400;line-height:.88;letter-spacing:.015em;text-transform:uppercase;}
+.display{font-family:var(--display);font-weight:400;line-height:.93;letter-spacing:.015em;text-transform:uppercase;}
 .display .ln{display:block;overflow:hidden;}
-.display em{font-style:normal;color:var(--glow);}
 .display .ln i{
   display:block;font-style:normal;
   transform:translateY(108%);
@@ -226,9 +228,9 @@ canvas{display:block;}
   transition-delay:calc(var(--d,0) * 95ms);
 }
 .stage.in .display .ln i{transform:translateY(0);}
-.xl{font-size:clamp(52px,8.2vw,132px);letter-spacing:.005em;}
-.lg{font-size:clamp(44px,8vw,124px);}
-.md{font-size:clamp(36px,6.2vw,92px);}
+.xl{font-size:clamp(64px,15vw,190px);}
+.lg{font-size:clamp(40px,7.6vw,104px);}
+.md{font-size:clamp(32px,5.4vw,72px);}
 
 .tagline{
   font-family:var(--mono);font-size:clamp(10px,1.15vw,13px);
@@ -260,61 +262,15 @@ canvas{display:block;}
    Brightness rides one custom property (--lit, 0..1) that JS writes each
    frame; every light layer reads from it, so the whole fixture brightens and
    dims as one lamp rather than as separate effects. */
-/* ---------- structural column rules ---------- */
-.grid-lines{
-  position:fixed;inset:0;z-index:0;pointer-events:none;
-  display:grid;grid-template-columns:repeat(5,1fr);
-  padding:0 var(--pad);
-  opacity:0;transition:opacity 1.2s var(--ease) .6s;
-}
-.grid-lines.on{opacity:1;}
-.grid-lines i{border-left:1px solid var(--line);height:100%;}
-.grid-lines i:last-child{border-right:1px solid var(--line);}
-
-/* ---------- oversized background typography ---------- */
-.bigword{
-  position:absolute;left:50%;bottom:-4%;
-  font-family:var(--display);font-weight:400;
-  font-size:clamp(140px,26vw,420px);line-height:.74;
-  letter-spacing:-.01em;white-space:nowrap;
-  color:var(--ink);opacity:.035;
-  transform:translateX(-50%);
-  pointer-events:none;user-select:none;z-index:0;
-  will-change:transform;
-}
-
-/* ---------- hero composition ---------- */
-.hero-grid{display:flex;align-items:center;}
-.hero-copy{max-width:min(58ch,60%);}
-.hero-cta{display:flex;gap:14px;flex-wrap:wrap;margin-top:clamp(24px,3vw,38px);}
-
-/* gold CTA — the loudest control on the page */
-.btn-solid,.btn-line{
-  font-family:var(--mono);font-weight:500;font-size:11.5px;
-  letter-spacing:.18em;text-transform:uppercase;
-  padding:17px 34px;border-radius:2px;
-  transition:transform .3s var(--ease),background-color .3s,color .3s,border-color .3s,box-shadow .35s;
-}
-.btn-solid{background:var(--glow);color:#0A0A0B;border:1px solid var(--glow);font-weight:500;}
-.btn-solid:hover{
-  transform:translateY(-2px);
-  box-shadow:0 12px 30px color-mix(in srgb,var(--glow) 34%,transparent);
-  background:var(--gold-hot);border-color:var(--gold-hot);
-}
-.btn-line{background:transparent;color:var(--ink);border:1px solid var(--line);}
-.btn-line:hover{border-color:var(--glow);color:var(--glow);transform:translateY(-2px);}
-
-/* ---------- hero lamp ---------- */
 .hero-lamp{
   position:absolute;z-index:2;pointer-events:none;
-  right:clamp(-10px,3vw,90px);
-  top:-4%;height:96%;
-  width:clamp(230px,32vw,520px);
+  right:clamp(20px,8vw,150px);
+  top:0;height:70%;
+  width:clamp(112px,14vw,215px);
   color:var(--glow);
   --lit:0;
   opacity:0;transition:opacity .9s var(--ease) .35s;
 }
-.bulb{width:100%;height:auto;display:block;filter:drop-shadow(0 26px 46px rgba(0,0,0,.5));}
 .stage.in .hero-lamp{opacity:1;}
 
 .lamp-swing{
@@ -333,15 +289,10 @@ canvas{display:block;}
   position:absolute;left:50%;top:36%;width:100%;
   transform:translateX(-50%);
   will-change:transform;
+  /* the only part of the lamp that takes the cursor */
+  pointer-events:auto;cursor:pointer;
 }
-.hero-lamp svg{width:100%;margin:0 auto;height:auto;display:block;position:relative;z-index:2;}
-
-/* filament + bloom respond to --lit, so the glass reads as actually lit */
-.b-bloom{opacity:calc(.24 + var(--lit) * .5);}
-.b-wave{opacity:calc(.6 + var(--lit) * .4);}
-.b-wave-core{opacity:calc(.5 + var(--lit) * .5);}
-.b-fill{opacity:calc(.5 + var(--lit) * .5);}
-.b-spec,.b-spec2{opacity:calc(.1 + var(--lit) * .25);}
+.hero-lamp svg{width:64%;margin:0 auto;height:auto;display:block;position:relative;z-index:2;}
 
 /* --- light layers, tightest first --- */
 .lamp-core,.lamp-halo,.lamp-cast{position:absolute;pointer-events:none;}
@@ -379,6 +330,14 @@ canvas{display:block;}
   opacity:calc(.2 + var(--lit) * .6);
 }
 
+/* the glass reads as lit rather than drawn */
+.lamp-glass{opacity:calc(.34 + var(--lit) * .3);}
+.lamp-base{opacity:calc(.3 + var(--lit) * .18);}
+.lamp-wave{                        /* the filament — brightest element */
+  opacity:calc(.5 + var(--lit) * .5);
+  filter:drop-shadow(0 0 calc(3px + var(--lit) * 9px)
+    color-mix(in srgb,var(--glow) 90%,transparent));
+}
 
 @media (prefers-reduced-motion:reduce){
   .hero-lamp{opacity:1;transition:none;--lit:.72;}
@@ -530,7 +489,7 @@ canvas{display:block;}
   background:var(--glow);color:var(--white);border:1px solid var(--glow);
   transition:transform .35s var(--ease),box-shadow .35s,background-color .3s,color .3s;
 }
-.btn:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(244,193,31,.3);}
+.btn:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(46,139,87,.32);}
 .btn.ghost{background:transparent;color:var(--ink);border-color:var(--line);}
 .btn.ghost:hover{border-color:var(--glow);color:var(--glow);box-shadow:none;}
 
@@ -554,7 +513,8 @@ canvas{display:block;}
   .burger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg);}
   .quotes{grid-template-columns:1fr;}
   .quotes blockquote:nth-child(3){display:none;}
-  .stage{padding-top:calc(var(--pad) + 64px);}
+  .stage{padding-top:calc(var(--pad) + 92px);}
+  .brand{margin-left:0;}
   /* Below this width the hero text fills the row, so the lamp moves above it
      rather than beside it — its glow would otherwise wash over the headline. */
   .hero-lamp{

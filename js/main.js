@@ -39,7 +39,6 @@ STAGES.forEach(s => {
   if (s.el) {
     /* stagger children in DOM order */
     $$('[data-anim], .ln i', s.el).forEach((el, i) => el.style.setProperty('--d', i));
-    s.word = $('.bigword', s.el);
   }
 });
 
@@ -47,26 +46,27 @@ STAGES.forEach(s => {
    Palette keyframes — the page moves dark → warm → dark so
    sections read as distinct acts rather than one long scroll.
    --------------------------------------------------------- */
-/* Black throughout — sections separate by a subtle lift in the black, not by
-   flipping to a light ground. White text, gold accent, nothing else. */
-const BLACK = [10, 10, 11];
-const CHAR  = [20, 20, 23];
-const COAL  = [28, 28, 32];
+const DEEP  = [12, 42, 28];
+const WARM  = [250, 248, 242];
+const MINT  = [241, 248, 244];
 const WHITE = [255, 255, 255];
+const INK   = [23, 35, 29];
 const DIM_D = [255, 255, 255];
-const GOLD  = [244, 193, 31];
+const DIM_L = [102, 115, 107];
+const ACC   = [46, 139, 87];
+const PRIM  = [31, 107, 69];
 
 const PALETTE = [
-  { p: 0.00, bg: BLACK, ink: WHITE, dim: DIM_D, dimA: 0.60, lineA: 0.09, glow: GOLD },
-  { p: 0.22, bg: BLACK, ink: WHITE, dim: DIM_D, dimA: 0.60, lineA: 0.09, glow: GOLD },
-  { p: 0.30, bg: CHAR,  ink: WHITE, dim: DIM_D, dimA: 0.62, lineA: 0.10, glow: GOLD },
-  { p: 0.46, bg: CHAR,  ink: WHITE, dim: DIM_D, dimA: 0.62, lineA: 0.10, glow: GOLD },
-  { p: 0.52, bg: COAL,  ink: WHITE, dim: DIM_D, dimA: 0.62, lineA: 0.11, glow: GOLD },
-  { p: 0.64, bg: COAL,  ink: WHITE, dim: DIM_D, dimA: 0.62, lineA: 0.11, glow: GOLD },
-  { p: 0.70, bg: BLACK, ink: WHITE, dim: DIM_D, dimA: 0.60, lineA: 0.09, glow: GOLD },
-  { p: 0.80, bg: BLACK, ink: WHITE, dim: DIM_D, dimA: 0.60, lineA: 0.09, glow: GOLD },
-  { p: 0.86, bg: CHAR,  ink: WHITE, dim: DIM_D, dimA: 0.62, lineA: 0.10, glow: GOLD },
-  { p: 1.00, bg: BLACK, ink: WHITE, dim: DIM_D, dimA: 0.60, lineA: 0.09, glow: GOLD }
+  { p: 0.00, bg: DEEP, ink: WHITE, dim: DIM_D, dimA: 0.58, lineA: 0.16, glow: ACC  },
+  { p: 0.22, bg: DEEP, ink: WHITE, dim: DIM_D, dimA: 0.58, lineA: 0.16, glow: ACC  },
+  { p: 0.30, bg: WARM, ink: INK,   dim: DIM_L, dimA: 1,    lineA: 0.14, glow: PRIM },
+  { p: 0.60, bg: WARM, ink: INK,   dim: DIM_L, dimA: 1,    lineA: 0.14, glow: PRIM },
+  { p: 0.67, bg: DEEP, ink: WHITE, dim: DIM_D, dimA: 0.58, lineA: 0.16, glow: ACC  },
+  { p: 0.75, bg: DEEP, ink: WHITE, dim: DIM_D, dimA: 0.58, lineA: 0.16, glow: ACC  },
+  { p: 0.81, bg: MINT, ink: INK,   dim: DIM_L, dimA: 1,    lineA: 0.14, glow: PRIM },
+  { p: 0.87, bg: MINT, ink: INK,   dim: DIM_L, dimA: 1,    lineA: 0.14, glow: PRIM },
+  { p: 0.93, bg: DEEP, ink: WHITE, dim: DIM_D, dimA: 0.58, lineA: 0.16, glow: ACC  },
+  { p: 1.00, bg: DEEP, ink: WHITE, dim: DIM_D, dimA: 0.58, lineA: 0.16, glow: ACC  }
 ];
 
 const mixRGB = (a, b, t) => [
@@ -77,7 +77,7 @@ const mixRGB = (a, b, t) => [
 const rgb  = c => `rgb(${c[0]},${c[1]},${c[2]})`;
 const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
 
-let glowRGB = GOLD.slice();
+let glowRGB = ACC.slice();
 
 function paint(p) {
   let a = PALETTE[0], b = PALETTE[PALETTE.length - 1];
@@ -135,13 +135,6 @@ function renderStages(p) {
     s.el.classList.toggle('active', inWindow && (opens ? lp < 0.86 : lp > 0.14 && lp < 0.86));
 
     if (o > topScore) { topScore = o; top = i; }
-
-    /* Background word drifts slower than the stage it sits behind, so the
-       two planes separate as you scroll. */
-    if (s.word) {
-      s.word.style.transform =
-        `translate3d(-50%, ${(lerp(90, -90, lp)).toFixed(1)}px, 0)`;
-    }
 
     /* ---- per-stage internal choreography ---- */
     if (s.key === 'services') servicesRail(lp);
@@ -308,7 +301,17 @@ const DAMP   = 1.05;    /* settles in a few swings without looking bouncy */
 let lampPointer = 0;    /* -1..1 horizontal cursor offset from the lamp */
 let lampNear    = 0;    /* 0..1 cursor proximity */
 
+let lampHover = 0;      /* eased 0..1 — the bulb is being pointed at */
+
 if (!REDUCED && lampEl) {
+  /* Only the bulb takes the cursor, so hovering it is unambiguous rather
+     than "somewhere in the hero". */
+  const body = $('.lamp-body', lampEl);
+  if (body) {
+    body.addEventListener('mouseenter', () => { lampHover = 1; });
+    body.addEventListener('mouseleave', () => { lampHover = 0; });
+  }
+
   window.addEventListener('mousemove', e => {
     const r = lampEl.getBoundingClientRect();
     if (!r.width) return;
@@ -350,9 +353,17 @@ function updateLamp(dt, scrollVel) {
     const stutter = (LAMP.t < 0.34 || (LAMP.t > 0.52 && LAMP.t < 0.66)) ? 0.18 : 1;
     lit = f * stutter;
   } else {
-    lit = 0.62 + Math.sin(LAMP.t * 0.85) * 0.07 + lampNear * 0.3;
+    lit = 0.62 + Math.sin(LAMP.t * 0.85) * 0.07 + lampNear * 0.22;
   }
-  LAMP.lit += (clamp(lit, 0, 1) - LAMP.lit) * Math.min(dt * 5, 1);
+  /* Hovering the bulb drives it to full: the filament, the glass, the halo
+     and the cast light all read from --lit, so one value lifts the whole
+     fixture together instead of flipping a colour. */
+  lit = Math.max(lit, lampHover);
+
+  /* Eased both ways, and slower on the way out — a filament cooling takes
+     longer than it takes to brighten. */
+  const rate = lit > LAMP.lit ? 6.5 : 3.0;
+  LAMP.lit += (clamp(lit, 0, 1) - LAMP.lit) * Math.min(dt * rate, 1);
 
   lampSwing.style.transform =
     `translateY(${LAMP.dy.toFixed(2)}px) rotate(${LAMP.a.toFixed(3)}deg)`;
@@ -493,7 +504,6 @@ burger.addEventListener('click', () => {
 function boot() {
   $('#chromeTop').classList.add('on');
   $('.chrome-bottom').classList.add('on');
-  $('#gridLines')?.classList.add('on');
   target = clamp(window.scrollY / scrollable());
   smooth = target;
   applyState(smooth);
