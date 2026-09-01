@@ -39,6 +39,7 @@ STAGES.forEach(s => {
   if (s.el) {
     /* stagger children in DOM order */
     $$('[data-anim], .ln i', s.el).forEach((el, i) => el.style.setProperty('--d', i));
+    s.word = $('.bigword', s.el);
   }
 });
 
@@ -46,27 +47,26 @@ STAGES.forEach(s => {
    Palette keyframes — the page moves dark → warm → dark so
    sections read as distinct acts rather than one long scroll.
    --------------------------------------------------------- */
-const DEEP  = [12, 42, 28];
-const WARM  = [250, 248, 242];
-const MINT  = [241, 248, 244];
+/* Black throughout — sections separate by a subtle lift in the black, not by
+   flipping to a light ground. White text, gold accent, nothing else. */
+const BLACK = [10, 10, 11];
+const CHAR  = [20, 20, 23];
+const COAL  = [28, 28, 32];
 const WHITE = [255, 255, 255];
-const INK   = [23, 35, 29];
 const DIM_D = [255, 255, 255];
-const DIM_L = [102, 115, 107];
-const ACC   = [46, 139, 87];
-const PRIM  = [31, 107, 69];
+const GOLD  = [244, 193, 31];
 
 const PALETTE = [
-  { p: 0.00, bg: DEEP, ink: WHITE, dim: DIM_D, dimA: 0.58, lineA: 0.16, glow: ACC  },
-  { p: 0.22, bg: DEEP, ink: WHITE, dim: DIM_D, dimA: 0.58, lineA: 0.16, glow: ACC  },
-  { p: 0.30, bg: WARM, ink: INK,   dim: DIM_L, dimA: 1,    lineA: 0.14, glow: PRIM },
-  { p: 0.60, bg: WARM, ink: INK,   dim: DIM_L, dimA: 1,    lineA: 0.14, glow: PRIM },
-  { p: 0.67, bg: DEEP, ink: WHITE, dim: DIM_D, dimA: 0.58, lineA: 0.16, glow: ACC  },
-  { p: 0.75, bg: DEEP, ink: WHITE, dim: DIM_D, dimA: 0.58, lineA: 0.16, glow: ACC  },
-  { p: 0.81, bg: MINT, ink: INK,   dim: DIM_L, dimA: 1,    lineA: 0.14, glow: PRIM },
-  { p: 0.87, bg: MINT, ink: INK,   dim: DIM_L, dimA: 1,    lineA: 0.14, glow: PRIM },
-  { p: 0.93, bg: DEEP, ink: WHITE, dim: DIM_D, dimA: 0.58, lineA: 0.16, glow: ACC  },
-  { p: 1.00, bg: DEEP, ink: WHITE, dim: DIM_D, dimA: 0.58, lineA: 0.16, glow: ACC  }
+  { p: 0.00, bg: BLACK, ink: WHITE, dim: DIM_D, dimA: 0.60, lineA: 0.09, glow: GOLD },
+  { p: 0.22, bg: BLACK, ink: WHITE, dim: DIM_D, dimA: 0.60, lineA: 0.09, glow: GOLD },
+  { p: 0.30, bg: CHAR,  ink: WHITE, dim: DIM_D, dimA: 0.62, lineA: 0.10, glow: GOLD },
+  { p: 0.46, bg: CHAR,  ink: WHITE, dim: DIM_D, dimA: 0.62, lineA: 0.10, glow: GOLD },
+  { p: 0.52, bg: COAL,  ink: WHITE, dim: DIM_D, dimA: 0.62, lineA: 0.11, glow: GOLD },
+  { p: 0.64, bg: COAL,  ink: WHITE, dim: DIM_D, dimA: 0.62, lineA: 0.11, glow: GOLD },
+  { p: 0.70, bg: BLACK, ink: WHITE, dim: DIM_D, dimA: 0.60, lineA: 0.09, glow: GOLD },
+  { p: 0.80, bg: BLACK, ink: WHITE, dim: DIM_D, dimA: 0.60, lineA: 0.09, glow: GOLD },
+  { p: 0.86, bg: CHAR,  ink: WHITE, dim: DIM_D, dimA: 0.62, lineA: 0.10, glow: GOLD },
+  { p: 1.00, bg: BLACK, ink: WHITE, dim: DIM_D, dimA: 0.60, lineA: 0.09, glow: GOLD }
 ];
 
 const mixRGB = (a, b, t) => [
@@ -135,6 +135,13 @@ function renderStages(p) {
     s.el.classList.toggle('active', inWindow && (opens ? lp < 0.86 : lp > 0.14 && lp < 0.86));
 
     if (o > topScore) { topScore = o; top = i; }
+
+    /* Background word drifts slower than the stage it sits behind, so the
+       two planes separate as you scroll. */
+    if (s.word) {
+      s.word.style.transform =
+        `translate3d(-50%, ${(lerp(90, -90, lp)).toFixed(1)}px, 0)`;
+    }
 
     /* ---- per-stage internal choreography ---- */
     if (s.key === 'services') servicesRail(lp);
@@ -486,6 +493,7 @@ burger.addEventListener('click', () => {
 function boot() {
   $('#chromeTop').classList.add('on');
   $('.chrome-bottom').classList.add('on');
+  $('#gridLines')?.classList.add('on');
   target = clamp(window.scrollY / scrollable());
   smooth = target;
   applyState(smooth);

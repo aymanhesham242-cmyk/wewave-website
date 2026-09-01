@@ -56,45 +56,103 @@
   <span class="chrome-label chrome-copy">&copy; <span id="year"></span> WeWave</span>
 </div>
 
+<!-- structural column rules, fixed behind the stages -->
+<div class="grid-lines" id="gridLines" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+
 <div class="progress-rail"><span id="progressFill"></span></div>
 
 <!-- ============ Fixed stages ============ -->
 <main class="stagewrap" id="stagewrap">
 
-  <!-- 0 · HERO -->
+  <!-- 0 · HERO — asymmetric: type left, light right -->
   <section class="stage stage-hero" data-stage="hero">
-    <!-- Original mark: a bulb whose filament is the WeWave wave — the studio
-         as the thing making the light, not a bulb borrowed from elsewhere. -->
+    <span class="bigword" data-word="STUDIO" aria-hidden="true">STUDIO</span>
+
+    <!-- The bulb: rendered glass, warm filament, real bloom. The filament is
+         the WeWave wave — the studio is the thing making the light. -->
     <div class="hero-lamp" id="heroLamp" aria-hidden="true">
-      <!-- .lamp-swing pivots from the cord anchor; JS drives it as a damped
-           pendulum, so cord and bulb rotate together like one hanging object. -->
       <div class="lamp-swing" id="lampSwing">
         <span class="lamp-cord"></span>
         <div class="lamp-body">
-          <span class="lamp-cast"></span>   <!-- light thrown downward -->
-          <span class="lamp-halo"></span>   <!-- ambient falloff -->
-          <span class="lamp-core"></span>   <!-- hot centre -->
-          <svg viewBox="0 0 120 170" fill="none" stroke="currentColor"
-               stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-            <path class="lamp-glass" d="M60 14C39 14 22 31 22 52c0 16 10 27 18 38v12h40V90c8-11 18-22 18-38 0-21-17-38-38-38z"/>
-            <path class="lamp-base" d="M42 112h36M42 124h36M47 136h26"/>
-            <path class="lamp-wave" d="M34 60q11-19 22 0t22 0" stroke-width="3.4"/>
+          <span class="lamp-cast"></span>
+          <span class="lamp-halo"></span>
+          <span class="lamp-core"></span>
+          <svg class="bulb" viewBox="0 0 300 440" aria-hidden="true">
+            <defs>
+              <radialGradient id="bGlass" cx="42%" cy="34%" r="68%">
+                <stop offset="0%"   stop-color="#FFE9A8" stop-opacity=".92"/>
+                <stop offset="34%"  stop-color="#F4C11F" stop-opacity=".55"/>
+                <stop offset="70%"  stop-color="#8A6A12" stop-opacity=".22"/>
+                <stop offset="100%" stop-color="#2A2410" stop-opacity=".10"/>
+              </radialGradient>
+              <linearGradient id="bRim" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%"   stop-color="#FFFFFF" stop-opacity=".55"/>
+                <stop offset="38%"  stop-color="#FFE08A" stop-opacity=".18"/>
+                <stop offset="100%" stop-color="#FFFFFF" stop-opacity=".38"/>
+              </linearGradient>
+              <linearGradient id="bMetal" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%"   stop-color="#3A3A3F"/>
+                <stop offset="18%"  stop-color="#9B9BA4"/>
+                <stop offset="42%"  stop-color="#D8D8E0"/>
+                <stop offset="68%"  stop-color="#8E8E97"/>
+                <stop offset="100%" stop-color="#33333A"/>
+              </linearGradient>
+              <filter id="bSoft" x="-60%" y="-60%" width="220%" height="220%">
+                <feGaussianBlur stdDeviation="9"/>
+              </filter>
+              <filter id="bHot" x="-90%" y="-90%" width="280%" height="280%">
+                <feGaussianBlur stdDeviation="15"/>
+              </filter>
+            </defs>
+
+            <!-- envelope -->
+            <path class="b-fill" d="M150 26c-58 0-105 46-105 103 0 42 26 71 46 100 10 15 15 26 15 38h88c0-12 5-23 15-38 20-29 46-58 46-100 0-57-47-103-105-103z" fill="url(#bGlass)"/>
+            <path class="b-rim"  d="M150 26c-58 0-105 46-105 103 0 42 26 71 46 100 10 15 15 26 15 38h88c0-12 5-23 15-38 20-29 46-58 46-100 0-57-47-103-105-103z" fill="none" stroke="url(#bRim)" stroke-width="2.6"/>
+
+            <!-- inner bloom behind the filament -->
+            <ellipse class="b-bloom" cx="150" cy="132" rx="74" ry="70" fill="#FFD54A" filter="url(#bHot)"/>
+
+            <!-- filament: the wave -->
+            <path class="b-wave" d="M96 138q27-52 54 0t54 0" fill="none" stroke="#FFF0BC" stroke-width="9" stroke-linecap="round"/>
+            <path class="b-wave-core" d="M96 138q27-52 54 0t54 0" fill="none" stroke="#FFFFFF" stroke-width="3.4" stroke-linecap="round"/>
+            <!-- filament stems -->
+            <path class="b-stem" d="M96 138v46M204 138v46" stroke="#C9931A" stroke-width="3" stroke-linecap="round" opacity=".55"/>
+
+            <!-- specular highlights -->
+            <ellipse class="b-spec" cx="106" cy="92" rx="17" ry="34" fill="#FFFFFF" opacity=".3" transform="rotate(-24 106 92)" filter="url(#bSoft)"/>
+            <ellipse class="b-spec2" cx="199" cy="176" rx="9" ry="20" fill="#FFFFFF" opacity=".16" transform="rotate(16 199 176)" filter="url(#bSoft)"/>
+
+            <!-- screw base -->
+            <path d="M107 267h86v20c0 6-4 10-10 10h-66c-6 0-10-4-10-10z" fill="url(#bMetal)"/>
+            <path d="M110 302h80v18h-80zM113 325h74v17h-74zM117 347h66v16h-66z" fill="url(#bMetal)"/>
+            <path d="M126 368h48v20c0 8-7 14-16 14h-16c-9 0-16-6-16-14z" fill="#26262B"/>
+            <path d="M107 267h86" stroke="#FFFFFF" stroke-opacity=".22" stroke-width="1.6"/>
           </svg>
         </div>
       </div>
     </div>
-    <div class="stage-inner center">
-      <p class="eyebrow" data-anim>Social &amp; Content Studio</p>
-      <h1 class="display xl" data-anim>
-        <span class="ln"><i>WeWave</i></span>
-      </h1>
-      <p class="tagline" data-anim>Attention, engineered.</p>
-      <p class="scroll-hint" data-anim><span class="hint-rail"><em></em></span>Scroll to explore</p>
+
+    <div class="stage-inner hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow" data-anim>Social &amp; Content Studio</p>
+        <h1 class="display xl" data-anim>
+          <span class="ln"><i>We make</i></span>
+          <span class="ln"><i>brands <em>impossible</em></i></span>
+          <span class="ln"><i>to scroll past.</i></span>
+        </h1>
+        <p class="tagline" data-anim>Attention, engineered.</p>
+        <div class="hero-cta" data-anim>
+          <a class="btn-solid" href="#contact" data-goto="contact">Start a brief</a>
+          <a class="btn-line" href="#services" data-goto="services">Our services</a>
+        </div>
+        <p class="scroll-hint" data-anim><span class="hint-rail"><em></em></span>Scroll to explore</p>
+      </div>
     </div>
   </section>
 
   <!-- 1 · MANIFESTO -->
   <section class="stage stage-manifesto" data-stage="manifesto">
+    <span class="bigword" data-word="MANIFESTO" aria-hidden="true">MANIFESTO</span>
     <div class="stage-inner">
       <p class="eyebrow" data-anim>Manifesto</p>
       <h2 class="display lg" data-anim>
@@ -108,6 +166,7 @@
 
   <!-- 2 · SERVICES -->
   <section class="stage stage-services" data-stage="services">
+    <span class="bigword" data-word="SERVICES" aria-hidden="true">SERVICES</span>
     <div class="stage-head">
       <p class="eyebrow" data-anim>Services</p>
       <h2 class="display md" data-anim><span class="ln"><i>What we run.</i></span></h2>
@@ -173,6 +232,7 @@
 
   <!-- 3 · PROCESS -->
   <section class="stage stage-process" data-stage="process">
+    <span class="bigword" data-word="PROCESS" aria-hidden="true">PROCESS</span>
     <div class="stage-inner">
       <p class="eyebrow" data-anim>Process</p>
       <h2 class="display md" data-anim><span class="ln"><i>Signal to system.</i></span></h2>
@@ -188,6 +248,7 @@
 
   <!-- 4 · CLIENTS -->
   <section class="stage stage-clients" data-stage="clients">
+    <span class="bigword" data-word="CLIENTS" aria-hidden="true">CLIENTS</span>
     <div class="stage-inner center">
       <p class="eyebrow" data-anim>Clients</p>
       <h2 class="display md" data-anim><span class="ln"><i>Brands we move.</i></span></h2>
@@ -213,6 +274,7 @@
 
   <!-- 5 · VOICES -->
   <section class="stage stage-voices" data-stage="voices">
+    <span class="bigword" data-word="VOICES" aria-hidden="true">VOICES</span>
     <div class="stage-inner">
       <p class="eyebrow" data-anim>Voices</p>
       <!-- Placeholder quotes — replace with real, attributable client testimonials. -->
@@ -226,6 +288,7 @@
 
   <!-- 6 · CONTACT -->
   <section class="stage stage-contact" data-stage="contact">
+    <span class="bigword" data-word="CONTACT" aria-hidden="true">CONTACT</span>
     <div class="stage-inner center">
       <p class="eyebrow" data-anim>Contact</p>
       <h2 class="display lg" data-anim>
