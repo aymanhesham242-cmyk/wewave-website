@@ -77,7 +77,7 @@ const mixRGB = (a, b, t) => [
 const rgb  = c => `rgb(${c[0]},${c[1]},${c[2]})`;
 const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
 
-let glowRGB = ACC.slice();
+let glowRGB = GOLD.slice();
 
 function paint(p) {
   let a = PALETTE[0], b = PALETTE[PALETTE.length - 1];
