@@ -368,6 +368,152 @@ burger.addEventListener('click', () => {
 });
 
 /* ---------------------------------------------------------
+   Service detail sheet
+   Order matches the cards' data-service index in index.html.
+   --------------------------------------------------------- */
+const SERVICES = [
+  {
+    n: '01', title: 'Competitor & Market Analysis',
+    lead: 'Before anything is written or shot, we work out who already holds attention in your category and what is actually earning it for them. That tells us where the opening is.',
+    items: [
+      'Competitor audit across the platforms your audience uses',
+      'Content teardown — formats, hooks, and posting cadence that perform',
+      'Audience and demand research for your specific market',
+      'Positioning gaps: what nobody in your category is claiming',
+      'A written read of where you stand and what to do about it'
+    ]
+  },
+  {
+    n: '02', title: 'Content Strategy & Calendars',
+    lead: 'A calendar built backwards from a goal. Every slot has a job — awareness, consideration, or conversion — so the month adds up to something instead of just filling a grid.',
+    items: [
+      'Monthly calendar with each post mapped to an objective',
+      'Content pillars and formats tuned to your brand',
+      'Posts, carousels, and reels planned together, not separately',
+      'Hook and concept direction for every piece',
+      'Review cycle so the next month learns from the last'
+    ]
+  },
+  {
+    n: '03', title: 'Media Buying',
+    lead: 'Paid campaigns run with budget accountability. We build the structure, launch it, and keep cutting what does not earn its spend.',
+    items: [
+      'Campaign architecture and audience targeting',
+      'Creative testing — multiple angles per campaign',
+      'Ongoing optimisation against cost per result',
+      'Budget pacing and scaling decisions',
+      'Plain-language reporting on what the spend returned'
+    ]
+  },
+  {
+    n: '04', title: 'Photography & Reels',
+    lead: 'Product and lifestyle shoots produced for the feed, then cut for pacing, sound, colour, and motion — because a still that works on a shelf rarely works on a scroll.',
+    items: [
+      'Product, lifestyle, and campaign photography',
+      'Reel and short-form video production',
+      'Editing: pacing, sound design, colour, motion graphics',
+      'Formats delivered per platform and aspect ratio',
+      'Shot lists built from the content calendar'
+    ]
+  },
+  {
+    n: '05', title: 'Copywriting',
+    lead: 'Words that sound like your brand and stop the thumb. Hooks first — the rest only matters if the first line earns the second.',
+    items: [
+      'Hooks and opening lines built to stop the scroll',
+      'Captions and post copy in your brand voice',
+      'Scripts for reels, ads, and campaign video',
+      'Ad copy variants for testing',
+      'Tone-of-voice guidance your team can reuse'
+    ]
+  },
+  {
+    n: '06', title: 'Brand & Visual Identity',
+    lead: 'The system that makes every post recognisably yours before anyone reads the handle — logo, colour, type, and the rules that hold it together.',
+    items: [
+      'Logo and wordmark design',
+      'Colour system and typography',
+      'Templates for recurring post formats',
+      'Brand guidelines your whole team can apply',
+      'Rollout across profiles, highlights, and assets'
+    ]
+  },
+  {
+    n: '07', title: 'Trend Monitoring',
+    lead: 'Platforms move weekly. We watch what is shifting in your category and adapt the plan while it still matters, rather than reporting on it afterwards.',
+    items: [
+      'Ongoing tracking of formats and sounds gaining traction',
+      'Category-specific trend watch, not generic trend lists',
+      'Fast-turnaround reactive content when something breaks',
+      'Platform and algorithm change monitoring',
+      'Calendar adjustments as the landscape moves'
+    ]
+  },
+  {
+    n: '08', title: 'Performance Reporting',
+    lead: 'Clear numbers in plain language: what worked, what did not, and what we are changing next month. No dashboards nobody reads.',
+    items: [
+      'Monthly report on reach, engagement, and conversion',
+      'Content-level breakdown of top and bottom performers',
+      'Paid performance against cost per result',
+      'What we are changing next month, and why',
+      'A running view of growth over time'
+    ]
+  }
+];
+
+(function serviceSheet() {
+  const sheet = $('#serviceSheet');
+  if (!sheet) return;
+  const panel = $('.sheet-panel', sheet);
+  let lastFocus = null;
+
+  function open(i) {
+    const s = SERVICES[i];
+    if (!s) return;
+    $('#sheetNum').textContent = s.n;
+    $('#sheetTitle').textContent = s.title;
+    $('#sheetLead').textContent = s.lead;
+    const list = $('#sheetList');
+    list.innerHTML = '';
+    s.items.forEach(t => {
+      const li = document.createElement('li');
+      li.textContent = t;
+      list.appendChild(li);
+    });
+
+    lastFocus = document.activeElement;
+    sheet.hidden = false;
+    /* Force a reflow so the transition has a start frame to run from. A rAF
+       callback would do the same, but rAF can be throttled to nothing in a
+       background tab -- which would leave the panel invisible yet blocking. */
+    void panel.offsetHeight;
+    sheet.classList.add('open');
+    document.documentElement.style.overflow = 'hidden';   /* freeze the timeline behind */
+    panel.scrollTop = 0;
+    panel.focus();
+  }
+
+  function close() {
+    sheet.classList.remove('open');
+    document.documentElement.style.overflow = '';
+    const done = () => { sheet.hidden = true; };
+    /* wait out the slide, but never strand it open if the event doesn't fire */
+    panel.addEventListener('transitionend', done, { once: true });
+    setTimeout(done, 700);
+    if (lastFocus) lastFocus.focus();
+  }
+
+  $$('.scard').forEach(card => {
+    card.addEventListener('click', () => open(+card.dataset.service));
+  });
+  $$('[data-close]', sheet).forEach(el => el.addEventListener('click', close));
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !sheet.hidden) close();
+  });
+})();
+
+/* ---------------------------------------------------------
    Company profile
    On a normal host the plain link opens the PDF. Inside the artifact viewer
    a relative file isn't reachable and page-initiated downloads are blocked,
