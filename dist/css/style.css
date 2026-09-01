@@ -264,10 +264,14 @@ canvas{display:block;}
    dims as one lamp rather than as separate effects. */
 .hero-lamp{
   position:absolute;z-index:2;pointer-events:none;
-  right:clamp(20px,8vw,150px);
-  top:0;height:70%;
-  width:clamp(112px,14vw,215px);
-  color:var(--glow);
+  right:clamp(-14px,1.5vw,44px);
+  top:-2%;height:100%;
+  width:clamp(230px,29vw,430px);
+  /* Incandescent light is warm, so the bulb keeps its own amber rather than
+     inheriting the page's green. The green environment then picks up a warm
+     wash from it, which is what makes it read as a light source in the room. */
+  --bulb-warm:#FFB84D;
+  --bulb-hot:#FFD98A;
   --lit:0;
   opacity:0;transition:opacity .9s var(--ease) .35s;
 }
@@ -279,65 +283,76 @@ canvas{display:block;}
   will-change:transform;
 }
 .lamp-cord{
-  position:absolute;left:50%;top:0;width:1.5px;height:36%;
+  position:absolute;left:50%;top:0;width:2px;height:15%;
   transform:translateX(-50%);
   background:linear-gradient(180deg,
-    color-mix(in srgb,var(--ink) 22%,transparent),
-    color-mix(in srgb,var(--ink) 42%,transparent));
+    color-mix(in srgb,var(--ink) 16%,transparent),
+    color-mix(in srgb,var(--ink) 40%,transparent));
 }
 .lamp-body{
-  position:absolute;left:50%;top:36%;width:100%;
+  position:absolute;left:50%;top:15%;width:100%;
   transform:translateX(-50%);
   will-change:transform;
   /* the only part of the lamp that takes the cursor */
   pointer-events:auto;cursor:pointer;
 }
-.hero-lamp svg{width:64%;margin:0 auto;height:auto;display:block;position:relative;z-index:2;}
+.bulb{
+  width:100%;height:auto;display:block;position:relative;z-index:2;
+  filter:drop-shadow(0 30px 44px rgba(0,0,0,.45));
+}
 
 /* --- light layers, tightest first --- */
 .lamp-core,.lamp-halo,.lamp-cast{position:absolute;pointer-events:none;}
 .lamp-core{
-  left:50%;top:30%;width:62%;aspect-ratio:1;
-  transform:translate(-50%,-50%) scale(calc(.86 + var(--lit) * .22));
+  left:50%;top:27%;width:66%;aspect-ratio:1;
+  transform:translate(-50%,-50%) scale(calc(.88 + var(--lit) * .2));
   background:radial-gradient(circle,
-    color-mix(in srgb,var(--glow) 78%,transparent) 0%,
-    color-mix(in srgb,var(--glow) 30%,transparent) 42%,
+    color-mix(in srgb,var(--bulb-hot) 72%,transparent) 0%,
+    color-mix(in srgb,var(--bulb-warm) 34%,transparent) 40%,
     transparent 70%);
-  filter:blur(6px);
-  opacity:calc(.32 + var(--lit) * .68);
+  filter:blur(14px);
+  opacity:calc(.3 + var(--lit) * .7);
   z-index:1;
 }
 .lamp-halo{                        /* ambient falloff into the page */
-  left:50%;top:30%;width:210%;aspect-ratio:1;
-  transform:translate(-50%,-50%) scale(calc(.9 + var(--lit) * .16));
+  left:50%;top:27%;width:190%;aspect-ratio:1;
+  transform:translate(-50%,-50%) scale(calc(.92 + var(--lit) * .14));
   background:radial-gradient(circle,
-    color-mix(in srgb,var(--glow) 26%,transparent) 0%,
-    color-mix(in srgb,var(--glow) 9%,transparent) 30%,
-    color-mix(in srgb,var(--glow) 3%,transparent) 52%,
-    transparent 72%);
-  filter:blur(16px);
-  opacity:calc(.28 + var(--lit) * .72);
+    color-mix(in srgb,var(--bulb-warm) 22%,transparent) 0%,
+    color-mix(in srgb,var(--bulb-warm) 10%,transparent) 26%,
+    color-mix(in srgb,var(--bulb-warm) 4%,transparent) 48%,
+    transparent 70%);
+  filter:blur(30px);
+  opacity:calc(.26 + var(--lit) * .74);
 }
-.lamp-cast{                        /* light thrown down onto the section */
-  left:50%;top:34%;width:150%;height:150%;
-  transform:translateX(-50%) scaleY(calc(.88 + var(--lit) * .2));
+.lamp-cast{                        /* warm wash thrown onto the section */
+  left:50%;top:30%;width:170%;height:150%;
+  transform:translateX(-50%) scaleY(calc(.9 + var(--lit) * .18));
   transform-origin:50% 0;
-  background:radial-gradient(ellipse 50% 62% at 50% 0%,
-    color-mix(in srgb,var(--glow) 20%,transparent) 0%,
-    color-mix(in srgb,var(--glow) 7%,transparent) 38%,
+  background:radial-gradient(ellipse 48% 60% at 50% 0%,
+    color-mix(in srgb,var(--bulb-warm) 15%,transparent) 0%,
+    color-mix(in srgb,var(--bulb-warm) 5%,transparent) 40%,
     transparent 74%);
-  filter:blur(20px);
-  opacity:calc(.2 + var(--lit) * .6);
+  filter:blur(34px);
+  opacity:calc(.18 + var(--lit) * .55);
 }
 
-/* the glass reads as lit rather than drawn */
-.lamp-glass{opacity:calc(.34 + var(--lit) * .3);}
-.lamp-base{opacity:calc(.3 + var(--lit) * .18);}
-.lamp-wave{                        /* the filament — brightest element */
-  opacity:calc(.5 + var(--lit) * .5);
-  filter:drop-shadow(0 0 calc(3px + var(--lit) * 9px)
-    color-mix(in srgb,var(--glow) 90%,transparent));
+/* Glass, filament and reflections all read from --lit, so raising brightness
+   lifts the whole fixture the way a dimmer does — not a colour switching. */
+.b-fill{opacity:calc(.52 + var(--lit) * .48);}
+.b-bloom{opacity:calc(.2 + var(--lit) * .62);}
+.b-wave{opacity:calc(.45 + var(--lit) * .55);}
+.b-wave-mid{opacity:calc(.5 + var(--lit) * .5);}
+.b-wave-core{
+  opacity:calc(.42 + var(--lit) * .58);
+  filter:drop-shadow(0 0 calc(4px + var(--lit) * 12px) #FFD98A);
 }
+.b-wire,.b-stem{opacity:calc(.34 + var(--lit) * .3);}
+.b-spec{opacity:calc(.16 + var(--lit) * .3);}
+.b-spec2{opacity:calc(.08 + var(--lit) * .18);}
+.b-spec3{opacity:calc(.12 + var(--lit) * .22);}
+.b-rim{opacity:calc(.55 + var(--lit) * .45);}
+.b-rim2{opacity:calc(.4 + var(--lit) * .5);}
 
 @media (prefers-reduced-motion:reduce){
   .hero-lamp{opacity:1;transition:none;--lit:.72;}

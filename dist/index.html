@@ -74,11 +74,104 @@
           <span class="lamp-cast"></span>   <!-- light thrown downward -->
           <span class="lamp-halo"></span>   <!-- ambient falloff -->
           <span class="lamp-core"></span>   <!-- hot centre -->
-          <svg viewBox="0 0 120 170" fill="none" stroke="currentColor"
-               stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-            <path class="lamp-glass" d="M60 14C39 14 22 31 22 52c0 16 10 27 18 38v12h40V90c8-11 18-22 18-38 0-21-17-38-38-38z"/>
-            <path class="lamp-base" d="M42 112h36M42 124h36M47 136h26"/>
-            <path class="lamp-wave" d="M34 60q11-19 22 0t22 0" stroke-width="3.4"/>
+          <svg class="bulb" viewBox="0 0 320 500" aria-hidden="true">
+            <defs>
+              <!-- glass interior: hot at the filament, cooling toward the wall -->
+              <radialGradient id="gGlass" cx="46%" cy="30%" r="70%">
+                <stop offset="0%"   stop-color="#FFF3D0" stop-opacity=".78"/>
+                <stop offset="26%"  stop-color="#FFC963" stop-opacity=".46"/>
+                <stop offset="58%"  stop-color="#B87E1C" stop-opacity=".20"/>
+                <stop offset="86%"  stop-color="#4A3410" stop-opacity=".10"/>
+                <stop offset="100%" stop-color="#1B1608" stop-opacity=".06"/>
+              </radialGradient>
+              <!-- fresnel: glass reads brighter at its edge than its centre -->
+              <radialGradient id="gFresnel" cx="50%" cy="42%" r="52%">
+                <stop offset="70%"  stop-color="#FFFFFF" stop-opacity="0"/>
+                <stop offset="93%"  stop-color="#FFE9B8" stop-opacity=".26"/>
+                <stop offset="100%" stop-color="#FFFFFF" stop-opacity=".5"/>
+              </radialGradient>
+              <linearGradient id="gRim" x1=".1" y1="0" x2=".9" y2="1">
+                <stop offset="0%"   stop-color="#FFFFFF" stop-opacity=".62"/>
+                <stop offset="30%"  stop-color="#FFDFA0" stop-opacity=".2"/>
+                <stop offset="62%"  stop-color="#FFFFFF" stop-opacity=".1"/>
+                <stop offset="100%" stop-color="#FFFFFF" stop-opacity=".42"/>
+              </linearGradient>
+              <!-- cylindrical shading across the screw base -->
+              <linearGradient id="gMetal" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%"   stop-color="#26262B"/>
+                <stop offset="12%"  stop-color="#6E6E79"/>
+                <stop offset="30%"  stop-color="#C9C9D3"/>
+                <stop offset="45%"  stop-color="#EFEFF5"/>
+                <stop offset="62%"  stop-color="#A8A8B3"/>
+                <stop offset="82%"  stop-color="#5C5C66"/>
+                <stop offset="100%" stop-color="#1F1F24"/>
+              </linearGradient>
+              <linearGradient id="gNeck" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%"   stop-color="#2B2B31"/>
+                <stop offset="30%"  stop-color="#8E8E99"/>
+                <stop offset="50%"  stop-color="#C4C4CE"/>
+                <stop offset="72%"  stop-color="#77777F"/>
+                <stop offset="100%" stop-color="#232328"/>
+              </linearGradient>
+              <filter id="gSoft" x="-70%" y="-70%" width="240%" height="240%">
+                <feGaussianBlur stdDeviation="10"/>
+              </filter>
+              <filter id="gHot" x="-120%" y="-120%" width="340%" height="340%">
+                <feGaussianBlur stdDeviation="19"/>
+              </filter>
+              <filter id="gWire" x="-40%" y="-40%" width="180%" height="180%">
+                <feGaussianBlur stdDeviation="2.4"/>
+              </filter>
+              <clipPath id="gClip">
+                <path d="M160 24c-62 0-112 49-112 110 0 45 28 76 49 107 11 16 16 28 16 41h94c0-13 5-25 16-41 21-31 49-62 49-107 0-61-50-110-112-110z"/>
+              </clipPath>
+            </defs>
+
+            <!-- envelope -->
+            <path class="b-fill" d="M160 24c-62 0-112 49-112 110 0 45 28 76 49 107 11 16 16 28 16 41h94c0-13 5-25 16-41 21-31 49-62 49-107 0-61-50-110-112-110z" fill="url(#gGlass)"/>
+
+            <g clip-path="url(#gClip)">
+              <!-- light pooling inside the glass, behind the filament -->
+              <ellipse class="b-bloom" cx="160" cy="140" rx="86" ry="80" fill="#FFBE52" filter="url(#gHot)"/>
+              <!-- support wires rising from the stem -->
+              <path class="b-wire" d="M132 258V172M188 258v-86M160 262v-58" stroke="#7A6134" stroke-width="3" stroke-linecap="round" opacity=".62"/>
+              <!-- glass stem -->
+              <path class="b-stem" d="M143 262h34l-6 34h-22z" fill="#5C4A24" opacity=".5"/>
+              <!-- filament: the wave, hot core over a warm halo -->
+              <path class="b-wave" d="M118 168q21-46 42 0t42 0" fill="none" stroke="#FFCF6B" stroke-width="13" stroke-linecap="round" filter="url(#gWire)"/>
+              <path class="b-wave-mid" d="M118 168q21-46 42 0t42 0" fill="none" stroke="#FFE9AE" stroke-width="6" stroke-linecap="round"/>
+              <path class="b-wave-core" d="M118 168q21-46 42 0t42 0" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/>
+              <!-- reflections riding the inside of the wall -->
+              <ellipse class="b-spec" cx="108" cy="96" rx="19" ry="42" fill="#FFFFFF" opacity=".34" transform="rotate(-26 108 96)" filter="url(#gSoft)"/>
+              <ellipse class="b-spec2" cx="215" cy="188" rx="10" ry="26" fill="#FFFFFF" opacity=".18" transform="rotate(18 215 188)" filter="url(#gSoft)"/>
+              <ellipse class="b-spec3" cx="196" cy="78" rx="7" ry="14" fill="#FFFFFF" opacity=".26" transform="rotate(-14 196 78)" filter="url(#gSoft)"/>
+            </g>
+
+            <!-- glass wall: fresnel + rim, giving the envelope thickness -->
+            <path d="M160 24c-62 0-112 49-112 110 0 45 28 76 49 107 11 16 16 28 16 41h94c0-13 5-25 16-41 21-31 49-62 49-107 0-61-50-110-112-110z" fill="url(#gFresnel)"/>
+            <path class="b-rim" d="M160 24c-62 0-112 49-112 110 0 45 28 76 49 107 11 16 16 28 16 41h94c0-13 5-25 16-41 21-31 49-62 49-107 0-61-50-110-112-110z" fill="none" stroke="url(#gRim)" stroke-width="3"/>
+            <path class="b-rim2" d="M160 33c-56 0-102 45-102 101" fill="none" stroke="#FFFFFF" stroke-opacity=".26" stroke-width="1.6"/>
+
+            <!-- screw base -->
+            <path d="M114 282h92v20c0 7-5 12-12 12h-68c-7 0-12-5-12-12z" fill="url(#gNeck)"/>
+            <g fill="url(#gMetal)">
+              <path d="M117 318h86v20h-86z"/>
+              <path d="M120 342h80v20h-80z"/>
+              <path d="M124 366h72v20h-72z"/>
+              <path d="M129 390h62v18h-62z"/>
+            </g>
+            <!-- thread shadows -->
+            <g stroke="#101014" stroke-opacity=".55" stroke-width="3">
+              <path d="M117 338h86M120 362h80M124 386h72"/>
+            </g>
+            <!-- thread highlights -->
+            <g stroke="#FFFFFF" stroke-opacity=".3" stroke-width="1.4">
+              <path d="M117 320h86M120 344h80M124 368h72M129 392h62"/>
+            </g>
+            <!-- contact tip -->
+            <path d="M137 408h46v22c0 10-9 18-20 18h-6c-11 0-20-8-20-18z" fill="#1A1A1F"/>
+            <ellipse cx="160" cy="430" rx="17" ry="9" fill="#3A3A42"/>
+            <ellipse cx="156" cy="427" rx="7" ry="3.4" fill="#6E6E7A" opacity=".7"/>
           </svg>
         </div>
       </div>
