@@ -272,52 +272,6 @@ canvas{display:block;}
 .scard-more::after{content:' →';}
 .scard:hover .scard-more{opacity:1;}
 
-/* ---------- Service detail sheet ---------- */
-.sheet{position:fixed;inset:0;z-index:600;display:flex;justify-content:flex-end;}
-.sheet[hidden]{display:none;}
-.sheet-scrim{
-  position:absolute;inset:0;background:rgba(6,20,14,.55);
-  backdrop-filter:blur(3px);
-  opacity:0;transition:opacity .4s var(--ease);
-}
-.sheet.open .sheet-scrim{opacity:1;}
-.sheet-panel{
-  position:relative;margin-left:auto;
-  width:min(520px,100%);height:100%;overflow-y:auto;
-  background:var(--warm);color:var(--text);
-  padding:clamp(28px,4vw,54px) clamp(24px,3.4vw,48px);
-  transform:translateX(100%);
-  transition:transform .55s var(--ease);
-  display:flex;flex-direction:column;align-items:flex-start;
-}
-.sheet.open .sheet-panel{transform:none;}
-.sheet-close{
-  position:absolute;top:18px;right:18px;
-  width:40px;height:40px;border-radius:50%;
-  background:transparent;border:1px solid rgba(23,35,29,.18);
-  color:var(--text);cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  transition:background-color .3s,border-color .3s,transform .3s;
-}
-.sheet-close svg{width:18px;height:18px;}
-.sheet-close:hover{background:var(--primary);border-color:var(--primary);color:#fff;transform:rotate(90deg);}
-.sheet-num{font-family:var(--mono);font-size:10.5px;letter-spacing:.28em;color:var(--primary);margin-bottom:12px;}
-.sheet-title{font-size:clamp(30px,4.4vw,46px);line-height:.98;margin-bottom:18px;color:var(--text);}
-.sheet-lead{font-size:clamp(15px,1.4vw,18px);line-height:1.62;color:var(--text);max-width:44ch;}
-.sheet-label{
-  font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;
-  color:var(--text-2);margin:clamp(24px,3vw,36px) 0 14px;
-}
-.sheet-list{display:flex;flex-direction:column;gap:11px;width:100%;}
-.sheet-list li{
-  position:relative;padding-left:22px;
-  font-size:14.5px;line-height:1.55;color:var(--text);
-}
-.sheet-list li::before{
-  content:'';position:absolute;left:0;top:9px;
-  width:7px;height:7px;border-radius:50%;background:var(--primary);
-}
-.sheet-cta{margin-top:clamp(26px,3.4vw,40px);background:var(--primary);border-color:var(--primary);}
 
 /* ---------- Process ---------- */
 .steps{margin-top:clamp(26px,3.6vw,48px);max-width:760px;}
@@ -425,8 +379,6 @@ canvas{display:block;}
   .scard{flex-basis:76vw;}
   .quotes blockquote:nth-child(2){display:none;}
   .chip{border-radius:11px;}
-  /* full-height sheet reads better than a drawer on a phone */
-  .sheet-panel{width:100%;padding-top:64px;}
   .scard-art{width:104px;opacity:.15;}
 }
 
@@ -449,7 +401,6 @@ canvas{display:block;}
   .chrome-top{background:var(--deep);}
   .rail{flex-wrap:wrap;padding-left:0;transform:none!important;}
   .scard{flex-basis:280px;}
-  .sheet-panel,.sheet-scrim{transition:none;}
   .scard-art{transition:none;}
   /* no drift: let the logos wrap into a static wall instead */
   .ticker{width:auto;-webkit-mask-image:none;mask-image:none;}

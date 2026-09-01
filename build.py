@@ -23,6 +23,15 @@ js = (ROOT / "js/main.js").read_text(encoding="utf-8")
 mark_b64 = base64.b64encode((ROOT / "assets/wewave-mark-sm.png").read_bytes()).decode()
 css = css.replace("../assets/wewave-mark.png", f"data:image/png;base64,{mark_b64}")
 
+# The single-file build is one page, so it can't carry the service sub-pages.
+# Point those links at the deployed site instead of leaving them broken.
+LIVE = "https://wewave-website.aymanhesham242.workers.dev"
+html = html.replace('href="services/', f'href="{LIVE}/services/')
+html = html.replace(
+    '<a class="scard" href="' + LIVE + '/services/',
+    '<a class="scard" target="_blank" rel="noopener" href="' + LIVE + '/services/',
+)
+
 # client logos -> data URIs in the CSS (the hosted page can't reach assets/).
 # They live in background-image rules, so each logo is embedded once no matter
 # how many times the ticker repeats it.
