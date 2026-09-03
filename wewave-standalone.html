@@ -597,6 +597,213 @@ canvas{display:block;}
 }
 
 /* =========================================================
+   Meeting request modal
+   Reuses the page's tokens (--glow, --ink, --deep, --mono, --ease) so it
+   reads as part of the site rather than a bolted-on form.
+   ========================================================= */
+.mreq{
+  position:fixed;inset:0;z-index:950;
+  display:flex;align-items:center;justify-content:center;
+  padding:clamp(12px,3vw,40px);
+}
+.mreq[hidden]{display:none;}
+.mreq-scrim{
+  position:absolute;inset:0;
+  background:rgba(4,14,10,.72);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  opacity:0;transition:opacity .34s var(--ease);
+}
+.mreq.open .mreq-scrim{opacity:1;}
+.mreq-panel{
+  position:relative;
+  width:min(620px,100%);
+  max-height:min(92dvh,92vh);
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  background:var(--deep);
+  border:1px solid color-mix(in srgb,var(--glow) 26%,transparent);
+  border-radius:20px;
+  padding:clamp(24px,3.4vw,44px);
+  box-shadow:0 40px 90px rgba(0,0,0,.55);
+  opacity:0;transform:translateY(18px) scale(.985);
+  transition:opacity .38s var(--ease),transform .38s var(--ease);
+}
+.mreq.open .mreq-panel{opacity:1;transform:none;}
+.mreq-x{
+  position:absolute;top:14px;right:14px;z-index:2;
+  width:38px;height:38px;border-radius:50%;
+  background:color-mix(in srgb,var(--ink) 7%,transparent);
+  border:1px solid color-mix(in srgb,var(--ink) 16%,transparent);
+  color:var(--ink);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background-color .3s,transform .3s var(--ease),border-color .3s;
+}
+.mreq-x svg{width:17px;height:17px;}
+.mreq-x:hover{background:var(--glow);border-color:var(--glow);transform:rotate(90deg);}
+
+.mreq-eyebrow{
+  font-family:var(--mono);font-size:10px;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--glow);margin-bottom:10px;
+}
+.mreq-title{font-size:clamp(26px,3.6vw,40px);line-height:1;color:var(--ink);margin-bottom:clamp(20px,2.6vw,30px);}
+
+/* ---- fields ---- */
+.mf{margin-bottom:clamp(16px,2vw,22px);}
+.mf-label{
+  display:block;margin-bottom:9px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+  color:color-mix(in srgb,var(--ink) 72%,transparent);
+}
+.mf-label i{color:var(--glow);font-style:normal;}
+.mf-opt{text-transform:none;letter-spacing:.04em;opacity:.55;}
+.mf-input{
+  width:100%;
+  /* 16px keeps iOS from zooming the viewport on focus */
+  font-family:var(--sans);font-size:16px;color:var(--ink);
+  background:color-mix(in srgb,var(--ink) 6%,transparent);
+  border:1px solid color-mix(in srgb,var(--ink) 14%,transparent);
+  border-radius:11px;padding:13px 15px;
+  transition:border-color .28s,background-color .28s,box-shadow .28s;
+}
+.mf-input::placeholder{color:color-mix(in srgb,var(--ink) 34%,transparent);}
+.mf-input:focus{
+  outline:none;border-color:var(--glow);
+  background:color-mix(in srgb,var(--ink) 9%,transparent);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--glow) 18%,transparent);
+}
+.mf-area{resize:vertical;min-height:84px;line-height:1.5;}
+.mf-phone{display:flex;gap:9px;}
+.mf-code{
+  flex:0 0 auto;width:112px;
+  font-family:var(--mono);font-size:14px;color:var(--ink);
+  background:color-mix(in srgb,var(--ink) 6%,transparent);
+  border:1px solid color-mix(in srgb,var(--ink) 14%,transparent);
+  border-radius:11px;padding:13px 10px;cursor:pointer;
+}
+.mf-code option{background:var(--deep);color:var(--ink);}
+.mf-code:focus{outline:none;border-color:var(--glow);}
+
+.mf-err{
+  margin-top:7px;font-family:var(--mono);font-size:10px;letter-spacing:.08em;
+  color:#FF9C8A;opacity:0;transition:opacity .2s;
+}
+.mf-err.on{opacity:1;}
+.mf.invalid .mf-input,.mf.invalid .mf-code{border-color:#FF9C8A;}
+
+/* ---- service chips ---- */
+.mf-chips{display:flex;flex-wrap:wrap;gap:8px;}
+.mchip{position:relative;cursor:pointer;}
+.mchip input{position:absolute;opacity:0;width:0;height:0;}
+.mchip span{
+  display:block;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;
+  color:color-mix(in srgb,var(--ink) 70%,transparent);
+  border:1px solid color-mix(in srgb,var(--ink) 16%,transparent);
+  border-radius:999px;padding:10px 15px;
+  transition:border-color .25s,background-color .25s,color .25s;
+}
+.mchip:hover span{border-color:color-mix(in srgb,var(--glow) 60%,transparent);color:var(--ink);}
+.mchip input:checked + span{
+  background:var(--glow);border-color:var(--glow);color:#fff;
+}
+.mchip input:focus-visible + span{outline:2px solid var(--ink);outline-offset:2px;}
+
+/* ---- calendar ---- */
+.cal{
+  border:1px solid color-mix(in srgb,var(--ink) 13%,transparent);
+  border-radius:13px;padding:13px;
+  background:color-mix(in srgb,var(--ink) 4%,transparent);
+}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;}
+.cal-month{
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);
+}
+.cal-nav{
+  width:32px;height:32px;border-radius:9px;cursor:pointer;
+  background:transparent;border:1px solid color-mix(in srgb,var(--ink) 15%,transparent);
+  color:var(--ink);display:flex;align-items:center;justify-content:center;
+  transition:border-color .25s,background-color .25s,opacity .25s;
+}
+.cal-nav svg{width:15px;height:15px;}
+.cal-nav:hover:not(:disabled){border-color:var(--glow);background:color-mix(in srgb,var(--glow) 16%,transparent);}
+.cal-nav:disabled{opacity:.28;cursor:not-allowed;}
+.cal-dow,.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cal-dow{margin-bottom:5px;}
+.cal-dow span{
+  text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:.1em;
+  color:color-mix(in srgb,var(--ink) 40%,transparent);
+}
+.cal-day{
+  aspect-ratio:1;min-height:36px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:12.5px;color:var(--ink);
+  background:transparent;border:1px solid transparent;border-radius:9px;cursor:pointer;
+  transition:background-color .2s,border-color .2s,color .2s;
+}
+.cal-day:hover:not(:disabled){border-color:color-mix(in srgb,var(--glow) 55%,transparent);}
+.cal-day:disabled{color:color-mix(in srgb,var(--ink) 22%,transparent);cursor:not-allowed;}
+.cal-day.today{border-color:color-mix(in srgb,var(--ink) 26%,transparent);}
+.cal-day.sel{background:var(--glow);border-color:var(--glow);color:#fff;}
+.cal-day.blank{cursor:default;}
+
+/* ---- submit + states ---- */
+.mreq-submit{
+  width:100%;margin-top:6px;cursor:pointer;
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:#fff;background:var(--glow);border:1px solid var(--glow);
+  border-radius:999px;padding:16px 24px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  transition:transform .3s var(--ease),box-shadow .3s,opacity .3s;
+}
+.mreq-submit:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 14px 30px color-mix(in srgb,var(--glow) 36%,transparent);}
+.mreq-submit:disabled{opacity:.72;cursor:progress;transform:none;box-shadow:none;}
+.mreq-submit.ghost{background:transparent;color:var(--ink);border-color:color-mix(in srgb,var(--ink) 22%,transparent);}
+.mreq-submit.ghost:hover{border-color:var(--glow);box-shadow:none;}
+.mreq-spin{
+  width:15px;height:15px;border-radius:50%;display:none;
+  border:2px solid rgba(255,255,255,.35);border-top-color:#fff;
+  animation:mspin .7s linear infinite;
+}
+.mreq-submit.busy .mreq-spin{display:block;}
+@keyframes mspin{to{transform:rotate(360deg);}}
+.mreq-note{
+  margin-top:12px;text-align:center;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;line-height:1.7;
+  color:color-mix(in srgb,var(--ink) 45%,transparent);
+}
+.mreq-note.err{color:#FF9C8A;}
+
+.mreq-done{text-align:center;padding:clamp(14px,3vw,30px) 0;}
+.mreq-tick{
+  width:62px;height:62px;margin:0 auto 20px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--glow);border:1.5px solid var(--glow);
+  background:color-mix(in srgb,var(--glow) 12%,transparent);
+}
+.mreq-tick svg{width:27px;height:27px;}
+.mreq-done-title{font-size:clamp(24px,3vw,32px);color:var(--ink);margin-bottom:12px;}
+.mreq-done-copy{
+  font-size:14.5px;line-height:1.65;max-width:42ch;margin:0 auto 24px;
+  color:color-mix(in srgb,var(--ink) 66%,transparent);
+}
+
+@media (max-width:640px){
+  .mreq{padding:0;}
+  .mreq-panel{
+    width:100%;max-height:100dvh;height:100dvh;border-radius:0;border:0;
+    padding:60px 20px calc(28px + env(safe-area-inset-bottom));
+  }
+  .mreq-x{position:fixed;top:12px;right:12px;}
+  .mf-chips{gap:7px;}
+  .mchip span{padding:11px 14px;}
+  .cal-day{min-height:40px;}
+  .mf-code{width:100px;}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .mreq-scrim,.mreq-panel{transition:none;}
+  .mreq-spin{animation:none;}
+}
+/* =========================================================
    Reduced motion — fall back to a plain, readable document
    ========================================================= */
 @media (prefers-reduced-motion:reduce){
@@ -809,7 +1016,7 @@ canvas{display:block;}
       </h1>
       <p class="tagline" data-anim>Attention, engineered.</p>
       <p class="scroll-hint" data-anim><span class="hint-rail"><em></em></span>Scroll to explore</p>
-      <a class="hero-cta" href="#contact" data-goto="contact" data-anim>Request a meeting</a>
+      <a class="hero-cta" id="meetingBtn" href="#contact" data-anim>Request a meeting</a>
     </div>
   </section>
 
@@ -964,6 +1171,123 @@ canvas{display:block;}
 </main>
 
 <!-- Scroll driver: supplies the scroll length the stages are choreographed against -->
+<!-- Meeting request. Opened by #meetingBtn; logic in main.js. -->
+<div class="mreq" id="mreq" hidden>
+  <div class="mreq-scrim" data-mclose></div>
+  <div class="mreq-panel" role="dialog" aria-modal="true" aria-labelledby="mreqTitle">
+    <button class="mreq-x" type="button" data-mclose aria-label="Close">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+
+    <form class="mreq-form" id="mreqForm" novalidate>
+      <p class="mreq-eyebrow">Request a meeting</p>
+      <h2 class="mreq-title display" id="mreqTitle">Tell us what you need.</h2>
+
+      <div class="mf">
+        <label class="mf-label" for="mfName">Full name <i>*</i></label>
+        <input class="mf-input" id="mfName" name="name" type="text" autocomplete="name" placeholder="Your name">
+        <p class="mf-err" data-err="name"></p>
+      </div>
+
+      <div class="mf">
+        <label class="mf-label" for="mfBrand">Brand / website link <i>*</i></label>
+        <input class="mf-input" id="mfBrand" name="brandLink" type="text" inputmode="url" autocomplete="url" placeholder="https://yourbrand.com">
+        <p class="mf-err" data-err="brandLink"></p>
+      </div>
+
+      <div class="mf">
+        <label class="mf-label" for="mfPhone">Phone number <i>*</i></label>
+        <div class="mf-phone">
+          <select class="mf-code" id="mfCode" name="dialCode" aria-label="Country code">
+            <option value="+20" selected>🇪🇬 +20</option>
+            <option value="+966">🇸🇦 +966</option>
+            <option value="+971">🇦🇪 +971</option>
+            <option value="+965">🇰🇼 +965</option>
+            <option value="+974">🇶🇦 +974</option>
+            <option value="+973">🇧🇭 +973</option>
+            <option value="+968">🇴🇲 +968</option>
+            <option value="+962">🇯🇴 +962</option>
+            <option value="+961">🇱🇧 +961</option>
+            <option value="+212">🇲🇦 +212</option>
+            <option value="+216">🇹🇳 +216</option>
+            <option value="+213">🇩🇿 +213</option>
+            <option value="+218">🇱🇾 +218</option>
+            <option value="+249">🇸🇩 +249</option>
+            <option value="+90">🇹🇷 +90</option>
+            <option value="+44">🇬🇧 +44</option>
+            <option value="+1">🇺🇸 +1</option>
+            <option value="+33">🇫🇷 +33</option>
+            <option value="+49">🇩🇪 +49</option>
+            <option value="+39">🇮🇹 +39</option>
+            <option value="+34">🇪🇸 +34</option>
+            <option value="+31">🇳🇱 +31</option>
+            <option value="+91">🇮🇳 +91</option>
+            <option value="+234">🇳🇬 +234</option>
+            <option value="+27">🇿🇦 +27</option>
+            <option value="+61">🇦🇺 +61</option>
+          </select>
+          <input class="mf-input" id="mfPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="10 1234 5678">
+        </div>
+        <p class="mf-err" data-err="phone"></p>
+      </div>
+
+      <div class="mf">
+        <span class="mf-label">Services needed <i>*</i></span>
+        <div class="mf-chips" role="group" aria-label="Services needed">
+          <label class="mchip"><input type="checkbox" name="services" value="Competitor &amp; Market Analysis"><span>Competitor &amp; Market Analysis</span></label>
+          <label class="mchip"><input type="checkbox" name="services" value="Content Strategy &amp; Calendars"><span>Content Strategy &amp; Calendars</span></label>
+          <label class="mchip"><input type="checkbox" name="services" value="Media Buying"><span>Media Buying</span></label>
+          <label class="mchip"><input type="checkbox" name="services" value="Photography &amp; Reels"><span>Photography &amp; Reels</span></label>
+          <label class="mchip"><input type="checkbox" name="services" value="Copywriting"><span>Copywriting</span></label>
+          <label class="mchip"><input type="checkbox" name="services" value="Brand &amp; Visual Identity"><span>Brand &amp; Visual Identity</span></label>
+          <label class="mchip"><input type="checkbox" name="services" value="Trend Monitoring"><span>Trend Monitoring</span></label>
+          <label class="mchip"><input type="checkbox" name="services" value="Performance Reporting"><span>Performance Reporting</span></label>
+          <label class="mchip"><input type="checkbox" name="services" value="Web Development"><span>Web Development</span></label>
+        </div>
+        <p class="mf-err" data-err="services"></p>
+      </div>
+
+      <div class="mf">
+        <span class="mf-label">Meeting date <i>*</i></span>
+        <div class="cal" id="mfCal">
+          <div class="cal-head">
+            <button class="cal-nav" type="button" id="calPrev" aria-label="Previous month">
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>
+            </button>
+            <span class="cal-month" id="calMonth" aria-live="polite"></span>
+            <button class="cal-nav" type="button" id="calNext" aria-label="Next month">
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+          <div class="cal-dow" aria-hidden="true"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+          <div class="cal-grid" id="calGrid" role="grid" aria-label="Choose a meeting date"></div>
+        </div>
+        <p class="mf-err" data-err="meetingDate"></p>
+      </div>
+
+      <div class="mf">
+        <label class="mf-label" for="mfMsg">Message <span class="mf-opt">optional</span></label>
+        <textarea class="mf-input mf-area" id="mfMsg" name="message" rows="3" placeholder="Briefly, what are you trying to do?"></textarea>
+      </div>
+
+      <button class="mreq-submit" type="submit" id="mreqSubmit">
+        <span class="mreq-submit-label">Request meeting</span>
+        <span class="mreq-spin" aria-hidden="true"></span>
+      </button>
+      <p class="mreq-note" id="mreqNote"></p>
+    </form>
+
+    <div class="mreq-done" id="mreqDone" hidden>
+      <div class="mreq-tick" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.5 5.5L20 7"/></svg>
+      </div>
+      <h3 class="mreq-done-title display">Request ready</h3>
+      <p class="mreq-done-copy" id="mreqDoneCopy"></p>
+      <button class="mreq-submit ghost" type="button" data-mclose>Close</button>
+    </div>
+  </div>
+</div>
+
 <div class="driver" id="driver" aria-hidden="true"></div>
 
 
@@ -1554,5 +1878,237 @@ if (REDUCED) {
   window.addEventListener('load', measureAll);
   runLoader();
 }
+
+/* ---------------------------------------------------------
+   Meeting request modal
+
+   There is no backend on this project, so the submit path is written to
+   target one and falls back to something real rather than pretending:
+   set MEETING_ENDPOINT to a URL and the form POSTs the payload as JSON;
+   leave it empty and the request is handed to the visitor's mail client,
+   pre-addressed and pre-filled. Nothing claims to have been sent when it
+   has not been.
+   --------------------------------------------------------- */
+const MEETING_ENDPOINT = '';                 /* e.g. 'https://formspree.io/f/xxxx' */
+const MEETING_MAILTO   = 'hello@wewave.studio';
+
+(function meetingRequest() {
+  const root = $('#mreq');
+  const btn  = $('#meetingBtn');
+  if (!root || !btn) return;
+
+  const panel   = $('.mreq-panel', root);
+  const form    = $('#mreqForm');
+  const done    = $('#mreqDone');
+  const doneCopy= $('#mreqDoneCopy');
+  const submit  = $('#mreqSubmit');
+  const note    = $('#mreqNote');
+  const grid    = $('#calGrid');
+  const monthEl = $('#calMonth');
+  const prevBtn = $('#calPrev');
+  const nextBtn = $('#calNext');
+
+  const MONTHS = ['January','February','March','April','May','June',
+                  'July','August','September','October','November','December'];
+
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  let view = { y: today.getFullYear(), m: today.getMonth() };
+  let picked = null;                       /* Date, midnight */
+  let lastFocus = null;
+
+  const sameDay = (a, b) => a && b &&
+    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+  /* ---- calendar ---- */
+  function renderCal() {
+    monthEl.textContent = `${MONTHS[view.m]} ${view.y}`;
+    /* nothing to go back to before the current month */
+    prevBtn.disabled = view.y === today.getFullYear() && view.m === today.getMonth();
+
+    const first = new Date(view.y, view.m, 1);
+    const lead  = (first.getDay() + 6) % 7;          /* Monday-first */
+    const days  = new Date(view.y, view.m + 1, 0).getDate();
+
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < lead; i++) {
+      const b = document.createElement('span');
+      b.className = 'cal-day blank';
+      frag.appendChild(b);
+    }
+    for (let d = 1; d <= days; d++) {
+      const date = new Date(view.y, view.m, d);
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'cal-day';
+      b.textContent = d;
+      b.setAttribute('aria-label', `${d} ${MONTHS[view.m]} ${view.y}`);
+      if (date < today) b.disabled = true;            /* no past dates */
+      if (sameDay(date, today))  b.classList.add('today');
+      if (sameDay(date, picked)) { b.classList.add('sel'); b.setAttribute('aria-pressed', 'true'); }
+      b.addEventListener('click', () => {
+        picked = date;
+        clearErr('meetingDate');
+        renderCal();
+      });
+      frag.appendChild(b);
+    }
+    grid.replaceChildren(frag);
+  }
+
+  prevBtn.addEventListener('click', () => {
+    if (view.m === 0) { view.m = 11; view.y--; } else view.m--;
+    renderCal();
+  });
+  nextBtn.addEventListener('click', () => {
+    if (view.m === 11) { view.m = 0; view.y++; } else view.m++;
+    renderCal();
+  });
+
+  /* ---- validation ---- */
+  const errEl = k => $(`[data-err="${k}"]`, form);
+  function setErr(k, msg) {
+    const e = errEl(k);
+    if (!e) return;
+    e.textContent = msg;
+    e.classList.add('on');
+    e.closest('.mf')?.classList.add('invalid');
+  }
+  function clearErr(k) {
+    const e = errEl(k);
+    if (!e) return;
+    e.textContent = '';
+    e.classList.remove('on');
+    e.closest('.mf')?.classList.remove('invalid');
+  }
+
+  function collect() {
+    const services = $$('input[name="services"]:checked', form).map(i => i.value);
+    return {
+      name:      $('#mfName').value.trim(),
+      brandLink: $('#mfBrand').value.trim(),
+      phone:     ($('#mfCode').value + ' ' + $('#mfPhone').value.trim()).trim(),
+      services,
+      meetingDate: picked ? iso(picked) : '',
+      message:   $('#mfMsg').value.trim()
+    };
+  }
+
+  function validate(d) {
+    ['name','brandLink','phone','services','meetingDate'].forEach(clearErr);
+    let ok = true;
+    if (d.name.length < 2)      { setErr('name', 'Please enter your full name.'); ok = false; }
+    if (!d.brandLink)           { setErr('brandLink', 'Add your website or a social profile link.'); ok = false; }
+    /* deliberately loose: numbering varies by country, so only require enough digits to be a number */
+    if ((d.phone.replace(/\D/g, '').length) < 8) { setErr('phone', 'Enter a phone number we can reach you on.'); ok = false; }
+    if (!d.services.length)     { setErr('services', 'Choose at least one service.'); ok = false; }
+    if (!d.meetingDate)         { setErr('meetingDate', 'Pick a date for the meeting.'); ok = false; }
+    if (!ok) {
+      const firstBad = $('.mf.invalid', form);
+      firstBad?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return ok;
+  }
+
+  /* live clearing as the visitor fixes things */
+  ['mfName','mfBrand','mfPhone'].forEach((id, i) => {
+    $('#' + id).addEventListener('input', () => clearErr(['name','brandLink','phone'][i]));
+  });
+  $$('input[name="services"]', form).forEach(c =>
+    c.addEventListener('change', () => clearErr('services')));
+
+  /* ---- submit ---- */
+  function mailtoFor(d) {
+    const body = [
+      `Name: ${d.name}`,
+      `Brand / link: ${d.brandLink}`,
+      `Phone: ${d.phone}`,
+      `Services: ${d.services.join(', ')}`,
+      `Preferred date: ${d.meetingDate}`,
+      '',
+      d.message ? `Message:\n${d.message}` : '(no message)'
+    ].join('\n');
+    return `mailto:${MEETING_MAILTO}`
+      + `?subject=${encodeURIComponent('Meeting request — ' + d.name)}`
+      + `&body=${encodeURIComponent(body)}`;
+  }
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const data = collect();
+    if (!validate(data)) return;
+
+    submit.disabled = true;
+    submit.classList.add('busy');
+    note.classList.remove('err');
+    note.textContent = '';
+
+    try {
+      if (MEETING_ENDPOINT) {
+        const res = await fetch(MEETING_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (!res.ok) throw new Error('Request failed (' + res.status + ')');
+        doneCopy.textContent =
+          'Thanks — your request is with us. We will confirm your meeting by phone or email shortly.';
+      } else {
+        /* No endpoint configured: hand it to the mail client rather than
+           claiming a send that did not happen. */
+        window.location.href = mailtoFor(data);
+        doneCopy.textContent =
+          'Your email app is opening with the details filled in — press send and it reaches us. '
+          + 'If nothing opened, email ' + MEETING_MAILTO + ' directly.';
+      }
+      form.hidden = true;
+      done.hidden = false;
+      panel.scrollTop = 0;
+    } catch (err) {
+      note.textContent = 'Could not send that. Please try again, or email ' + MEETING_MAILTO + '.';
+      note.classList.add('err');
+    } finally {
+      submit.disabled = false;
+      submit.classList.remove('busy');
+    }
+  });
+
+  /* ---- open / close ---- */
+  function open() {
+    lastFocus = document.activeElement;
+    root.hidden = false;
+    void panel.offsetHeight;                 /* reflow so the transition has a start frame */
+    root.classList.add('open');
+    document.documentElement.style.overflow = 'hidden';   /* freeze the stage timeline behind */
+    renderCal();
+    setTimeout(() => $('#mfName')?.focus(), 60);
+  }
+  function close() {
+    root.classList.remove('open');
+    document.documentElement.style.overflow = '';
+    const finish = () => { root.hidden = true; };
+    panel.addEventListener('transitionend', finish, { once: true });
+    setTimeout(finish, 600);                 /* never strand it open */
+    lastFocus?.focus();
+  }
+
+  btn.addEventListener('click', e => { e.preventDefault(); open(); });
+  $$('[data-mclose]', root).forEach(el => el.addEventListener('click', close));
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !root.hidden) close();
+  });
+
+  /* keep tabbing inside the dialog while it is open */
+  panel.addEventListener('keydown', e => {
+    if (e.key !== 'Tab') return;
+    const f = $$('button,input,select,textarea,a[href]', panel).filter(el => !el.disabled && el.offsetParent !== null);
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+
+  renderCal();
+})();
 
 </script>

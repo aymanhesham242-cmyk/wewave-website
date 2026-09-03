@@ -191,7 +191,7 @@
       </h1>
       <p class="tagline" data-anim>Attention, engineered.</p>
       <p class="scroll-hint" data-anim><span class="hint-rail"><em></em></span>Scroll to explore</p>
-      <a class="hero-cta" href="#contact" data-goto="contact" data-anim>Request a meeting</a>
+      <a class="hero-cta" id="meetingBtn" href="#contact" data-anim>Request a meeting</a>
     </div>
   </section>
 
@@ -346,6 +346,123 @@
 </main>
 
 <!-- Scroll driver: supplies the scroll length the stages are choreographed against -->
+<!-- Meeting request. Opened by #meetingBtn; logic in main.js. -->
+<div class="mreq" id="mreq" hidden>
+  <div class="mreq-scrim" data-mclose></div>
+  <div class="mreq-panel" role="dialog" aria-modal="true" aria-labelledby="mreqTitle">
+    <button class="mreq-x" type="button" data-mclose aria-label="Close">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+
+    <form class="mreq-form" id="mreqForm" novalidate>
+      <p class="mreq-eyebrow">Request a meeting</p>
+      <h2 class="mreq-title display" id="mreqTitle">Tell us what you need.</h2>
+
+      <div class="mf">
+        <label class="mf-label" for="mfName">Full name <i>*</i></label>
+        <input class="mf-input" id="mfName" name="name" type="text" autocomplete="name" placeholder="Your name">
+        <p class="mf-err" data-err="name"></p>
+      </div>
+
+      <div class="mf">
+        <label class="mf-label" for="mfBrand">Brand / website link <i>*</i></label>
+        <input class="mf-input" id="mfBrand" name="brandLink" type="text" inputmode="url" autocomplete="url" placeholder="https://yourbrand.com">
+        <p class="mf-err" data-err="brandLink"></p>
+      </div>
+
+      <div class="mf">
+        <label class="mf-label" for="mfPhone">Phone number <i>*</i></label>
+        <div class="mf-phone">
+          <select class="mf-code" id="mfCode" name="dialCode" aria-label="Country code">
+            <option value="+20" selected>🇪🇬 +20</option>
+            <option value="+966">🇸🇦 +966</option>
+            <option value="+971">🇦🇪 +971</option>
+            <option value="+965">🇰🇼 +965</option>
+            <option value="+974">🇶🇦 +974</option>
+            <option value="+973">🇧🇭 +973</option>
+            <option value="+968">🇴🇲 +968</option>
+            <option value="+962">🇯🇴 +962</option>
+            <option value="+961">🇱🇧 +961</option>
+            <option value="+212">🇲🇦 +212</option>
+            <option value="+216">🇹🇳 +216</option>
+            <option value="+213">🇩🇿 +213</option>
+            <option value="+218">🇱🇾 +218</option>
+            <option value="+249">🇸🇩 +249</option>
+            <option value="+90">🇹🇷 +90</option>
+            <option value="+44">🇬🇧 +44</option>
+            <option value="+1">🇺🇸 +1</option>
+            <option value="+33">🇫🇷 +33</option>
+            <option value="+49">🇩🇪 +49</option>
+            <option value="+39">🇮🇹 +39</option>
+            <option value="+34">🇪🇸 +34</option>
+            <option value="+31">🇳🇱 +31</option>
+            <option value="+91">🇮🇳 +91</option>
+            <option value="+234">🇳🇬 +234</option>
+            <option value="+27">🇿🇦 +27</option>
+            <option value="+61">🇦🇺 +61</option>
+          </select>
+          <input class="mf-input" id="mfPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="10 1234 5678">
+        </div>
+        <p class="mf-err" data-err="phone"></p>
+      </div>
+
+      <div class="mf">
+        <span class="mf-label">Services needed <i>*</i></span>
+        <div class="mf-chips" role="group" aria-label="Services needed">
+          <label class="mchip"><input type="checkbox" name="services" value="Competitor &amp; Market Analysis"><span>Competitor &amp; Market Analysis</span></label>
+          <label class="mchip"><input type="checkbox" name="services" value="Content Strategy &amp; Calendars"><span>Content Strategy &amp; Calendars</span></label>
+          <label class="mchip"><input type="checkbox" name="services" value="Media Buying"><span>Media Buying</span></label>
+          <label class="mchip"><input type="checkbox" name="services" value="Photography &amp; Reels"><span>Photography &amp; Reels</span></label>
+          <label class="mchip"><input type="checkbox" name="services" value="Copywriting"><span>Copywriting</span></label>
+          <label class="mchip"><input type="checkbox" name="services" value="Brand &amp; Visual Identity"><span>Brand &amp; Visual Identity</span></label>
+          <label class="mchip"><input type="checkbox" name="services" value="Trend Monitoring"><span>Trend Monitoring</span></label>
+          <label class="mchip"><input type="checkbox" name="services" value="Performance Reporting"><span>Performance Reporting</span></label>
+          <label class="mchip"><input type="checkbox" name="services" value="Web Development"><span>Web Development</span></label>
+        </div>
+        <p class="mf-err" data-err="services"></p>
+      </div>
+
+      <div class="mf">
+        <span class="mf-label">Meeting date <i>*</i></span>
+        <div class="cal" id="mfCal">
+          <div class="cal-head">
+            <button class="cal-nav" type="button" id="calPrev" aria-label="Previous month">
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>
+            </button>
+            <span class="cal-month" id="calMonth" aria-live="polite"></span>
+            <button class="cal-nav" type="button" id="calNext" aria-label="Next month">
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+          <div class="cal-dow" aria-hidden="true"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+          <div class="cal-grid" id="calGrid" role="grid" aria-label="Choose a meeting date"></div>
+        </div>
+        <p class="mf-err" data-err="meetingDate"></p>
+      </div>
+
+      <div class="mf">
+        <label class="mf-label" for="mfMsg">Message <span class="mf-opt">optional</span></label>
+        <textarea class="mf-input mf-area" id="mfMsg" name="message" rows="3" placeholder="Briefly, what are you trying to do?"></textarea>
+      </div>
+
+      <button class="mreq-submit" type="submit" id="mreqSubmit">
+        <span class="mreq-submit-label">Request meeting</span>
+        <span class="mreq-spin" aria-hidden="true"></span>
+      </button>
+      <p class="mreq-note" id="mreqNote"></p>
+    </form>
+
+    <div class="mreq-done" id="mreqDone" hidden>
+      <div class="mreq-tick" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.5 5.5L20 7"/></svg>
+      </div>
+      <h3 class="mreq-done-title display">Request ready</h3>
+      <p class="mreq-done-copy" id="mreqDoneCopy"></p>
+      <button class="mreq-submit ghost" type="button" data-mclose>Close</button>
+    </div>
+  </div>
+</div>
+
 <div class="driver" id="driver" aria-hidden="true"></div>
 
 <script src="js/main.js"></script>
