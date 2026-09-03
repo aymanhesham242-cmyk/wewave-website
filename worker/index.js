@@ -32,11 +32,13 @@ function safeEqual(a, b) {
 }
 
 function isAdmin(request, env) {
-  const secret = env.ADMIN_TOKEN;
+  /* Trim both sides: a secret pasted into the dashboard can pick up a stray
+     space or newline, which would otherwise fail on length alone. */
+  const secret = (env.ADMIN_TOKEN || '').trim();
   if (!secret) return false;                        /* fail closed */
   const header = request.headers.get('Authorization') || '';
-  const m = header.match(/^Bearer\s+(.+)$/i);
-  return !!m && safeEqual(m[1], secret);
+  const m = header.match(/^Bearer\s+([\s\S]+)$/i);
+  return !!m && safeEqual(m[1].trim(), secret);
 }
 
 const str = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
@@ -144,6 +146,13 @@ export default {
 
     if (path === '/api/meeting' && request.method === 'POST') {
       return createMeeting(request, env);
+    }
+
+    /* Diagnostic: can this deployment see the ADMIN_TOKEN secret? Returns a
+       boolean only - never the value, never its length. Remove once the admin
+       panel is confirmed working. */
+    if (path === '/api/authcheck' && request.method === 'GET') {
+      return json({ configured: !!(env.ADMIN_TOKEN || '').trim() });
     }
 
     /* everything below is admin-only */
