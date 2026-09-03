@@ -52,6 +52,10 @@ cases = ROOT / "assets/cases"
 if cases.exists() and any(cases.iterdir()):
     shutil.copytree(cases, DIST / "assets/cases")
 
+# admin panel (a static shell; it holds no data without a token)
+if (ROOT / 'admin').exists():
+    shutil.copytree(ROOT / 'admin', DIST / 'admin')
+
 # --- keep it out of search results ---------------------------------------
 (DIST / "robots.txt").write_text(
     "User-agent: *\nDisallow: /\n", encoding="utf-8"

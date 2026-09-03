@@ -1,0 +1,24 @@
+{
+  // Worker in front of the static site. Assets are served for everything the
+  // Worker doesn't claim, so the site behaves exactly as it did on a plain
+  // assets-only deploy.
+  "name": "wewave-website",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-08-28",
+
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "wewave-meetings",
+      "database_id": "860c8c11-943e-4bee-a0b6-d48558376794"
+    }
+  ]
+
+  // ADMIN_TOKEN is a secret, never committed:
+  //   npx wrangler secret put ADMIN_TOKEN
+}

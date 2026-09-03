@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Meeting requests — WeWave</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#1F6B45; --accent:#2E8B57; --deep:#0C2A1C; --panel:#123123;
+  --ink:#FFFFFF; --dim:rgba(255,255,255,.6); --line:rgba(255,255,255,.13);
+  --display:'Bebas Neue',Impact,sans-serif; --mono:'DM Mono',ui-monospace,monospace;
+  --sans:'DM Sans',system-ui,sans-serif; --ease:cubic-bezier(.22,.61,.36,1);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--deep);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+a{color:inherit;}
+.wrap{max-width:1100px;margin:0 auto;padding:clamp(20px,4vw,44px);}
+
+.head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:26px;}
+.head h1{font-family:var(--display);font-size:clamp(26px,4vw,40px);letter-spacing:.03em;text-transform:uppercase;}
+.head .sub{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;}
+.tools{display:flex;gap:8px;}
+.btn{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:10px 18px;cursor:pointer;transition:border-color .25s,background-color .25s;
+}
+.btn:hover{border-color:var(--accent);background:rgba(46,139,87,.16);}
+.btn.solid{background:var(--accent);border-color:var(--accent);}
+
+/* token gate */
+.gate{max-width:420px;margin:14vh auto;text-align:center;}
+.gate h2{font-family:var(--display);font-size:30px;letter-spacing:.03em;text-transform:uppercase;margin-bottom:10px;}
+.gate p{color:var(--dim);font-size:14px;line-height:1.6;margin-bottom:22px;}
+.inp{
+  width:100%;font-family:var(--sans);font-size:16px;color:var(--ink);
+  background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:11px;padding:13px 15px;
+}
+.inp:focus{outline:none;border-color:var(--accent);}
+.gate .btn{margin-top:12px;width:100%;justify-content:center;}
+.err{color:#FF9C8A;font-family:var(--mono);font-size:11px;margin-top:12px;min-height:16px;}
+
+/* filters */
+.tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:20px;}
+.tab{
+  font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--dim);background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:9px 15px;cursor:pointer;transition:all .25s;
+}
+.tab:hover{color:var(--ink);border-color:rgba(255,255,255,.3);}
+.tab.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+.tab b{font-weight:400;opacity:.7;margin-left:5px;}
+
+/* rows */
+.list{display:flex;flex-direction:column;gap:12px;}
+.row{
+  background:var(--panel);border:1px solid var(--line);border-radius:15px;
+  padding:clamp(16px,2vw,22px);
+}
+.row.s-booked{border-color:rgba(46,139,87,.5);}
+.row.s-archived{opacity:.55;}
+.r-top{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:baseline;}
+.r-name{font-family:var(--display);font-size:22px;letter-spacing:.02em;text-transform:uppercase;}
+.r-when{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.08em;}
+.r-meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin:12px 0;}
+.r-meta a,.r-meta span{font-family:var(--mono);font-size:11.5px;color:var(--dim);word-break:break-all;}
+.r-meta a:hover{color:var(--accent);}
+.r-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+.tag{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:var(--ink);
+  border:1px solid rgba(46,139,87,.45);background:rgba(46,139,87,.14);
+  border-radius:999px;padding:5px 11px;
+}
+.r-msg{font-size:14px;line-height:1.6;color:var(--dim);border-left:2px solid var(--line);padding-left:12px;margin-bottom:14px;}
+.r-date{
+  display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+  color:var(--ink);background:rgba(255,255,255,.07);border-radius:8px;padding:6px 11px;margin-bottom:14px;
+}
+.r-foot{display:flex;gap:9px;flex-wrap:wrap;align-items:center;}
+.sel{
+  font-family:var(--mono);font-size:10.5px;color:var(--ink);background:rgba(255,255,255,.06);
+  border:1px solid var(--line);border-radius:9px;padding:9px 11px;cursor:pointer;
+}
+.sel option{background:var(--panel);}
+.note{
+  flex:1;min-width:200px;font-family:var(--sans);font-size:13px;color:var(--ink);
+  background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:9px;padding:9px 12px;
+}
+.note:focus{outline:none;border-color:var(--accent);}
+.saved{font-family:var(--mono);font-size:9.5px;color:var(--accent);opacity:0;transition:opacity .3s;}
+.saved.on{opacity:1;}
+
+.empty{text-align:center;padding:60px 20px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:.1em;}
+@media (max-width:600px){ .r-foot{flex-direction:column;align-items:stretch;} .note{min-width:0;} }
+</style>
+</head>
+<body>
+
+<div id="gate" class="gate">
+  <h2>Meeting requests</h2>
+  <p>Enter the admin token to view submissions.</p>
+  <input class="inp" id="tok" type="password" placeholder="Admin token" autocomplete="current-password">
+  <button class="btn solid" id="tokGo">Unlock</button>
+  <p class="err" id="gateErr"></p>
+</div>
+
+<div class="wrap" id="app" hidden>
+  <div class="head">
+    <div>
+      <p class="sub">WeWave</p>
+      <h1>Meeting requests</h1>
+    </div>
+    <div class="tools">
+      <button class="btn" id="refresh">Refresh</button>
+      <button class="btn" id="logout">Lock</button>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+  <div class="list" id="list"></div>
+</div>
+
+<script>
+const KEY = 'wewave_admin_token';
+let token = localStorage.getItem(KEY) || '';
+let filter = 'all';
+let data = { meetings: [], counts: {} };
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
+  ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, {
+    ...opts,
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', ...(opts.headers || {}) }
+  });
+  if (res.status === 401) throw new Error('unauthorised');
+  if (!res.ok) throw new Error('Request failed (' + res.status + ')');
+  return res.json();
+}
+
+function fmtWhen(iso) {
+  const d = new Date(iso);
+  return isNaN(d) ? iso : d.toLocaleString(undefined, { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+}
+function fmtDate(s) {
+  const d = new Date(s + 'T00:00:00');
+  return isNaN(d) ? s : d.toLocaleDateString(undefined, { weekday:'short', day:'numeric', month:'long', year:'numeric' });
+}
+const linkify = u => /^https?:\/\//i.test(u) ? u : 'https://' + u;
+
+function renderTabs() {
+  const c = data.counts || {};
+  const total = Object.values(c).reduce((a, b) => a + b, 0);
+  const defs = [['all','All',total],['new','New',c.new||0],['contacted','Contacted',c.contacted||0],
+                ['booked','Booked',c.booked||0],['archived','Archived',c.archived||0]];
+  $('#tabs').innerHTML = defs.map(([k,label,n]) =>
+    `<button class="tab ${filter===k?'on':''}" data-f="${k}">${label}<b>${n}</b></button>`).join('');
+  document.querySelectorAll('.tab').forEach(t =>
+    t.onclick = () => { filter = t.dataset.f; load(); });
+}
+
+function renderList() {
+  const list = $('#list');
+  if (!data.meetings.length) {
+    list.innerHTML = '<p class="empty">No requests here yet.</p>';
+    return;
+  }
+  list.innerHTML = data.meetings.map(m => `
+    <div class="row s-${esc(m.status)}" data-id="${esc(m.id)}">
+      <div class="r-top">
+        <span class="r-name">${esc(m.name)}</span>
+        <span class="r-when">${esc(fmtWhen(m.created_at))}</span>
+      </div>
+      <div class="r-meta">
+        <a href="${esc(linkify(m.brand_link))}" target="_blank" rel="noopener">${esc(m.brand_link)}</a>
+        <a href="tel:${esc(m.phone.replace(/\s/g,''))}">${esc(m.phone)}</a>
+      </div>
+      <div class="r-date">Wants: ${esc(fmtDate(m.meeting_date))}</div>
+      <div class="r-tags">${m.services.map(s => `<span class="tag">${esc(s)}</span>`).join('')}</div>
+      ${m.message ? `<p class="r-msg">${esc(m.message)}</p>` : ''}
+      <div class="r-foot">
+        <select class="sel" data-status>
+          ${['new','contacted','booked','archived'].map(s =>
+            `<option value="${s}" ${m.status===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+        <input class="note" data-note placeholder="Internal note…" value="${esc(m.notes || '')}">
+        <span class="saved">saved</span>
+      </div>
+    </div>`).join('');
+
+  list.querySelectorAll('.row').forEach(row => {
+    const id = row.dataset.id;
+    const flash = () => {
+      const s = row.querySelector('.saved');
+      s.classList.add('on'); setTimeout(() => s.classList.remove('on'), 1200);
+    };
+    row.querySelector('[data-status]').onchange = async e => {
+      await api('/api/meetings/' + id, { method:'PATCH', body: JSON.stringify({ status: e.target.value }) });
+      flash(); load();
+    };
+    let t;
+    row.querySelector('[data-note]').oninput = e => {
+      clearTimeout(t);
+      t = setTimeout(async () => {
+        await api('/api/meetings/' + id, { method:'PATCH', body: JSON.stringify({ notes: e.target.value }) });
+        flash();
+      }, 600);                                   /* debounce so typing isn't a write per keystroke */
+    };
+  });
+}
+
+async function load() {
+  try {
+    const q = filter === 'all' ? '' : '?status=' + filter;
+    data = await api('/api/meetings' + q);
+    renderTabs(); renderList();
+  } catch (e) {
+    if (e.message === 'unauthorised') return lock('That token was not accepted.');
+    $('#list').innerHTML = '<p class="empty">' + esc(e.message) + '</p>';
+  }
+}
+
+function unlock() {
+  $('#gate').hidden = true;
+  $('#app').hidden = false;
+  load();
+}
+function lock(msg) {
+  localStorage.removeItem(KEY); token = '';
+  $('#app').hidden = true;
+  $('#gate').hidden = false;
+  $('#gateErr').textContent = msg || '';
+}
+
+$('#tokGo').onclick = () => {
+  token = $('#tok').value.trim();
+  if (!token) return;
+  localStorage.setItem(KEY, token);
+  $('#gateErr').textContent = '';
+  unlock();
+};
+$('#tok').addEventListener('keydown', e => { if (e.key === 'Enter') $('#tokGo').click(); });
+$('#refresh').onclick = load;
+$('#logout').onclick = () => lock('');
+
+if (token) unlock();
+</script>
+</body>
+</html>

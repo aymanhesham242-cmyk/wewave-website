@@ -4,3 +4,6 @@ __pycache__/
 node_modules/
 .vercel/
 .wrangler/
+
+# local Worker secrets — never committed
+.dev.vars
