@@ -2,3 +2,12 @@
    A rule appears here only when the matching image exists, so missing
    photography costs no requests. Add files to assets/services/ and
    re-run the script. */
+.scard[href*="competitor-market-analysis"]{--shot:url(../assets/services/competitor-market-analysis.jpg);}
+.scard[href*="content-strategy"]{--shot:url(../assets/services/content-strategy.jpg);}
+.scard[href*="media-buying"]{--shot:url(../assets/services/media-buying.jpg);}
+.scard[href*="photography-reels"]{--shot:url(../assets/services/photography-reels.jpg);}
+.scard[href*="copywriting"]{--shot:url(../assets/services/copywriting.jpg);}
+.scard[href*="brand-identity"]{--shot:url(../assets/services/brand-identity.jpg);}
+.scard[href*="trend-monitoring"]{--shot:url(../assets/services/trend-monitoring.jpg);}
+.scard[href*="performance-reporting"]{--shot:url(../assets/services/performance-reporting.jpg);}
+.scard[href*="web-development"]{--shot:url(../assets/services/web-development.jpg);}

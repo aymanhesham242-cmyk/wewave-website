@@ -18,9 +18,15 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DIST = ROOT / "dist"
 
-if DIST.exists():
-    shutil.rmtree(DIST)
-DIST.mkdir()
+# Empty dist/ rather than removing it: on Windows the directory handle is
+# often held by an editor, a file browser or a static server, which makes
+# rmtree fail on the folder itself even after its contents are gone.
+DIST.mkdir(exist_ok=True)
+for item in DIST.iterdir():
+    if item.is_dir():
+        shutil.rmtree(item)
+    else:
+        item.unlink()
 
 # --- pages ---------------------------------------------------------------
 html = (ROOT / "index.html").read_text(encoding="utf-8")
@@ -46,6 +52,15 @@ shutil.copy2(
     ROOT / "assets/wewave-profile-web.pdf", DIST / "assets/wewave-profile-web.pdf"
 )
 shutil.copytree(ROOT / "assets/clients", DIST / "assets/clients")
+
+# service hover artwork (css/service-shots.css only references files that
+# exist, so a partial folder is fine -- but it must actually ship)
+services_art = ROOT / "assets/services"
+if services_art.exists():
+    shutil.copytree(
+        services_art, DIST / "assets/services",
+        ignore=shutil.ignore_patterns("README.md"),
+    )
 
 # case-study screenshots (the pages fall back to a labelled slot if absent)
 cases = ROOT / "assets/cases"

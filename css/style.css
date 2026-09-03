@@ -422,7 +422,8 @@ canvas{display:block;}
   transition:opacity .45s var(--ease),transform .55s var(--ease);
   pointer-events:none;
 }
-.scard:hover .scard-art{opacity:.22;transform:translate(-4px,-4px) rotate(-4deg);}
+.scard:hover .scard-art,
+.scard.is-active .scard-art{opacity:.22;transform:translate(-4px,-4px) rotate(-4deg);}
 
 /* Photo revealed on hover. Desaturated and washed back so the card keeps the
    palette rather than the photograph setting the tone. A missing file simply
@@ -444,8 +445,19 @@ canvas{display:block;}
   opacity:0;transition:opacity .55s var(--ease);
   pointer-events:none;
 }
-.scard:hover::before{opacity:.5;transform:scale(1);}
-.scard:hover::after{opacity:1;}
+/* Hover is gated behind a real pointer: on a phone :hover sticks after a tap,
+   which would leave a second photo showing alongside the scroll-activated one.
+   Desktop matches (hover:hover), so its behaviour is unchanged. */
+@media (hover:hover){
+  .scard:hover::before{opacity:.5;transform:scale(1);}
+  .scard:hover::after{opacity:1;}
+}
+/* Touch equivalent. Set by servicesRail() on the card nearest the viewport
+   centre, and on tap. Deliberately no translateY lift here -- on a phone the
+   card is already moving past, and lifting it as well reads as a wobble. */
+.scard.is-active{border-color:var(--glow);}
+.scard.is-active::before{opacity:.5;transform:scale(1);}
+.scard.is-active::after{opacity:1;}
 
 
 .scard-more{
@@ -454,7 +466,8 @@ canvas{display:block;}
   color:var(--glow);opacity:.75;transition:opacity .35s;
 }
 .scard-more::after{content:' →';}
-.scard:hover .scard-more{opacity:1;}
+.scard:hover .scard-more,
+.scard.is-active .scard-more{opacity:1;}
 
 
 /* ---------- Process ---------- */

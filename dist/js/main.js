@@ -11,6 +11,10 @@ const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
    canvas setup below reads it at module scope. */
 const TOUCH = window.matchMedia('(hover: none), (pointer: coarse)').matches;
 const SMALL = window.matchMedia('(max-width: 900px)').matches;
+/* One switch for the phone-weight render path and the touch interactions.
+   Declared here because both the ribbon setup and the services rail read it
+   at module-evaluation time. */
+const LIGHT = TOUCH || SMALL;
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
@@ -155,16 +159,55 @@ function renderStages(p) {
 
 /* Services: the row slides horizontally across its own window. */
 const rail = $('#servicesRail');
+const scards = rail ? $$('.scard', rail) : [];
 let railShift = 0;
+let cardMids = [];          /* card centres, measured once per resize */
+let activeCard = -1;
+
 function measureRail() {
   if (!rail) return;
   const pad = Math.max(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pad')) || 24, 24);
   railShift = Math.max(rail.scrollWidth - window.innerWidth + pad * 2, 0);
+  /* Cached so the per-frame pass below is pure arithmetic. Reading
+     getBoundingClientRect() for nine cards every frame would force a layout
+     each time -- the exact thing that makes a phone stutter. */
+  cardMids = scards.map(c => c.offsetLeft + c.offsetWidth / 2);
 }
+
+/* Touch has no hover, so the card sitting nearest the middle of the screen
+   becomes the active one as the rail slides past. Only ever one card, and the
+   DOM is touched only when the index actually changes. */
+function setActiveCard(i) {
+  if (i === activeCard) return;
+  if (activeCard > -1 && scards[activeCard]) scards[activeCard].classList.remove('is-active');
+  activeCard = i;
+  if (i > -1 && scards[i]) scards[i].classList.add('is-active');
+}
+
 function servicesRail(lp) {
   if (!rail) return;
   const t = easeIO(range(lp, 0.12, 0.92));
-  rail.style.transform = `translate3d(${(-railShift * t).toFixed(2)}px,0,0)`;
+  const shift = railShift * t;
+  rail.style.transform = `translate3d(${(-shift).toFixed(2)}px,0,0)`;
+
+  if (!LIGHT || !cardMids.length) return;
+  const mid = window.innerWidth / 2;
+  let best = -1, bestD = Infinity;
+  for (let n = 0; n < cardMids.length; n++) {
+    const d = Math.abs(cardMids[n] - shift - mid);
+    if (d < bestD) { bestD = d; best = n; }
+  }
+  setActiveCard(best);
+}
+
+/* Pressing a card reveals it immediately rather than waiting for it to reach
+   the centre. One passive delegated listener; the scroll pass takes over again
+   on the next frame. */
+if (rail && LIGHT) {
+  rail.addEventListener('pointerdown', e => {
+    const card = e.target.closest('.scard');
+    if (card) setActiveCard(scards.indexOf(card));
+  }, { passive: true });
 }
 
 /* Process: steps light up in sequence as the window is traversed. */
@@ -179,9 +222,6 @@ function processSteps(lp) {
    Ribbon canvas — a continuously travelling glow whose shape
    is bent by scroll position and scroll velocity.
    --------------------------------------------------------- */
-/* One switch for the phone-weight render path. */
-const LIGHT = TOUCH || SMALL;
-
 const cv  = $('#ribbon');
 const ctx = cv.getContext('2d');
 let W = 0, H = 0;
