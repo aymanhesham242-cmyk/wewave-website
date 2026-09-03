@@ -261,6 +261,29 @@ canvas{display:block;}
   100%{transform:translateY(100%);}
 }
 
+/* ---------- Hero CTA ----------
+   pointer-events is explicit because the hero copy layer is transparent to
+   pointers on mobile (so touches reach the bulb behind it) — without this the
+   button would be unclickable there. */
+.hero-cta{
+  pointer-events:auto;
+  margin-top:clamp(18px,2.4vw,30px);
+  align-self:flex-start;
+  font-family:var(--mono);font-size:clamp(10px,1.05vw,11.5px);
+  letter-spacing:.2em;text-transform:uppercase;
+  color:var(--white);background:var(--glow);
+  border:1px solid var(--glow);border-radius:999px;
+  padding:14px 30px;white-space:nowrap;
+  transition:transform .35s var(--ease),box-shadow .35s var(--ease),
+             background-color .3s,color .3s;
+}
+.hero-cta:hover{
+  transform:translateY(-3px);
+  box-shadow:0 14px 30px color-mix(in srgb,var(--glow) 38%,transparent);
+}
+.hero-cta:focus-visible{outline:2px solid var(--ink);outline-offset:3px;}
+.stage-inner.center .hero-cta{align-self:center;}
+
 /* ---------- Hero lamp ----------
    A hanging object: .lamp-swing pivots from the cord anchor and is driven by
    a damped-spring pendulum in JS. Everything animated here is transform or
@@ -786,6 +809,7 @@ canvas{display:block;}
       </h1>
       <p class="tagline" data-anim>Attention, engineered.</p>
       <p class="scroll-hint" data-anim><span class="hint-rail"><em></em></span>Scroll to explore</p>
+      <a class="hero-cta" href="#contact" data-goto="contact" data-anim>Request a meeting</a>
     </div>
   </section>
 
