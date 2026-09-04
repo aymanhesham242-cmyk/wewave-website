@@ -224,8 +224,8 @@ if (rail && LIGHT) {
    Values come from the markup (data-to / data-suffix), so editing a figure is
    an HTML change in one block. The markup also carries the final value, which
    is what shows under reduced motion, where the engine never runs at all. */
-const STAT_MS      = 950;   /* how long one counter takes */
-const STAT_STAGGER = 70;    /* offset between counters, so they are not robotic */
+const STAT_MS      = 1800;  /* how long one counter takes -- slow enough to watch */
+const STAT_STAGGER = 120;   /* offset between counters, so they are not robotic */
 
 const statEls = $$('.stat-n').map((el, i) => ({
   el,
