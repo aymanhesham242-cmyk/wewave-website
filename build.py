@@ -21,6 +21,9 @@ shots = ROOT / "css/service-shots.css"
 if shots.exists():
     css += "\n" + shots.read_text(encoding="utf-8")
 js = (ROOT / "js/main.js").read_text(encoding="utf-8")
+# The modal lives in its own file now. This build is a single file, so
+# concatenate in load order rather than silently losing the booking dialog.
+js += "\n" + (ROOT / "js/meeting-modal.js").read_text(encoding="utf-8")
 
 # logo -> data URI so the page carries its own artwork
 mark_b64 = base64.b64encode((ROOT / "assets/wewave-mark-sm.png").read_bytes()).decode()
@@ -56,6 +59,7 @@ body = re.search(r"<body>(.*)</body>", html, re.S).group(1)
 
 # swap external references for inlined equivalents
 body = re.sub(r'<script src="js/main\.js"></script>', "", body)
+body = re.sub(r'<script src="js/meeting-modal\.js"></script>', "", body)
 body = body.replace('href="assets/wewave-profile.pdf"', f'href="{PROFILE_URL}"')
 
 out = f"""{head}

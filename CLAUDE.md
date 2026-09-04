@@ -29,7 +29,8 @@ adds a booking API backed by D1.
 |---|---|
 | `index.html` | The whole page: loader, intro, 7 stages, booking modal |
 | `css/style.css` | All main-page styling |
-| `js/main.js` | The entire engine — one file, deliberately |
+| `js/main.js` | The scroll engine: timeline, palette, ribbon, lamp, rail, nav |
+| `js/meeting-modal.js` | The booking dialog — self-contained, loads after `main.js` |
 | `worker/index.js` | API + static passthrough |
 | `admin/index.html` | Token-gated moderation panel |
 | `css/service.css` | Styling for the 9 service pages |
@@ -85,6 +86,11 @@ page and confirm it renders.
 **Declaration order matters.** Everything is module-scope `const`. A `const`
 read above its declaration throws at runtime, not at parse. Declare shared flags
 (`LIGHT`, `TOUCH`, `SMALL`) at the top.
+
+**Script order matters too.** These are classic scripts, so a top-level `const`
+in one is visible to the next. `js/meeting-modal.js` uses `$` and `$$` from
+`js/main.js` and must load after it. Do **not** redeclare `$` or `$$` there —
+a second top-level `const $` is a SyntaxError across scripts, not a shadow.
 
 **The 900px breakpoint lives in two languages.** `SMALL` in `js/main.js` and
 `@media (max-width:900px)` in `css/style.css`. Change one, change the other, or
