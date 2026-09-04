@@ -10,6 +10,9 @@ const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 /* Coarse pointer / small screen: the phone path. Declared here because the
    canvas setup below reads it at module scope. */
 const TOUCH = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+/* 900px is shared with the @media (max-width:900px) block in css/style.css.
+   Change one and you must change the other, or the mobile render path and the
+   mobile layout will disagree. */
 const SMALL = window.matchMedia('(max-width: 900px)').matches;
 /* One switch for the phone-weight render path and the touch interactions.
    Declared here because both the ribbon setup and the services rail read it
@@ -26,7 +29,8 @@ const range  = (v, a, b) => clamp((v - a) / (b - a));
 const easeIO = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 const easeOut = t => 1 - Math.pow(1 - t, 3);
 
-$('#year').textContent = new Date().getFullYear();
+const yearEl = $('#year');
+if (yearEl) yearEl.textContent = new Date().getFullYear();
 
 /* ---------------------------------------------------------
    Stage timeline. Windows overlap slightly so neighbouring
@@ -151,10 +155,10 @@ function renderStages(p) {
 
   if (top !== currentStage) {
     currentStage = top;
-    sectionLbl.textContent = STAGES[top].label;
+    if (sectionLbl) sectionLbl.textContent = STAGES[top].label;
     navLinks.forEach(a => a.classList.toggle('active', a.dataset.goto === STAGES[top].key));
   }
-  progressFil.style.width = (p * 100).toFixed(2) + '%';
+  if (progressFil) progressFil.style.width = (p * 100).toFixed(2) + '%';
 }
 
 /* Services: the row slides horizontally across its own window. */
@@ -223,13 +227,14 @@ function processSteps(lp) {
    is bent by scroll position and scroll velocity.
    --------------------------------------------------------- */
 const cv  = $('#ribbon');
-const ctx = cv.getContext('2d');
+const ctx = cv ? cv.getContext('2d') : null;
 let W = 0, H = 0;
 
 function sizeCanvas() {
+  if (!cv || !ctx) return;
   /* Cap the buffer on phones: at 2x this canvas is redrawn every frame and
      the fill rate, not the maths, is what costs. */
-  const dpr = Math.min(window.devicePixelRatio || 1, TOUCH || SMALL ? 1 : 2);
+  const dpr = Math.min(window.devicePixelRatio || 1, LIGHT ? 1 : 2);
   W = window.innerWidth; H = window.innerHeight;
   cv.width = W * dpr; cv.height = H * dpr;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -253,6 +258,7 @@ const sparks = Array.from({ length: LIGHT ? 9 : 26 }, () => ({
 }));
 
 function drawRibbon(p, vel, time) {
+  if (!ctx) return;
   ctx.clearRect(0, 0, W, H);
 
   const phase = p * Math.PI * 5;
@@ -489,14 +495,18 @@ document.addEventListener('visibilitychange', () => {
 /* ---------------------------------------------------------
    Navigation — eased programmatic scrolling
    --------------------------------------------------------- */
+let scrollAnim = 0;
 function scrollToProgress(p, dur = 1100) {
+  /* Two nav clicks in quick succession previously left two animation chains
+     running, each calling scrollTo every frame and fighting the other. */
+  cancelAnimationFrame(scrollAnim);
   const from = window.scrollY;
   const to   = p * scrollable();
   const t0   = performance.now();
   (function step(now) {
     const t = clamp((now - t0) / dur);
     window.scrollTo(0, from + (to - from) * easeIO(t));
-    if (t < 1) requestAnimationFrame(step);
+    if (t < 1) scrollAnim = requestAnimationFrame(step);
   })(performance.now());
 }
 
@@ -515,15 +525,17 @@ $$('[data-goto]').forEach(link => {
 const burger = $('#burger');
 const navEl  = $('#nav');
 function closeMenu() {
-  burger.classList.remove('open');
-  navEl.classList.remove('open');
-  burger.setAttribute('aria-expanded', 'false');
+  burger?.classList.remove('open');
+  navEl?.classList.remove('open');
+  burger?.setAttribute('aria-expanded', 'false');
 }
-burger.addEventListener('click', () => {
-  const open = burger.classList.toggle('open');
-  navEl.classList.toggle('open', open);
-  burger.setAttribute('aria-expanded', String(open));
-});
+if (burger) {
+  burger.addEventListener('click', () => {
+    const open = burger.classList.toggle('open');
+    navEl?.classList.toggle('open', open);
+    burger.setAttribute('aria-expanded', String(open));
+  });
+}
 
 /* ---------------------------------------------------------
    Company profile
@@ -559,8 +571,8 @@ burger.addEventListener('click', () => {
    Boot: loader → intro statement → chrome in
    --------------------------------------------------------- */
 function boot() {
-  $('#chromeTop').classList.add('on');
-  $('.chrome-bottom').classList.add('on');
+  $('#chromeTop')?.classList.add('on');
+  $('.chrome-bottom')?.classList.add('on');
   target = clamp(window.scrollY / scrollable());
   smooth = target;
   applyState(smooth);
@@ -570,6 +582,9 @@ function boot() {
 function runLoader() {
   const fill = $('#loaderFill'), pct = $('#loaderPct');
   const loader = $('#loader'), intro = $('#intro'), skip = $('#introSkip');
+  /* Without the loader markup there is nothing to animate -- start the page
+     rather than throwing and leaving a blank screen. */
+  if (!fill || !pct || !loader || !intro) { boot(); return; }
   let v = 0, done = false;
 
   const finish = () => {
@@ -593,7 +608,7 @@ function runLoader() {
     }
   }, 120);
 
-  skip.addEventListener('click', finish);
+  skip?.addEventListener('click', finish);
 }
 
 /* ---------------------------------------------------------
@@ -601,12 +616,21 @@ function runLoader() {
    --------------------------------------------------------- */
 function measureAll() { sizeCanvas(); measureRail(); measureTicker(); }
 
+/* Resize fires in bursts -- notably when a phone's address bar slides away.
+   Each pass reads layout and reallocates the canvas buffer, so collapse a
+   burst into one measurement on the next frame. */
+let measureQueued = 0;
+function queueMeasure() {
+  cancelAnimationFrame(measureQueued);
+  measureQueued = requestAnimationFrame(measureAll);
+}
+
 if (REDUCED) {
   /* static, readable document — no timeline, no canvas */
-  $('#loader').style.display = 'none';
-  $('#intro').style.display = 'none';
-  $('#chromeTop').classList.add('on');
-  $('.chrome-bottom').classList.add('on');
+  $('#loader')?.style.setProperty('display', 'none');
+  $('#intro')?.style.setProperty('display', 'none');
+  $('#chromeTop')?.classList.add('on');
+  $('.chrome-bottom')?.classList.add('on');
   stepEls.forEach(li => li.classList.add('on'));
   $$('[data-goto]').forEach(l => {
     l.addEventListener('click', e => {
@@ -618,7 +642,7 @@ if (REDUCED) {
 } else {
   measureAll();
   window.addEventListener('scroll', readScroll, { passive: true });
-  window.addEventListener('resize', measureAll);
+  window.addEventListener('resize', queueMeasure);
   window.addEventListener('load', measureAll);
   runLoader();
 }

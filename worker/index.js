@@ -17,6 +17,10 @@
 const MAX_BODY = 16 * 1024;          /* a booking request is ~1KB; anything larger is abuse */
 const STATUSES = ['new', 'contacted', 'booked', 'archived'];
 
+const RATE_MAX    = 5;              /* submissions allowed per window, per address */
+const RATE_WINDOW = 10 * 60;        /* seconds */
+const RATE_KEEP   = 60 * 60;        /* how long log rows are worth keeping */
+
 const json = (data, status = 200) =>
   new Response(JSON.stringify(data), {
     status,
@@ -39,6 +43,42 @@ function isAdmin(request, env) {
   const header = request.headers.get('Authorization') || '';
   const m = header.match(/^Bearer\s+([\s\S]+)$/i);
   return !!m && safeEqual(m[1].trim(), secret);
+}
+
+/* Addresses are hashed before they are stored: enough to count repeats from
+   one source, without keeping a log of visitors' IP addresses. */
+async function addressKey(ip) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(ip));
+  return [...new Uint8Array(buf)].slice(0, 16).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Sliding-window limit on the public submit route.
+ *
+ * Fails OPEN on any storage error: a booking from a real customer is worth
+ * more than a strictly enforced limit, and the validation above still stands.
+ */
+async function overRateLimit(request, env) {
+  const ip = request.headers.get('CF-Connecting-IP');
+  if (!ip) return false;                          /* nothing to key on */
+  try {
+    const key = await addressKey(ip);
+    const now = Math.floor(Date.now() / 1000);
+
+    const row = await env.DB
+      .prepare('SELECT COUNT(*) AS n FROM submit_log WHERE ip = ? AND at >= ?')
+      .bind(key, now - RATE_WINDOW).first();
+    if (row && row.n >= RATE_MAX) return true;
+
+    await env.DB.prepare('INSERT INTO submit_log (ip, at) VALUES (?, ?)').bind(key, now).run();
+    /* prune occasionally rather than on every request */
+    if (Math.random() < 0.05) {
+      await env.DB.prepare('DELETE FROM submit_log WHERE at < ?').bind(now - RATE_KEEP).run();
+    }
+    return false;
+  } catch {
+    return false;
+  }
 }
 
 const str = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
@@ -73,12 +113,21 @@ function validate(b) {
 async function createMeeting(request, env) {
   if (!env.DB) return json({ error: 'Storage is not configured.' }, 503);
 
+  if (await overRateLimit(request, env)) {
+    return json({ error: 'Too many requests. Please try again shortly.' }, 429);
+  }
+
+  /* Content-Length is absent on a chunked request, so the header alone is not
+     a cap. Read the body and measure what actually arrived. */
   const len = Number(request.headers.get('Content-Length') || 0);
   if (len > MAX_BODY) return json({ error: 'Payload too large.' }, 413);
 
   let body;
-  try { body = await request.json(); }
-  catch { return json({ error: 'Expected JSON.' }, 400); }
+  try {
+    const raw = await request.text();
+    if (raw.length > MAX_BODY) return json({ error: 'Payload too large.' }, 413);
+    body = JSON.parse(raw);
+  } catch { return json({ error: 'Expected JSON.' }, 400); }
 
   const { error, value } = validate(body);
   if (error) return json({ error }, 400);
@@ -146,13 +195,6 @@ export default {
 
     if (path === '/api/meeting' && request.method === 'POST') {
       return createMeeting(request, env);
-    }
-
-    /* Diagnostic: can this deployment see the ADMIN_TOKEN secret? Returns a
-       boolean only - never the value, never its length. Remove once the admin
-       panel is confirmed working. */
-    if (path === '/api/authcheck' && request.method === 'GET') {
-      return json({ configured: !!(env.ADMIN_TOKEN || '').trim() });
     }
 
     /* everything below is admin-only */
