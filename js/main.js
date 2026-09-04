@@ -149,8 +149,9 @@ function renderStages(p) {
     if (o > topScore) { topScore = o; top = i; }
 
     /* ---- per-stage internal choreography ---- */
-    if (s.key === 'services') servicesRail(lp);
-    if (s.key === 'process')  processSteps(lp);
+    if (s.key === 'manifesto') manifestoStats(lp);
+    if (s.key === 'services')  servicesRail(lp);
+    if (s.key === 'process')   processSteps(lp);
   });
 
   if (top !== currentStage) {
@@ -212,6 +213,28 @@ if (rail && LIGHT) {
     const card = e.target.closest('.scard');
     if (card) setActiveCard(scards.indexOf(card));
   }, { passive: true });
+}
+
+/* Manifesto: the figures count up on the same timeline as everything else --
+   no observer, no second loop, no extra listener. Values come from the markup
+   (data-to / data-suffix), so editing a figure is an HTML change. The DOM is
+   written only when the rounded value actually changes, which is a handful of
+   writes across the whole section rather than four per frame. */
+const statEls = $$('.stat-n').map(el => ({
+  el,
+  to: parseFloat(el.dataset.to) || 0,
+  suffix: el.dataset.suffix || '',
+  shown: -1
+}));
+function manifestoStats(lp) {
+  if (!statEls.length) return;
+  const t = easeOut(range(lp, 0.12, 0.60));
+  for (const s of statEls) {
+    const v = Math.round(s.to * t);
+    if (v === s.shown) continue;
+    s.shown = v;
+    s.el.textContent = v + s.suffix;
+  }
 }
 
 /* Process: steps light up in sequence as the window is traversed. */
