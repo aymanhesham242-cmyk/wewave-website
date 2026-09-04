@@ -215,25 +215,50 @@ if (rail && LIGHT) {
   }, { passive: true });
 }
 
-/* Manifesto: the figures count up on the same timeline as everything else --
-   no observer, no second loop, no extra listener. Values come from the markup
-   (data-to / data-suffix), so editing a figure is an HTML change. The DOM is
-   written only when the rounded value actually changes, which is a handful of
-   writes across the whole section rather than four per frame. */
-const statEls = $$('.stat-n').map(el => ({
+/* Manifesto: the figures run once, fast, when the section arrives -- about a
+   second each, ease-out, every counter a beat behind the last. Driven from the
+   engine's existing frame loop, so there is no observer, no second loop and no
+   extra scroll listener, and the DOM is written only when a rounded value
+   actually changes.
+
+   Values come from the markup (data-to / data-suffix), so editing a figure is
+   an HTML change in one block. The markup also carries the final value, which
+   is what shows under reduced motion, where the engine never runs at all. */
+const STAT_MS      = 950;   /* how long one counter takes */
+const STAT_STAGGER = 70;    /* offset between counters, so they are not robotic */
+
+const statEls = $$('.stat-n').map((el, i) => ({
   el,
   to: parseFloat(el.dataset.to) || 0,
   suffix: el.dataset.suffix || '',
+  delay: i * STAT_STAGGER,
   shown: -1
 }));
+
+let statsStart = 0;         /* 0 while parked before the section */
+
+function writeStat(s, v) {
+  if (v === s.shown) return;
+  s.shown = v;
+  s.el.textContent = v + s.suffix;
+}
+
 function manifestoStats(lp) {
   if (!statEls.length) return;
-  const t = easeOut(range(lp, 0.12, 0.60));
+
+  /* Parked above the section: hold at zero so the run replays on arrival.
+     0.05 is the same point at which the stage earns its .in class. */
+  if (lp <= 0.05) {
+    statsStart = 0;
+    for (const s of statEls) writeStat(s, 0);
+    return;
+  }
+
+  if (!statsStart) statsStart = performance.now();
+  const elapsed = performance.now() - statsStart;
+
   for (const s of statEls) {
-    const v = Math.round(s.to * t);
-    if (v === s.shown) continue;
-    s.shown = v;
-    s.el.textContent = v + s.suffix;
+    writeStat(s, Math.round(s.to * easeOut(clamp((elapsed - s.delay) / STAT_MS))));
   }
 }
 
