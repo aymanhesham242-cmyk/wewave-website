@@ -70,6 +70,6 @@ add matching `.chip` rules in `css/style.css` and markup in `index.html`.
 ## Still to do
 
 - Real testimonials — the three quotes are placeholders
-- Confirm the contact address (`hello@wewave.studio` is a guess)
+- Confirm the contact address (`wewavemarketing@gmail.com` is a guess)
 - Remaining client logos: Khalid Khoory Cargo, Mersal, Maleha, Swimfit, Chowze
 - Real social links

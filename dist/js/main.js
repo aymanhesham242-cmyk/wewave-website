@@ -658,7 +658,7 @@ if (REDUCED) {
    has not been.
    --------------------------------------------------------- */
 const MEETING_ENDPOINT = '/api/meeting';                 /* e.g. 'https://formspree.io/f/xxxx' */
-const MEETING_MAILTO   = 'hello@wewave.studio';
+const MEETING_MAILTO   = 'wewavemarketing@gmail.com';
 
 (function meetingRequest() {
   const root = $('#mreq');
