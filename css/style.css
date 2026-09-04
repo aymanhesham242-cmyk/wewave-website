@@ -512,7 +512,7 @@ canvas{display:block;}
   border:1px solid var(--line);border-radius:14px;
   padding:clamp(20px,2.2vw,30px);
   background:color-mix(in srgb,var(--ink) 4%,transparent);
-  transition:border-color .4s,transform .5s var(--ease),background-color .4s;
+  transition:border-color .4s,transform .5s var(--ease),background-color .4s,box-shadow .5s var(--ease);
   /* now a button: reset UA styling, keep the card look */
   position:relative;overflow:hidden;isolation:isolate;
   font:inherit;color:inherit;text-align:left;cursor:pointer;
@@ -539,23 +539,41 @@ canvas{display:block;}
 .scard:hover .scard-art,
 .scard.is-active .scard-art{opacity:.22;transform:translate(-4px,-4px) rotate(-4deg);}
 
-/* Photo revealed on hover. Desaturated and washed back so the card keeps the
-   palette rather than the photograph setting the tone. A missing file simply
-   paints nothing -- no broken-image state -- so the cards are correct now and
-   improve the moment real photography lands in assets/services/. */
+/* Photo revealed on hover. Graded rather than drained: the previous treatment
+   ran grayscale(1) at half opacity, which is why the pictures read as flat grey
+   shapes. Colour now stays, contrast and saturation lift a little, exposure
+   comes down slightly so the scrim above has less work to do, and a 2px
+   softness stops fine detail fighting the copy.
+
+   A missing file paints nothing -- no broken-image state -- so a card without
+   photography simply keeps its icon. */
 .scard::before{
   content:'';position:absolute;inset:0;z-index:-3;
   background-image:var(--shot);background-size:cover;background-position:center;
-  filter:grayscale(1) contrast(.92);
+  filter:saturate(1.14) contrast(1.08) brightness(.86) blur(2px);
   opacity:0;transform:scale(1.06);
   transition:opacity .55s var(--ease),transform .8s var(--ease);
   pointer-events:none;
 }
-.scard::after{                       /* wash that keeps the text legible */
+/* Readability scrim, in two layers.
+
+   The first leans on --bg rather than a fixed dark, because the page is cream
+   with near-black copy while Services is on screen -- a dark overlay would bury
+   the text instead of lifting it. It is lighter at the head of the card and
+   firmer at the foot, where the description and the link sit.
+
+   The second is the brand tint: a little --glow gathered in one corner, so the
+   photograph is connected to the identity without being washed green. */
+.scard::after{
   content:'';position:absolute;inset:0;z-index:-2;
-  background:linear-gradient(165deg,
-    color-mix(in srgb,var(--bg) 55%,transparent),
-    color-mix(in srgb,var(--bg) 88%,transparent));
+  background:
+    linear-gradient(168deg,
+      color-mix(in srgb,var(--bg) 34%,transparent) 0%,
+      color-mix(in srgb,var(--bg) 62%,transparent) 48%,
+      color-mix(in srgb,var(--bg) 82%,transparent) 100%),
+    linear-gradient(205deg,
+      transparent 42%,
+      color-mix(in srgb,var(--glow) 20%,transparent) 100%);
   opacity:0;transition:opacity .55s var(--ease);
   pointer-events:none;
 }
@@ -563,14 +581,20 @@ canvas{display:block;}
    which would leave a second photo showing alongside the scroll-activated one.
    Desktop matches (hover:hover), so its behaviour is unchanged. */
 @media (hover:hover){
-  .scard:hover::before{opacity:.5;transform:scale(1);}
+  .scard:hover::before{opacity:.94;transform:scale(1);}
   .scard:hover::after{opacity:1;}
+  .scard:hover{box-shadow:0 20px 44px -26px rgba(0,0,0,.5),
+                          inset 0 0 0 1px color-mix(in srgb,var(--glow) 20%,transparent);}
 }
 /* Touch equivalent. Set by servicesRail() on the card nearest the viewport
    centre, and on tap. Deliberately no translateY lift here -- on a phone the
    card is already moving past, and lifting it as well reads as a wobble. */
-.scard.is-active{border-color:var(--glow);}
-.scard.is-active::before{opacity:.5;transform:scale(1);}
+.scard.is-active{
+  border-color:var(--glow);
+  box-shadow:0 20px 44px -26px rgba(0,0,0,.5),
+             inset 0 0 0 1px color-mix(in srgb,var(--glow) 20%,transparent);
+}
+.scard.is-active::before{opacity:.94;transform:scale(1);}
 .scard.is-active::after{opacity:1;}
 
 
