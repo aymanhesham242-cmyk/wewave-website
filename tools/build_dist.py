@@ -71,6 +71,21 @@ if cases.exists() and any(cases.iterdir()):
 if (ROOT / 'admin').exists():
     shutil.copytree(ROOT / 'admin', DIST / 'admin')
 
+# A future session that edits dist/ directly will see the change go live and
+# then lose it on the next build. Say so inside the folder itself.
+(DIST / "DO-NOT-EDIT.md").write_text(
+    """# Generated folder
+
+Everything here is produced by `python tools/build_dist.py` from the project
+root. Cloudflare deploys *this* folder, which is why it is committed -- but it
+is output, not source.
+
+Edit the source files (`index.html`, `css/`, `js/`, `services/`), then re-run
+the build. Anything changed in here is overwritten without warning.
+""",
+    encoding="utf-8",
+)
+
 # --- keep it out of search results ---------------------------------------
 (DIST / "robots.txt").write_text(
     "User-agent: *\nDisallow: /\n", encoding="utf-8"
