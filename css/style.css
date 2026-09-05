@@ -568,9 +568,9 @@ canvas{display:block;}
   content:'';position:absolute;inset:0;z-index:-2;
   background:
     linear-gradient(168deg,
-      color-mix(in srgb,var(--bg) 34%,transparent) 0%,
-      color-mix(in srgb,var(--bg) 62%,transparent) 48%,
-      color-mix(in srgb,var(--bg) 82%,transparent) 100%),
+      color-mix(in srgb,var(--bg) 26%,transparent) 0%,
+      color-mix(in srgb,var(--bg) 54%,transparent) 48%,
+      color-mix(in srgb,var(--bg) 76%,transparent) 100%),
     linear-gradient(205deg,
       transparent 42%,
       color-mix(in srgb,var(--glow) 20%,transparent) 100%);
