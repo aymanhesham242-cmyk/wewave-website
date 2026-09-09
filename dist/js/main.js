@@ -189,10 +189,13 @@ function setActiveCard(i) {
   if (i > -1 && scards[i]) scards[i].classList.add('is-active');
 }
 
+let railNow = 0;            /* current rail offset, for the swipe maths below */
+
 function servicesRail(lp) {
   if (!rail) return;
   const t = easeIO(range(lp, 0.12, 0.92));
   const shift = railShift * t;
+  railNow = shift;
   rail.style.transform = `translate3d(${(-shift).toFixed(2)}px,0,0)`;
 
   if (!LIGHT || !cardMids.length) return;
@@ -212,6 +215,90 @@ if (rail && LIGHT) {
   rail.addEventListener('pointerdown', e => {
     const card = e.target.closest('.scard');
     if (card) setActiveCard(scards.indexOf(card));
+  }, { passive: true });
+}
+
+/* ---------------------------------------------------------
+   Swiping sideways through the services.
+
+   The rail's offset is derived from the scroll timeline, so a swipe cannot
+   move it directly -- the next frame would overwrite whatever it set. Instead
+   a swipe decides which card should be centred, converts that back into a
+   point on the timeline, and scrolls there. That is the same route the nav
+   links take, so the two ways of moving cannot disagree, and scrolling the
+   page vertically still works exactly as before.
+   --------------------------------------------------------- */
+const SERVICES  = STAGES.find(s => s.key === 'services');
+const SWIPE_MIN = 44;       /* px of travel before a drag counts as a swipe */
+
+/* servicesRail() maps progress to offset through easeIO; this goes back the
+   other way, turning a wanted offset into the progress that produces it. */
+function easeIOInv(y) {
+  y = clamp(y);
+  return y < 0.5 ? Math.cbrt(y / 4) : 1 - Math.cbrt(2 * (1 - y)) / 2;
+}
+
+function cardAtCentre() {
+  if (activeCard > -1) return activeCard;          /* touch already tracks it */
+  const mid = window.innerWidth / 2;
+  let best = 0, bestD = Infinity;
+  for (let n = 0; n < cardMids.length; n++) {
+    const d = Math.abs(cardMids[n] - railNow - mid);
+    if (d < bestD) { bestD = d; best = n; }
+  }
+  return best;
+}
+
+function goToCard(i) {
+  if (!rail || !railShift || !cardMids.length || !SERVICES) return;
+  i = Math.round(clamp(i, 0, cardMids.length - 1));
+  const wanted = clamp(cardMids[i] - window.innerWidth / 2, 0, railShift);
+  const lp = 0.12 + easeIOInv(wanted / railShift) * (0.92 - 0.12);
+  scrollToProgress(SERVICES.start + lp * (SERVICES.end - SERVICES.start), 620);
+}
+
+if (rail) {
+  /* Touch. Mouse is left alone so hover and clicking a card are unchanged. */
+  let sx = 0, sy = 0, tracking = false, swiped = false;
+
+  rail.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse') return;
+    sx = e.clientX; sy = e.clientY; tracking = true; swiped = false;
+  }, { passive: true });
+
+  rail.addEventListener('pointerup', e => {
+    if (!tracking) return;
+    tracking = false;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    /* horizontal intent only: a mostly-vertical drag is a page scroll */
+    if (Math.abs(dx) < SWIPE_MIN || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+    swiped = true;
+    goToCard(cardAtCentre() + (dx < 0 ? 1 : -1));
+  }, { passive: true });
+
+  rail.addEventListener('pointercancel', () => { tracking = false; }, { passive: true });
+
+  /* A swipe that ends on a card must not also follow its link. */
+  rail.addEventListener('click', e => {
+    if (!swiped) return;
+    swiped = false;
+    e.preventDefault();
+  });
+
+  /* Trackpads report a sideways two-finger swipe as deltaX. Accumulate it and
+     step one card at a time rather than fighting the timeline pixel by pixel.
+     Passive, and it does nothing unless Services is the stage on screen. */
+  let accX = 0, wheelLock = 0;
+  window.addEventListener('wheel', e => {
+    if (!SERVICES || !SERVICES.el || !SERVICES.el.classList.contains('active')) return;
+    if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;     /* vertical intent */
+    const now = performance.now();
+    if (now < wheelLock) return;
+    accX += e.deltaX;
+    if (Math.abs(accX) < 90) return;
+    goToCard(cardAtCentre() + (accX > 0 ? 1 : -1));
+    accX = 0;
+    wheelLock = now + 520;
   }, { passive: true });
 }
 

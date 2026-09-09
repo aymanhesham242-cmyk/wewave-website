@@ -126,6 +126,13 @@ in `services/`.
 a scroll listener or a second rAF loop. Cache layout reads at resize — never
 call `getBoundingClientRect()` per frame.
 
+**Never move the services rail directly.** Its offset is derived from the
+scroll timeline every frame, so anything that sets `rail.style.transform` is
+overwritten on the next frame. To move it, work out the progress value that
+produces the position you want and call `scrollToProgress()` — that is what the
+nav links and the sideways swipe both do, which is why they cannot disagree.
+`easeIOInv()` exists to convert a wanted rail offset back into progress.
+
 ## The API
 
 `POST /api/meeting` is public and rate-limited (5 per address per 10 min, via

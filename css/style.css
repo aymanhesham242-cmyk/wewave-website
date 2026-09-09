@@ -506,6 +506,9 @@ canvas{display:block;}
   display:flex;gap:clamp(14px,1.5vw,22px);
   padding-left:max(var(--pad),calc((100vw - 1180px) / 2));
   will-change:transform;
+  /* Vertical drags stay with the browser so the page scrolls as it always has;
+     sideways ones are left for the swipe handler in js/main.js. */
+  touch-action:pan-y;
 }
 .scard{
   flex:0 0 clamp(230px,25vw,310px);
