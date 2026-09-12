@@ -37,7 +37,7 @@ html = html.replace("assets/wewave-profile.pdf", "assets/wewave-profile-web.pdf"
 subprocess.run([sys.executable, str(ROOT / "tools" / "build_shots.py")], check=True)
 
 for rel in ("css/style.css", "css/service-shots.css", "css/service.css", "js/main.js",
-            "js/meeting-modal.js"):
+            "js/meeting-modal.js", "js/voice.js"):
     dest = DIST / rel
     dest.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(ROOT / rel, dest)
@@ -53,6 +53,12 @@ shutil.copy2(
     ROOT / "assets/wewave-profile-web.pdf", DIST / "assets/wewave-profile-web.pdf"
 )
 shutil.copytree(ROOT / "assets/clients", DIST / "assets/clients")
+
+# voice-note testimonials (two encodings each: opus for most browsers, aac
+# for Safari, which cannot play Ogg)
+voices = ROOT / "assets/voices"
+if voices.exists() and any(voices.iterdir()):
+    shutil.copytree(voices, DIST / "assets/voices")
 
 # service hover artwork (css/service-shots.css only references files that
 # exist, so a partial folder is fine -- but it must actually ship)

@@ -346,7 +346,24 @@
       <p class="eyebrow" data-anim>Voices</p>
       <!-- Placeholder quotes — replace with real, attributable client testimonials. -->
       <div class="quotes">
-        <blockquote><p>They stopped guessing for us. The plan had a reason behind every post, and the DMs followed.</p><cite>Placeholder — Fashion</cite></blockquote>
+        <blockquote class="voice">
+          <div class="voice-head">
+            <button class="voice-play" type="button" aria-label="Play the voice note from May Fayed">
+              <svg class="vi-play" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5.5v13l11-6.5z"/></svg>
+              <svg class="vi-pause" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9.5 6v12M14.5 6v12"/></svg>
+            </button>
+            <div class="voice-meter">
+              <div class="voice-bar"><span class="voice-fill"></span></div>
+              <span class="voice-time">0:28</span>
+            </div>
+          </div>
+          <p>A voice note from the brand owner of Valle.</p>
+          <cite>May Fayed — Brand owner, Valle</cite>
+          <audio class="voice-audio" preload="none" data-duration="28.4">
+            <source src="assets/voices/may-fayed-valle.ogg" type="audio/ogg; codecs=opus">
+            <source src="assets/voices/may-fayed-valle.m4a" type="audio/mp4">
+          </audio>
+        </blockquote>
         <blockquote><p>The reporting changed how we spend. We finally know what is working and what to cut.</p><cite>Placeholder — F&amp;B</cite></blockquote>
         <blockquote><p>Fast, organised, and the craft was well past what we were paying for elsewhere.</p><cite>Placeholder — Lifestyle</cite></blockquote>
       </div>
@@ -495,5 +512,7 @@
 <script src="js/main.js"></script>
 <!-- must stay after main.js: it borrows $ and $$ from it -->
 <script src="js/meeting-modal.js"></script>
+<!-- self-contained IIFE; declares nothing at top level, so order is not critical -->
+<script src="js/voice.js"></script>
 </body>
 </html>

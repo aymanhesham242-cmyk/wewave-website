@@ -676,6 +676,31 @@ canvas{display:block;}
   letter-spacing:.22em;text-transform:uppercase;color:var(--glow);
 }
 
+/* Voice-note testimonial — sits inside a .quotes blockquote */
+.voice-head{display:flex;align-items:center;gap:14px;}
+.voice-play{
+  flex:0 0 44px;width:44px;height:44px;border-radius:999px;
+  display:grid;place-items:center;
+  background:var(--glow);color:var(--white);border:1px solid var(--glow);
+  transition:transform .35s var(--ease),box-shadow .35s;
+}
+.voice-play:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(46,139,87,.32);}
+.voice-play svg{width:20px;height:20px;}
+.voice-play .vi-pause{display:none;}
+.voice.is-playing .voice-play .vi-play{display:none;}
+.voice.is-playing .voice-play .vi-pause{display:block;}
+.voice-meter{flex:1 1 auto;display:flex;align-items:center;gap:10px;min-width:0;}
+.voice-bar{
+  flex:1 1 auto;height:3px;border-radius:999px;
+  background:var(--line);overflow:hidden;
+}
+.voice-fill{display:block;height:100%;width:0;background:var(--glow);}
+.voice-time{
+  font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+  color:var(--glow);flex:0 0 auto;
+}
+.voice.is-loading .voice-time{opacity:.5;}
+
 /* ---------- Contact ---------- */
 .cta-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:clamp(26px,3.4vw,42px);}
 .btn{
