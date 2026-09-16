@@ -33,6 +33,10 @@ adds a booking API backed by D1.
 | `js/meeting-modal.js` | The booking dialog — self-contained, loads after `main.js` |
 | `worker/index.js` | API + static passthrough |
 | `admin/index.html` | Token-gated moderation panel |
+| `admin/analytics/index.html` | Token-gated analytics dashboard |
+| `js/analytics.js` | Visitor event collection — self-contained IIFE |
+| `worker/analytics.js` | Analytics ingest + queries, D1-backed |
+| `schema/analytics.sql` | Analytics tables (the Worker creates them lazily too) |
 | `css/service.css` | Styling for the 9 service pages |
 | `tools/*.py` | Generators — see below |
 | **`dist/`** | **Generated. Deployed. Never edit by hand.** |
@@ -132,6 +136,25 @@ overwritten on the next frame. To move it, work out the progress value that
 produces the position you want and call `scrollToProgress()` — that is what the
 nav links and the sideways swipe both do, which is why they cannot disagree.
 `easeIOInv()` exists to convert a wanted rail offset back into progress.
+
+## Analytics
+
+`js/analytics.js` collects behaviour into the D1 tables `a_event` / `a_session`
+and the dashboard reads it at `/admin/analytics`. Things worth knowing:
+
+- It reads the page and never writes to it. It is an IIFE declaring nothing at
+  top level, and every entry point swallows its own errors — keep it that way.
+- Section views come from a `MutationObserver` on the `.stage` class list that
+  `renderStages()` already toggles. Do not add a scroll listener or a second
+  rAF loop for this.
+- Scroll depth is `scrollY / scrollable()`, i.e. progress along the timeline,
+  not a document position. `STAGE_AT` in the dashboard mirrors `STAGES` — if you
+  retune a stage window, update it there too or the heatmap preview parks at the
+  wrong place.
+- `?wwtest=1` marks a browser as a test client. Those rows carry `is_test = 1`
+  and never appear in the live figures.
+- Events are whitelisted by pattern, not by list, so `window.wwTrack('MY_EVENT',
+  {...})` works without a Worker deploy.
 
 ## The API
 
