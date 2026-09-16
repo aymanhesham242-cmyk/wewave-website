@@ -14,6 +14,8 @@
  * is useless without a token, so it does not need protecting separately.
  */
 
+import { collect as collectAnalytics, query as queryAnalytics } from './analytics.js';
+
 const MAX_BODY = 16 * 1024;          /* a booking request is ~1KB; anything larger is abuse */
 const STATUSES = ['new', 'contacted', 'booked', 'archived'];
 
@@ -195,6 +197,22 @@ export default {
 
     if (path === '/api/meeting' && request.method === 'POST') {
       return createMeeting(request, env);
+    }
+
+    /* Analytics ingest — public, like the booking form. It answers 204 on any
+       problem so a storage fault can never surface as an error on the site. */
+    if (path === '/api/a' && request.method === 'POST') {
+      try {
+        return await collectAnalytics(request, env);
+      } catch {
+        return new Response(null, { status: 204 });
+      }
+    }
+
+    /* Analytics reads are admin-only, on the same token as the meetings API. */
+    if (path.startsWith('/api/a/')) {
+      if (!isAdmin(request, env)) return json({ error: 'Unauthorised.' }, 401);
+      return queryAnalytics(request, env, path);
     }
 
     /* everything below is admin-only */
