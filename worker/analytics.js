@@ -73,6 +73,15 @@ async function ensureSchema(env) {
     `CREATE INDEX IF NOT EXISTS idx_a_session_last ON a_session (last_at)`
   ];
   await env.DB.batch(stmts.map(q => env.DB.prepare(q)));
+
+  /* Added after the first release; ALTER fails once the column exists, which
+     is fine and is why each runs on its own. */
+  for (const alter of [
+    `ALTER TABLE a_session ADD COLUMN engaged_ms INTEGER NOT NULL DEFAULT 0`,
+    `ALTER TABLE a_session ADD COLUMN ua TEXT`
+  ]) {
+    try { await env.DB.prepare(alter).run(); } catch { /* already there */ }
+  }
   ensured = true;
 }
 
@@ -159,6 +168,12 @@ export async function collect(request, env) {
 
     const rows = [];
     let pageviews = 0, interactions = 0, maxScroll = 0, lastPath = null;
+    /* A batch can arrive well after the events in it — a beacon at pagehide,
+       or a flush that waited out the timer. Deriving the session's first and
+       last activity from the events themselves stops a late delivery from
+       inflating the session's span. */
+    let firstTs = Infinity, lastTs = 0;
+    let engaged = 0;
 
     for (const e of events) {
       if (!e || typeof e !== 'object') continue;
@@ -176,6 +191,12 @@ export async function collect(request, env) {
       if (INTERACTION.has(type)) interactions++;
       if (scroll !== null && scroll > maxScroll) maxScroll = Math.min(100, scroll);
       lastPath = path;
+      if (ts < firstTs) firstTs = ts;
+      if (ts > lastTs) lastTs = ts;
+      /* the client reports cumulative engaged milliseconds; keep the largest */
+      if (e.meta && typeof e.meta.engaged === 'number' && e.meta.engaged > engaged) {
+        engaged = Math.min(e.meta.engaged, 12 * 60 * 60 * 1000);
+      }
 
       rows.push(env.DB.prepare(
         `INSERT INTO a_event
@@ -199,21 +220,26 @@ export async function collect(request, env) {
          (id, started_at, last_at, entry_path, exit_path, pageviews, events,
           interactions, max_scroll, device, browser, os, country, vw, vh,
           referrer, ref_source, utm_source, utm_medium, utm_campaign,
-          utm_content, utm_term, is_test)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+          utm_content, utm_term, is_test, engaged_ms, ua)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
        ON CONFLICT(id) DO UPDATE SET
-         last_at      = excluded.last_at,
+         started_at   = MIN(a_session.started_at, excluded.started_at),
+         last_at      = MAX(a_session.last_at, excluded.last_at),
          exit_path    = excluded.exit_path,
          pageviews    = a_session.pageviews + excluded.pageviews,
          events       = a_session.events + excluded.events,
          interactions = a_session.interactions + excluded.interactions,
-         max_scroll   = MAX(a_session.max_scroll, excluded.max_scroll)`
+         max_scroll   = MAX(a_session.max_scroll, excluded.max_scroll),
+         engaged_ms   = MAX(a_session.engaged_ms, excluded.engaged_ms),
+         ua           = COALESCE(a_session.ua, excluded.ua)`
     ).bind(
-      sid, now, now, lastPath, lastPath, pageviews, rows.length, interactions,
+      sid, firstTs === Infinity ? now : firstTs, lastTs || now,
+      lastPath, lastPath, pageviews, rows.length, interactions,
       maxScroll, device, browser, os, country, n(ctx.vw), n(ctx.vh),
       referrer, refSource(referrer, host),
       s(ctx.utm_source, 120), s(ctx.utm_medium, 120), s(ctx.utm_campaign, 120),
-      s(ctx.utm_content, 120), s(ctx.utm_term, 120), isTest
+      s(ctx.utm_content, 120), s(ctx.utm_term, 120), isTest,
+      engaged, ua.slice(0, 220)
     ));
 
     await env.DB.batch(rows);
@@ -246,8 +272,9 @@ async function overview(env, url) {
             SUM(pageviews) AS pageviews,
             SUM(interactions) AS interactions,
             AVG(max_scroll) AS avg_scroll,
-            AVG(CASE WHEN last_at > started_at THEN (last_at - started_at)/1000.0 END) AS avg_seconds,
-            SUM(CASE WHEN interactions = 0 THEN 1 ELSE 0 END) AS bounced
+            AVG(CASE WHEN engaged_ms > 0 THEN engaged_ms/1000.0 END) AS avg_seconds,
+            AVG(CASE WHEN last_at > started_at THEN (last_at - started_at)/1000.0 END) AS avg_span,
+            SUM(CASE WHEN interactions = 0 AND engaged_ms < 10000 THEN 1 ELSE 0 END) AS bounced
        FROM a_session WHERE is_test = ? AND started_at BETWEEN ? AND ?`
   ).bind(test, from, to));
 
@@ -296,6 +323,7 @@ async function overview(env, url) {
       pageviews: k.pageviews || 0,
       interactions: k.interactions || 0,
       avgSeconds: k.avg_seconds || 0,
+      avgSpan: k.avg_span || 0,
       avgScroll: k.avg_scroll || 0,
       bounceRate: sessions ? (k.bounced || 0) / sessions : 0,
       ctaClicks: ctaRow.n || 0,
@@ -383,8 +411,8 @@ async function sessions(env, url) {
   const { from, to, test } = window_(url);
   const limit = Math.min(Number(url.searchParams.get('limit')) || 100, 300);
   const rows = await all(env.DB.prepare(
-    `SELECT id, started_at, last_at, pageviews, events, interactions, max_scroll,
-            device, browser, os, country, ref_source, utm_source, utm_campaign,
+    `SELECT id, started_at, last_at, engaged_ms, ua, pageviews, events, interactions,
+            max_scroll, device, browser, os, country, ref_source, utm_source, utm_campaign,
             entry_path, exit_path
        FROM a_session WHERE is_test = ? AND started_at BETWEEN ? AND ?
       ORDER BY started_at DESC LIMIT ?`
@@ -423,7 +451,7 @@ async function pages(env, url) {
 
   const dur = await all(env.DB.prepare(
     `SELECT COALESCE(entry_path,'/') AS path,
-            AVG(CASE WHEN last_at > started_at THEN (last_at-started_at)/1000.0 END) AS avg_seconds
+            AVG(CASE WHEN engaged_ms > 0 THEN engaged_ms/1000.0 END) AS avg_seconds
        FROM a_session WHERE is_test = ? AND started_at BETWEEN ? AND ?
       GROUP BY path`
   ).bind(test, from, to));
@@ -493,7 +521,7 @@ async function devices(env, url) {
   const by = async (col) => all(env.DB.prepare(
     `SELECT COALESCE(${col}, 'unknown') AS k, COUNT(*) AS n,
             AVG(max_scroll) AS avg_scroll,
-            AVG(CASE WHEN last_at > started_at THEN (last_at-started_at)/1000.0 END) AS avg_seconds,
+            AVG(CASE WHEN engaged_ms > 0 THEN engaged_ms/1000.0 END) AS avg_seconds,
             SUM(interactions) AS interactions
        FROM a_session WHERE is_test = ? AND started_at BETWEEN ? AND ?
       GROUP BY k ORDER BY n DESC LIMIT 40`
@@ -560,6 +588,31 @@ async function purgeTest(env) {
   return json({ ok: true });
 }
 
+/** Removes one session and its events — for clearing out a known bad visit. */
+async function deleteSession(env, id) {
+  await env.DB.batch([
+    env.DB.prepare('DELETE FROM a_event WHERE session_id = ?').bind(id),
+    env.DB.prepare('DELETE FROM a_session WHERE id = ?').bind(id)
+  ]);
+  return json({ ok: true, deleted: id });
+}
+
+/**
+ * Wipes live analytics so a launch starts from zero. Requires ?confirm=RESET
+ * so it cannot happen by mistake, and leaves `meetings` untouched.
+ */
+async function resetLive(env, url) {
+  if (url.searchParams.get('confirm') !== 'RESET') {
+    return json({ error: 'Add ?confirm=RESET to proceed.' }, 400);
+  }
+  await ensureSchema(env);
+  await env.DB.batch([
+    env.DB.prepare('DELETE FROM a_event WHERE is_test = 0'),
+    env.DB.prepare('DELETE FROM a_session WHERE is_test = 0')
+  ]);
+  return json({ ok: true });
+}
+
 /** Admin-only query router. Auth is checked by the caller. */
 export async function query(request, env, path) {
   if (!env.DB) return json({ error: 'Storage is not configured.' }, 503);
@@ -580,9 +633,15 @@ export async function query(request, env, path) {
       case '/api/a/purge-test':
         if (request.method !== 'POST') return json({ error: 'Use POST.' }, 405);
         return purgeTest(env);
+      case '/api/a/reset-live':
+        if (request.method !== 'POST') return json({ error: 'Use POST.' }, 405);
+        return resetLive(env, url);
     }
     const m = path.match(/^\/api\/a\/session\/([A-Za-z0-9_-]{8,64})$/);
-    if (m) return sessionDetail(env, m[1]);
+    if (m) {
+      if (request.method === 'DELETE') return deleteSession(env, m[1]);
+      return sessionDetail(env, m[1]);
+    }
     return json({ error: 'Not found.' }, 404);
   } catch (err) {
     return json({ error: 'Query failed.', detail: String(err && err.message || err).slice(0, 200) }, 500);

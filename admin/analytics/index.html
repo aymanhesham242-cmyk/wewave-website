@@ -324,7 +324,7 @@ views.overview = async () => {
   return '<div class="grid kpis">' +
       kpi('Unique sessions', nf(k.sessions)) +
       kpi('Page views', nf(k.pageviews)) +
-      kpi('Avg session', dur(k.avgSeconds)) +
+      kpi('Avg engaged time', dur(k.avgSeconds), 'tab open ' + dur(k.avgSpan)) +
       kpi('Avg scroll depth', Math.round(k.avgScroll) + '%') +
       kpi('Interactions', nf(k.interactions)) +
       kpi('CTA clicks', nf(k.ctaClicks)) +
@@ -363,15 +363,16 @@ views.sessions = async () => {
   const d = await api('/api/a/sessions');
   if (!d.sessions.length) return '<div class="card">' + empty('No sessions recorded yet.') + '</div>';
   return '<div class="card"><h3>' + nf(d.sessions.length) + ' sessions</h3><table><thead><tr>' +
-    '<th>Started</th><th>Duration</th><th class="num">Pages</th><th class="num">Actions</th>' +
+    '<th>Started</th><th>Engaged</th><th>Tab open</th><th class="num">Pages</th><th class="num">Actions</th>' +
     '<th class="num">Scroll</th><th>Device</th><th>Country</th><th>Source</th></tr></thead><tbody>' +
     d.sessions.map(s => '<tr class="clickable" data-sid="' + esc(s.id) + '">' +
       '<td>' + dayStr(s.started_at) + ' <span class="mono" style="color:var(--faint)">' + clock(s.started_at) + '</span></td>' +
-      '<td>' + dur((s.last_at - s.started_at) / 1000) + '</td>' +
+      '<td>' + dur((s.engaged_ms || 0) / 1000) + '</td>' +
+      '<td style="color:var(--faint)">' + dur((s.last_at - s.started_at) / 1000) + '</td>' +
       '<td class="num">' + nf(s.pageviews) + '</td>' +
       '<td class="num">' + nf(s.interactions) + '</td>' +
       '<td class="num">' + Math.round(s.max_scroll || 0) + '%</td>' +
-      '<td><span class="tag">' + esc(s.device || '?') + '</span></td>' +
+      '<td><span class="tag" title="' + esc(s.ua || 'user-agent not recorded') + '">' + esc(s.device || '?') + '</span></td>' +
       '<td>' + esc(s.country || '–') + '</td>' +
       '<td>' + esc(s.utm_source || s.ref_source || 'direct') + '</td></tr>').join('') +
     '</tbody></table></div>';
@@ -383,7 +384,8 @@ async function sessionDetail(id) {
   const s = d.session || {};
   $('#view').innerHTML = '<a class="back" href="#" id="backSessions">&larr; All sessions</a>' +
     '<div class="grid kpis" style="margin-bottom:12px">' +
-      '<div class="card kpi"><h3>Duration</h3><div class="v">' + dur(((s.last_at || 0) - (s.started_at || 0)) / 1000) + '</div></div>' +
+      '<div class="card kpi"><h3>Engaged</h3><div class="v">' + dur((s.engaged_ms || 0) / 1000) + '</div>' +
+        '<div class="s">tab open ' + dur(((s.last_at || 0) - (s.started_at || 0)) / 1000) + '</div></div>' +
       '<div class="card kpi"><h3>Interactions</h3><div class="v">' + nf(s.interactions) + '</div></div>' +
       '<div class="card kpi"><h3>Max scroll</h3><div class="v">' + Math.round(s.max_scroll || 0) + '%</div></div>' +
       '<div class="card kpi"><h3>Source</h3><div class="v" style="font-size:17px">' + esc(s.utm_source || s.ref_source || 'direct') + '</div>' +
@@ -502,7 +504,22 @@ views.settings = async () => {
     '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">' +
       '<button class="btn sm ghost" id="toggleTest">' + (showTest ? 'Showing test data — switch to live' : 'Show test data instead') + '</button>' +
       '<button class="btn sm ghost" id="purgeTest" style="border-color:rgba(212,104,91,.5);color:#E4998E">Delete all test data</button>' +
-    '</div><p class="err" id="setErr"></p></div>';
+    '</div><p class="err" id="setErr"></p></div>' +
+    '<div class="card" style="margin-top:12px"><h3>How the numbers are measured</h3>' +
+    '<table><tbody>' +
+      '<tr><td>Engaged time</td><td style="color:var(--dim)">Seconds the tab was visible <em>and</em> the visitor moved, scrolled, typed or tapped within the last 30s. A tab left open adds nothing.</td></tr>' +
+      '<tr><td>Tab open</td><td style="color:var(--dim)">First to last event. Shown alongside engaged time so a gap between them is visible rather than hidden.</td></tr>' +
+      '<tr><td>Session</td><td style="color:var(--dim)">One anonymous id, continuing while gaps stay under 30 minutes. A reload continues it; it does not start a new one.</td></tr>' +
+      '<tr><td>Bounce</td><td style="color:var(--dim)">No interaction <em>and</em> under 10 seconds engaged.</td></tr>' +
+      '<tr><td>Scroll depth</td><td style="color:var(--dim)">Progress along the stage timeline, not a document position — 100% means the contact stage.</td></tr>' +
+      '<tr><td>Device / OS / country</td><td style="color:var(--dim)">Derived server-side from the request. Browser device-emulation reports the emulated device, so DevTools testing shows up as that phone.</td></tr>' +
+      '<tr><td>Your own visits</td><td style="color:var(--dim)">Any browser holding the admin token is flagged as test automatically and kept out of these figures.</td></tr>' +
+    '</tbody></table></div>' +
+    '<div class="card" style="margin-top:12px"><h3>Start clean for launch</h3>' +
+    '<p style="color:var(--dim);font-size:13px">Deletes every live session and event so the first real visitor starts the record. ' +
+    'Test data and meeting requests are not touched. This cannot be undone.</p>' +
+    '<button class="btn sm ghost" id="resetLive" style="margin-top:12px;border-color:rgba(212,104,91,.5);color:#E4998E">Delete all live analytics</button>' +
+    '<p class="err" id="resetErr"></p></div>';
 };
 
 /* ============================================================
@@ -693,6 +710,13 @@ async function render() {
       localStorage.setItem('wewave_a_test', showTest ? '1' : '0');
       $('#modeLabel').textContent = showTest ? 'TEST data' : 'live data';
       render();
+    });
+    $('#resetLive').addEventListener('click', async () => {
+      if (!confirm('Delete ALL live analytics? Test data and meeting requests are kept. This cannot be undone.')) return;
+      try {
+        const r = await fetch('/api/a/reset-live?confirm=RESET', { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
+        $('#resetErr').textContent = r.ok ? 'Live analytics cleared.' : 'Could not clear live analytics.';
+      } catch (e) { $('#resetErr').textContent = 'Could not clear live analytics.'; }
     });
     $('#purgeTest').addEventListener('click', async () => {
       try {

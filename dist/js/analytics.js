@@ -57,7 +57,14 @@
     store.set(LS_AT, String(now));
 
     var params = new URLSearchParams(location.search);
-    var isTest = params.get('wwtest') === '1' ||
+    /* Three ways a visit is marked as ours rather than a real visitor's:
+       an explicit ?wwtest=1, a sticky flag from an earlier ?wwtest=1, or the
+       presence of the admin token — if you can open the dashboard from this
+       browser, you are the owner, and counting yourself skews everything. */
+    var ownsAdmin = (function () {
+      try { return !!localStorage.getItem('wewave_admin_token'); } catch (e) { return false; }
+    })();
+    var isTest = ownsAdmin || params.get('wwtest') === '1' ||
       (function () { try { return sessionStorage.getItem('ww_a_test') === '1'; } catch (e) { return false; } })();
     if (params.get('wwtest') === '1') { try { sessionStorage.setItem('ww_a_test', '1'); } catch (e) {} }
 
@@ -77,6 +84,36 @@
     var queue = [];
     var timer = null;
     var startedAt = Date.now();
+
+    /* Engaged time: wall-clock between first and last event counts a tab left
+       open all afternoon as an afternoon of attention. This accumulates only
+       while the page is visible AND something happened recently, which is what
+       "how long did they actually spend" means. */
+    var IDLE_MS = 30000;          /* no activity for this long = not engaged */
+    var engagedMs = 0;
+    var lastTickAt = Date.now();
+    var lastActivityAt = Date.now();
+
+    function markActivity() { lastActivityAt = Date.now(); }
+
+    setInterval(function () {
+      try {
+        var t = Date.now();
+        var slice = t - lastTickAt;
+        lastTickAt = t;
+        if (document.visibilityState === 'visible' && (t - lastActivityAt) < IDLE_MS && slice < 15000) {
+          engagedMs += slice;
+        }
+      } catch (e) {}
+    }, 1000);
+
+    ['pointerdown', 'keydown', 'scroll', 'touchstart', 'mousemove'].forEach(function (ev) {
+      window.addEventListener(ev, markActivity, { passive: true });
+    });
+    document.addEventListener('visibilitychange', function () {
+      lastTickAt = Date.now();
+      if (document.visibilityState === 'visible') markActivity();
+    });
 
     function send(useBeacon) {
       if (!queue.length) return;
@@ -119,6 +156,8 @@
         e.path = location.pathname || '/';
         if (e.scroll === undefined) e.scroll = progress();
         if (e.section === undefined) e.section = liveSection();
+        e.meta = e.meta || {};
+        e.meta.engaged = engagedMs;
         queue.push(e);
         if (queue.length >= FLUSH_AT) { clearTimeout(timer); timer = null; send(false); }
         else schedule();
@@ -177,7 +216,9 @@
 
     /* ------------------------------------------------------ page + session */
 
-    track('SESSION_START', { meta: { resumed: !fresh } });
+    /* Only a genuinely new session starts one. A reload inside the 30-minute
+       window continues the existing session and just adds a page view. */
+    if (fresh) track('SESSION_START', {});
     track('PAGE_VIEW', { label: document.title ? document.title.slice(0, 80) : null });
 
     /* ------------------------------------------------- section visibility */
@@ -364,7 +405,7 @@
 
     function finish() {
       try {
-        track('SESSION_END', { scroll: progress(), meta: { seconds: Math.round((Date.now() - startedAt) / 1000) } });
+        track('SESSION_END', { scroll: progress(), meta: { engaged: engagedMs } });
         send(true);
       } catch (e) {}
     }
@@ -375,9 +416,12 @@
     });
 
     /* keeps "active now" honest for a visitor who sits reading */
+    /* A heartbeat keeps "active now" honest for someone reading. It stops once
+       they go idle, so a forgotten open tab cannot extend a session forever. */
     setInterval(function () {
       try {
         if (document.visibilityState !== 'visible') return;
+        if ((Date.now() - lastActivityAt) > 2 * 60 * 1000) return;
         store.set(LS_AT, String(Date.now()));
         track('HEARTBEAT', {});
       } catch (e) {}
