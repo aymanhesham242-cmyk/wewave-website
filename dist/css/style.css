@@ -728,6 +728,33 @@ canvas{display:block;}
 .btn.ghost{background:transparent;color:var(--ink);border-color:var(--line);}
 .btn.ghost:hover{border-color:var(--glow);color:var(--glow);box-shadow:none;}
 
+/* ---------- Contact channels ---------- */
+/* Out of the flow until opened: the stage is vertically centred, so a hidden
+   but present block would push the heading up. Going from display:none to
+   flex lets the entrance animation run on the change; closing is immediate,
+   which is what a fold-away wants anyway. */
+.ways{display:none;}
+.ways.is-open{
+  display:flex;flex-direction:column;align-items:center;
+  gap:clamp(12px,1.4vw,16px);margin-top:clamp(18px,2.4vw,28px);
+  animation:waysIn .55s var(--ease) both;
+}
+.ways-row{display:flex;gap:clamp(10px,1.2vw,16px);flex-wrap:wrap;justify-content:center;}
+.way{
+  width:46px;height:46px;border-radius:50%;flex:none;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink);border:1px solid var(--line);
+  transition:transform .35s var(--ease),border-color .35s,background-color .3s,color .3s;
+}
+.way svg{width:20px;height:20px;display:block;}
+.way:hover{transform:translateY(-3px);border-color:var(--glow);background:var(--glow);color:var(--white);}
+.ways-num{
+  font-family:var(--mono);font-size:12px;letter-spacing:.18em;
+  color:var(--glow);white-space:nowrap;
+}
+.ways-num:hover{color:var(--ink);}
+@keyframes waysIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+
 /* =========================================================
    Responsive
    ========================================================= */
@@ -1004,6 +1031,7 @@ canvas{display:block;}
     min-height:auto;padding:72px var(--pad);
   }
   [data-anim],.display .ln i{opacity:1!important;transform:none!important;transition:none!important;}
+  .ways.is-open{animation:none;}
   .steps li{opacity:1;transform:none;}
   .chrome-top,.chrome-bottom{position:static;opacity:1;transform:none;}
   .chrome-top{background:var(--deep);}

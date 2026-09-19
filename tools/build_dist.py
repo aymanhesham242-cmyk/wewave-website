@@ -37,7 +37,8 @@ html = html.replace("assets/wewave-profile.pdf", "assets/wewave-profile-web.pdf"
 subprocess.run([sys.executable, str(ROOT / "tools" / "build_shots.py")], check=True)
 
 for rel in ("css/style.css", "css/service-shots.css", "css/service.css", "js/main.js",
-            "js/meeting-modal.js", "js/voice.js", "js/analytics.js"):
+            "js/meeting-modal.js", "js/voice.js", "js/contact.js",
+            "js/analytics.js"):
     dest = DIST / rel
     dest.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(ROOT / rel, dest)

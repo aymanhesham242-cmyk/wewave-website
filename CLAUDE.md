@@ -34,6 +34,7 @@ adds a booking API backed by D1.
 | `worker/index.js` | API + static passthrough |
 | `admin/index.html` | Token-gated moderation panel |
 | `admin/analytics/index.html` | Token-gated analytics dashboard |
+| `js/contact.js` | Contact channels on the contact stage — self-contained IIFE |
 | `js/analytics.js` | Visitor event collection — self-contained IIFE |
 | `worker/analytics.js` | Analytics ingest + queries, D1-backed |
 | `schema/analytics.sql` | Analytics tables (the Worker creates them lazily too) |
