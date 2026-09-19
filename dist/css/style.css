@@ -636,27 +636,38 @@ canvas{display:block;}
   mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
 }
 .ticker-row{display:flex;gap:clamp(10px,1.3vw,20px);width:max-content;will-change:transform;}
-/* Logos sit on light chips: several marks are navy or black line art and would
-   disappear against the dark stage. Painted as backgrounds rather than <img>
-   so each logo is embedded once and the chips have their size before any
-   image decodes (the drift measures the row width). */
+/* Logos sit on light chips: the marks are supplied on white and several are
+   gold, silver or pale, which would vanish against the dark stage. Painted as
+   backgrounds rather than <img> so each logo is fetched once however many
+   times it repeats, and the chips have their size before any image decodes
+   (the drift measures the row width). */
 .chip{
   flex:none;display:block;
   width:clamp(128px,13vw,178px);
   height:clamp(84px,8.4vw,116px);
+  /* The padding is the logo box. `background-origin:content-box` makes the
+     background fit inside it, so `contain` gives every mark the same maximum
+     area on its own aspect ratio -- a 4:1 wordmark and a square mark both sit
+     naturally, neither stretched nor clipped. `background-clip` stays at its
+     default, so the white card still fills the whole chip. */
+  padding:clamp(9px,.95vw,13px) clamp(12px,1.25vw,17px);
   border-radius:14px;
   background-color:var(--white);
   background-repeat:no-repeat;
   background-position:center;
-  background-size:72% auto;
+  background-origin:content-box;
+  background-size:contain;
   transition:transform .45s var(--ease),box-shadow .4s var(--ease);
 }
 .chip:hover{transform:translateY(-5px);box-shadow:0 16px 32px rgba(0,0,0,.28);}
-.chip.housh{background-image:url(../assets/clients/housh.png);}
-.chip.cheerfulness{background-image:url(../assets/clients/cheerfulness-makers.png);}
-.chip.elhelow{background-image:url(../assets/clients/elhelow-style.png);}
-.chip.hubvet{background-image:url(../assets/clients/hub-vet-clinic.png);}
-.chip.credit{background-image:url(../assets/clients/credit.png);}
+.chip.arlux{background-image:url(../assets/clients/arlux.png);}
+.chip.nasaq{background-image:url(../assets/clients/nasaq.png);}
+.chip.zoya{background-image:url(../assets/clients/zoya.png);}
+.chip.royal{background-image:url(../assets/clients/royal-watch.png);}
+.chip.mewa{background-image:url(../assets/clients/mewa.png);}
+.chip.zrex{background-image:url(../assets/clients/z-rex.png);}
+.chip.valle{background-image:url(../assets/clients/valle.png);}
+.chip.smart24{background-image:url(../assets/clients/twentyfour-smart.png);}
 
 /* ---------- Voices ---------- */
 .quotes{
@@ -1001,5 +1012,8 @@ canvas{display:block;}
   .ticker{width:auto;-webkit-mask-image:none;mask-image:none;}
   .ticker-row{flex-wrap:wrap;width:auto;justify-content:center;transform:none!important;}
   .ticker-row:nth-child(2){display:none;}
+  /* A wrapped wall has no seam to hide, so show the roster once: eight cards,
+     not the four passes the drifting version needs to fill a wide screen. */
+  .ticker-row .chip:nth-child(n+9){display:none;}
   body{background:var(--deep);}
 }
