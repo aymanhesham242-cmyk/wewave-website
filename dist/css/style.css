@@ -690,6 +690,13 @@ canvas{display:block;}
   font-family:var(--mono);font-style:normal;font-size:10px;
   letter-spacing:.22em;text-transform:uppercase;color:var(--glow);
 }
+/* The name is the part people actually want to read. It steps out of the mono
+   label into the body face at full ink, so it carries the line while the role
+   stays a quiet green label beside it. */
+.quotes cite .who{
+  font-family:var(--sans);font-weight:500;font-size:16px;
+  letter-spacing:.005em;text-transform:none;color:var(--ink);
+}
 
 /* Voice-note testimonial — sits inside a .quotes blockquote */
 .voice-head{display:flex;align-items:center;gap:14px;}
