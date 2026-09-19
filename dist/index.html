@@ -352,7 +352,8 @@
   <section class="stage stage-voices" data-stage="voices">
     <div class="stage-inner">
       <p class="eyebrow" data-anim>Voices</p>
-      <!-- Placeholder quotes — replace with real, attributable client testimonials. -->
+      <!-- Two voice notes from brand owners. Each is served twice: Opus for
+           most browsers, AAC for Safari, which cannot play Ogg. -->
       <div class="quotes">
         <blockquote class="voice">
           <div class="voice-head">
@@ -372,8 +373,24 @@
             <source src="assets/voices/may-fayed-valle.m4a" type="audio/mp4">
           </audio>
         </blockquote>
-        <blockquote><p>The reporting changed how we spend. We finally know what is working and what to cut.</p><cite>Placeholder — F&amp;B</cite></blockquote>
-        <blockquote><p>Fast, organised, and the craft was well past what we were paying for elsewhere.</p><cite>Placeholder — Lifestyle</cite></blockquote>
+        <blockquote class="voice">
+          <div class="voice-head">
+            <button class="voice-play" type="button" aria-label="Play the voice note from the brand owner of Arlux">
+              <svg class="vi-play" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5.5v13l11-6.5z"/></svg>
+              <svg class="vi-pause" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9.5 6v12M14.5 6v12"/></svg>
+            </button>
+            <div class="voice-meter">
+              <div class="voice-bar"><span class="voice-fill"></span></div>
+              <span class="voice-time">0:30</span>
+            </div>
+          </div>
+          <p>A voice note from the brand owner of Arlux.</p>
+          <cite>Brand owner, Arlux</cite>
+          <audio class="voice-audio" preload="none" data-duration="30.9">
+            <source src="assets/voices/arlux-owner.ogg" type="audio/ogg; codecs=opus">
+            <source src="assets/voices/arlux-owner.m4a" type="audio/mp4">
+          </audio>
+        </blockquote>
       </div>
     </div>
   </section>
