@@ -38,7 +38,7 @@ if (yearEl) yearEl.textContent = new Date().getFullYear();
    --------------------------------------------------------- */
 const STAGES = [
   { key: 'hero',      label: 'Index',     start: 0.000, end: 0.115 },
-  { key: 'manifesto', label: 'Manifesto', start: 0.100, end: 0.255 },
+  { key: 'manifesto', label: 'About us', start: 0.100, end: 0.255 },
   { key: 'services',  label: 'Services',  start: 0.240, end: 0.470 },
   { key: 'process',   label: 'Process',   start: 0.455, end: 0.650 },
   { key: 'clients',   label: 'Clients',   start: 0.635, end: 0.760 },

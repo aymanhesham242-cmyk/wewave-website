@@ -152,6 +152,10 @@ and the dashboard reads it at `/admin/analytics`. Things worth knowing:
   not a document position. `STAGE_AT` in the dashboard mirrors `STAGES` — if you
   retune a stage window, update it there too or the heatmap preview parks at the
   wrong place.
+- The first stage is keyed `manifesto` but reads **About us** on the page. The
+  key is what `a_event` rows, `STAGE_AT` and `.stage-manifesto` all use, so
+  renaming it would orphan the history. Change `label` in `STAGES`, the nav
+  link and the eyebrow -- never the key.
 - `?wwtest=1` marks a browser as a test client. Those rows carry `is_test = 1`
   and never appear in the live figures.
 - Events are whitelisted by pattern, not by list, so `window.wwTrack('MY_EVENT',
