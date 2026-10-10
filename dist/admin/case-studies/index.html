@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Case study analytics — WeWave</title>
+
+<!--
+  WeWave — Case Study Analytics.
+
+  An internal case study BUILDER. Every figure on this page is hypothetical and
+  entered by hand: nothing here connects to Meta, Facebook, Instagram or any
+  other advertising platform, no credentials are requested or stored, and no
+  performance data is fetched from anywhere. The layout follows the conventions
+  of an ads reporting console because that is the format these numbers are read
+  in — it uses none of any platform's branding, and it never presents its
+  contents as reported results.
+
+  Architecture notes live in the module files:
+    engine.js   the data model and every formula (pure, unit-tested)
+    presets.js  starting templates and the demo library
+    store.js    D1 through the admin API, mirrored to localStorage
+    charts.js   hand-rolled SVG charts
+    app.js      the interface
+-->
+
+<link rel="stylesheet" href="case-studies.css">
+</head>
+<body>
+
+<!-- token gate — the same ADMIN_TOKEN as the rest of the admin area -->
+<div id="gate" class="gate">
+  <p class="gate-mark">WeWave</p>
+  <h1>Case study analytics</h1>
+  <p>Enter the admin token to open the case study builder.</p>
+  <input class="field" id="tok" type="password" placeholder="Admin token" autocomplete="current-password">
+  <button class="btn btn-primary" id="tokGo" style="width:100%">Unlock</button>
+  <p class="err" id="gateErr"></p>
+</div>
+
+<div id="app" hidden>
+<div class="frame">
+
+  <!-- ============================================================ icon rail -->
+  <nav class="rail" aria-label="Sections">
+    <div class="rail-mark" title="WeWave case study simulator">W</div>
+
+    <button class="rail-btn on" id="railTable" title="Performance table" aria-label="Performance table">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13" rx="1.5"/><path d="M2.5 8h15M8 8v8.5M13 8v8.5"/></svg>
+    </button>
+    <button class="rail-btn" id="railCharts" title="Charts" aria-label="Charts">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 16.5V9M7.7 16.5V4.5M12.3 16.5v-5M17 16.5v-9"/></svg>
+    </button>
+    <button class="rail-btn" id="railLibrary" title="Case studies" aria-label="Case studies">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 3.5h5.5v13H4zM10.5 3.5H16v13h-5.5z"/></svg>
+    </button>
+    <button class="rail-btn" id="railPresets" title="Presets" aria-label="Presets">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5L2.8 7.8l5-.7z"/></svg>
+    </button>
+
+    <div class="rail-sp"></div>
+
+    <button class="rail-btn" id="railChecks" title="Data consistency checks" aria-label="Checks">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5"/><path d="M10 6v4.5M10 13.4v.1"/></svg>
+    </button>
+    <button class="rail-btn" id="railSettings" title="Case study settings" aria-label="Settings">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="2.6"/><path d="M10 2.5v2M10 15.5v2M17.5 10h-2M4.5 10h-2M15.3 4.7l-1.4 1.4M6.1 13.9l-1.4 1.4M15.3 15.3l-1.4-1.4M6.1 6.1L4.7 4.7"/></svg>
+    </button>
+    <button class="rail-btn" id="lockBtn" title="Lock" aria-label="Lock">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="9" width="12" height="8" rx="1.5"/><path d="M6.8 9V6.6a3.2 3.2 0 0 1 6.4 0V9"/></svg>
+    </button>
+  </nav>
+
+  <div class="stack">
+
+    <!-- ========================================================= top header -->
+    <header class="topbar">
+      <div class="topbar-in">
+        <span class="wordmark">WeWave <b>Case Study</b></span>
+        <span class="demo-badge" title="Every figure on this page is hypothetical and entered by hand.">Demo data</span>
+
+        <span class="hr-sep"></span>
+
+        <button class="acct" id="acctBtn">
+          <span class="acct-avatar" id="acctAvatar">–</span>
+          <span class="acct-name" id="acctName">No case study open</span>
+          <span class="acct-meta" id="acctMeta"></span>
+          <svg class="caret" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4"/></svg>
+        </button>
+
+        <div class="spacer"></div>
+
+        <div class="sync" id="sync" title="Where your changes are stored">
+          <span class="sync-dot"></span><span id="syncText">Ready</span>
+        </div>
+
+        <button class="btn btn-sm" id="issuesBtn" title="Data consistency checks">
+          Checks <span class="pill-count zero" id="issuesCount">0</span>
+        </button>
+        <button class="btn btn-sm btn-icon" id="refreshBtn" title="Reload from storage">
+          <svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M16.5 10a6.5 6.5 0 1 1-1.9-4.6"/><path d="M16.8 3.2v3.4h-3.4"/></svg>
+        </button>
+        <button class="btn btn-sm" id="builderBtn">Settings</button>
+        <button class="btn btn-sm" id="saveBtn">Save changes</button>
+        <button class="btn btn-sm btn-primary" id="newBtn">Create</button>
+        <button class="btn btn-sm btn-icon" id="overflowBtn" title="More">
+          <svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="4.5" cy="10" r="1.4" fill="currentColor" stroke="none"/><circle cx="10" cy="10" r="1.4" fill="currentColor" stroke="none"/><circle cx="15.5" cy="10" r="1.4" fill="currentColor" stroke="none"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- The standing disclaimer. Dismissible per session, never removed. -->
+    <div class="notice" id="notice">
+      <b>Simulator.</b>
+      <span>These figures are hypothetical and typed in by hand for building case studies. Nothing on this page is connected to Meta or reports real campaign performance.</span>
+      <button class="btn btn-sm btn-ghost" id="noticeClose">Dismiss</button>
+    </div>
+
+    <div class="shell">
+
+      <!-- ===================================================== case library -->
+      <aside class="side" id="side">
+        <div class="side-head">
+          <span class="side-title">Case studies</span>
+          <button class="btn btn-sm btn-ghost" id="presetBtn" title="Start from a preset">Presets</button>
+        </div>
+        <div class="side-search">
+          <input class="field field-sm" id="libSearch" type="search" placeholder="Search…">
+        </div>
+        <div class="side-list" id="libList"></div>
+      </aside>
+
+      <!-- ======================================================= workspace -->
+      <main class="main">
+
+        <!-- saved views -->
+        <div class="view-tabs">
+          <button class="view-tab on" data-view="performance">
+            <svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13" rx="1.5"/><path d="M2.5 8h15"/></svg>
+            Performance
+          </button>
+          <button class="view-tab" data-view="charts">
+            <svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 16.5V9M7.7 16.5V4.5M12.3 16.5v-5M17 16.5v-9"/></svg>
+            Charts
+          </button>
+          <button class="view-tab" data-view="both">
+            <svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13" rx="1.5"/><path d="M2.5 11h15M10 11v5.5"/></svg>
+            Both
+          </button>
+          <div class="spacer"></div>
+          <button class="btn btn-sm" id="presentBtn" title="Hide the editing controls for presenting or printing">Presentation mode</button>
+        </div>
+
+        <!-- search -->
+        <div class="searchbar">
+          <svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.8"/><path d="M13.3 13.3L17 17"/></svg>
+          <input class="field" id="rowSearch" type="search" placeholder="Search campaigns, ad sets and ads by name…">
+        </div>
+
+        <!-- level tabs + date range -->
+        <div class="level-row">
+          <div class="level-tabs">
+            <button class="level-tab on" data-level="campaign">
+              <svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5.5h14M3 10h14M3 14.5h9"/></svg>
+              <span>Campaigns</span> <b id="cntCampaigns">0</b>
+            </button>
+            <button class="level-tab" data-level="adset">
+              <svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><rect x="2.8" y="2.8" width="6" height="6" rx="1"/><rect x="11.2" y="2.8" width="6" height="6" rx="1"/><rect x="2.8" y="11.2" width="6" height="6" rx="1"/><rect x="11.2" y="11.2" width="6" height="6" rx="1"/></svg>
+              <span>Ad sets</span> <b id="cntAdsets">0</b>
+            </button>
+            <button class="level-tab" data-level="ad">
+              <svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="4" width="15" height="12" rx="1.5"/><path d="M2.5 13l4-3.5 3.5 3 3-2.5 4.5 4"/></svg>
+              <span>Ads</span> <b id="cntAds">0</b>
+            </button>
+          </div>
+          <button class="date-pill" id="dateBtn">
+            <svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><rect x="2.8" y="4" width="14.4" height="13" rx="1.5"/><path d="M2.8 8h14.4M6.8 2.5v3M13.2 2.5v3"/></svg>
+            <span id="dateLabel">—</span>
+            <svg class="caret" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4"/></svg>
+          </button>
+        </div>
+
+        <!-- action toolbar -->
+        <div class="toolbar">
+          <button class="btn btn-sm btn-create" id="addBtn">
+            <svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4.5v11M4.5 10h11"/></svg>
+            Create
+          </button>
+          <button class="btn btn-sm" id="dupRowBtn" disabled>Duplicate</button>
+          <button class="btn btn-sm" id="editRowBtn" disabled>Edit</button>
+          <button class="btn btn-sm" id="delRowBtn" disabled>Delete</button>
+          <button class="btn btn-sm" id="statusBtn" disabled>Status</button>
+          <button class="btn btn-sm" id="moreBtn">More <svg class="caret" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4"/></svg></button>
+
+          <div class="spacer"></div>
+
+          <button class="btn btn-sm" id="filterBtn">Filters</button>
+          <button class="btn btn-sm" id="columnsBtn">Columns <svg class="caret" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4"/></svg></button>
+          <button class="btn btn-sm" id="breakdownBtn">Breakdown <svg class="caret" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4"/></svg></button>
+          <button class="btn btn-sm" id="expandBtn">Expand all</button>
+          <button class="btn btn-sm btn-icon" id="exportBtn" title="Export">
+            <svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9M6.5 8.5L10 12l3.5-3.5M3.5 15.5h13"/></svg>
+          </button>
+          <button class="btn btn-sm btn-icon" id="viewOptBtn" title="View options">
+            <svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h14M3 10h14M3 14h14"/><circle cx="7" cy="6" r="1.8" fill="var(--card)"/><circle cx="13" cy="10" r="1.8" fill="var(--card)"/><circle cx="8.5" cy="14" r="1.8" fill="var(--card)"/></svg>
+          </button>
+        </div>
+
+        <section class="cards" id="cards"></section>
+
+        <section class="charts" id="charts" hidden></section>
+
+        <section class="table-wrap">
+          <div class="table-scroll" id="tableScroll">
+            <table class="grid" id="grid">
+              <thead id="gridHead"></thead>
+              <tbody id="gridBody"></tbody>
+            </table>
+            <div class="t-foot" id="gridFoot"></div>
+          </div>
+          <div class="empty-state" id="emptyState" hidden></div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

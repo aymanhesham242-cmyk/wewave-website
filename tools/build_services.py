@@ -44,20 +44,7 @@ SERVICES = [
         ],
     ),
     dict(
-        slug="content-strategy", num="02", icon="calendar",
-        title="Content Strategy &amp; Calendars",
-        lead="A calendar built backwards from a goal. Every slot has a job — awareness, consideration, or conversion — so the month adds up to something instead of just filling a grid.",
-        items=[
-            "Monthly calendar with each post mapped to an objective",
-            "Content pillars and formats tuned to your brand",
-            "Posts, carousels, and reels planned together, not separately",
-            "Hook and concept direction for every piece",
-            "Posting cadence matched to how your audience behaves",
-            "Review cycle so next month learns from the last",
-        ],
-    ),
-    dict(
-        slug="media-buying", num="03", icon="target",
+        slug="media-buying", num="02", icon="target",
         title="Media Buying",
         lead="Paid campaigns run with budget accountability. We build the structure, launch it, and keep cutting what does not earn its spend.",
         items=[
@@ -82,7 +69,7 @@ SERVICES = [
         ),
     ),
     dict(
-        slug="photography-reels", num="04", icon="camera",
+        slug="photography-reels", num="03", icon="camera",
         title="Photography &amp; Reels",
         lead="Product and lifestyle shoots produced for the feed, then cut for pacing, sound, colour, and motion — because a still that works on a shelf rarely works on a scroll.",
         items=[
@@ -95,20 +82,7 @@ SERVICES = [
         ],
     ),
     dict(
-        slug="copywriting", num="05", icon="pen",
-        title="Copywriting",
-        lead="Words that sound like your brand and stop the thumb. Hooks first — the rest only matters if the first line earns the second.",
-        items=[
-            "Hooks and opening lines built to stop the scroll",
-            "Captions and post copy in your brand voice",
-            "Scripts for reels, ads, and campaign video",
-            "Ad copy variants for testing",
-            "Arabic and English copy where the audience needs both",
-            "Tone-of-voice guidance your team can reuse",
-        ],
-    ),
-    dict(
-        slug="brand-identity", num="06", icon="palette",
+        slug="brand-identity", num="04", icon="palette",
         title="Brand &amp; Visual Identity",
         lead="The system that makes every post recognisably yours before anyone reads the handle — logo, colour, type, and the rules that hold it together.",
         items=[
@@ -121,33 +95,7 @@ SERVICES = [
         ],
     ),
     dict(
-        slug="trend-monitoring", num="07", icon="trend",
-        title="Trend Monitoring",
-        lead="Platforms move weekly. We watch what is shifting in your category and adapt the plan while it still matters, rather than reporting on it afterwards.",
-        items=[
-            "Ongoing tracking of formats and sounds gaining traction",
-            "Category-specific trend watch, not generic trend lists",
-            "Fast-turnaround reactive content when something breaks",
-            "Platform and algorithm change monitoring",
-            "Competitor launch and campaign alerts",
-            "Calendar adjustments as the landscape moves",
-        ],
-    ),
-    dict(
-        slug="performance-reporting", num="08", icon="report",
-        title="Performance Reporting",
-        lead="Clear numbers in plain language: what worked, what did not, and what we are changing next month. No dashboards nobody reads.",
-        items=[
-            "Monthly report on reach, engagement, and conversion",
-            "Content-level breakdown of top and bottom performers",
-            "Paid performance against cost per result",
-            "What we are changing next month, and why",
-            "A running view of growth over time",
-            "A call to walk through the numbers together",
-        ],
-    ),
-    dict(
-        slug="web-development", num="09", icon="code",
+        slug="web-development", num="05", icon="code",
         title="Web Development",
         lead="Storefronts and brand sites built to load fast, read well on a phone, and turn the traffic your campaigns generate into orders.",
         items=[

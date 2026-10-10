@@ -17,7 +17,15 @@
       "database_name": "wewave-meetings",
       "database_id": "860c8c11-943e-4bee-a0b6-d48558376794"
     }
-  ]
+  ],
+
+  // Without this there is no record of a production failure anywhere: console
+  // output is discarded unless someone happens to be running `wrangler tail`.
+  // Workers Logs is included on the free plan (200k events/day, 3 days of
+  // retention), and this Worker logs only on faults, so it costs nothing here.
+  "observability": {
+    "enabled": true
+  }
 
   // ADMIN_TOKEN is a secret, never committed:
   //   npx wrangler secret put ADMIN_TOKEN

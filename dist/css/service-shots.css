@@ -9,11 +9,7 @@
    page load would cost every visitor a third of a megabyte for something
    most of them have not scrolled to yet. */
 .stage-services.live .scard[href*="competitor-market-analysis"]{--shot:url(../assets/services/competitor-market-analysis.jpg);}
-.stage-services.live .scard[href*="content-strategy"]{--shot:url(../assets/services/content-strategy.jpg);}
 .stage-services.live .scard[href*="media-buying"]{--shot:url(../assets/services/media-buying.jpg);}
 .stage-services.live .scard[href*="photography-reels"]{--shot:url(../assets/services/photography-reels.jpg);}
-.stage-services.live .scard[href*="copywriting"]{--shot:url(../assets/services/copywriting.jpg);}
 .stage-services.live .scard[href*="brand-identity"]{--shot:url(../assets/services/brand-identity.jpg);}
-.stage-services.live .scard[href*="trend-monitoring"]{--shot:url(../assets/services/trend-monitoring.jpg);}
-.stage-services.live .scard[href*="performance-reporting"]{--shot:url(../assets/services/performance-reporting.jpg);}
 .stage-services.live .scard[href*="web-development"]{--shot:url(../assets/services/web-development.jpg);}

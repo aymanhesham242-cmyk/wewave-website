@@ -31,6 +31,33 @@ const MAX_BATCH = 60;                 /* events accepted in one request */
 const MAX_BODY  = 64 * 1024;
 const SESSION_GAP = 30 * 60 * 1000;   /* a session is continuous within 30 min */
 
+/* Analytics and the booking form share one D1 database, and D1 meters writes
+   per day. Behaviour data is worth a lot less than a lead, so ingest stops at
+   half the free-tier daily allowance and leaves the rest for `meetings`. The
+   per-address limit in index.js slows a flood down; this is what stops one
+   getting through at all. */
+const DAILY_EVENT_CAP = 50000;
+let dayCap = { checkedAt: 0, over: false };
+
+async function overDailyCap(env) {
+  const now = Date.now();
+  if (now - dayCap.checkedAt < 60000) return dayCap.over;   /* at most one read a minute, per isolate */
+  try {
+    const midnight = new Date(now);
+    midnight.setUTCHours(0, 0, 0, 0);
+    const r = await env.DB.prepare('SELECT COUNT(*) AS n FROM a_event WHERE ts >= ?')
+      .bind(midnight.getTime()).first();
+    const over = !!(r && r.n >= DAILY_EVENT_CAP);
+    if (over && !dayCap.over) {
+      console.warn('analytics: daily ingest cap reached (' + r.n + ' events today) — dropping until UTC midnight');
+    }
+    dayCap = { checkedAt: now, over };
+  } catch {
+    dayCap = { checkedAt: now, over: false };      /* fail open: a read fault must not stop collection */
+  }
+  return dayCap.over;
+}
+
 /* Known types are documented; anything else matching the pattern is still
    accepted so new events can be added client-side without a Worker deploy. */
 const TYPE_RE = /^[A-Z][A-Z0-9_]{1,40}$/;
@@ -165,6 +192,7 @@ export async function collect(request, env) {
 
   try {
     await ensureSchema(env);
+    if (await overDailyCap(env)) return json({ ok: true, stored: 0 });
 
     const rows = [];
     let pageviews = 0, interactions = 0, maxScroll = 0, lastPath = null;

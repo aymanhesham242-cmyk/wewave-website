@@ -1,0 +1,23 @@
+# Local Worker secrets — copy to `.dev.vars` and fill in.
+#
+#   cp .dev.vars.example .dev.vars
+#
+# `.dev.vars` is gitignored and must stay that way. This example file is
+# committed and must never contain a real value.
+#
+# In production these are Worker secrets, not variables:
+#   npx wrangler secret put ADMIN_TOKEN
+# Putting either of them in wrangler.jsonc would commit them to the repository.
+
+# Guards every admin route: /api/meetings, /api/a/*, /api/cases.
+# Unset, all of them fail closed — safe, but the panels show nothing.
+# Use something long and random; it is the only thing in front of every lead's
+# name, phone number and message, and there is no username beside it.
+#   node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+ADMIN_TOKEN=replace-me-with-a-long-random-string
+
+# Optional. Where to announce a new booking — a Slack or Discord incoming
+# webhook, or a Make / Zapier / n8n hook that forwards to email or WhatsApp.
+# Leave it out entirely and the Worker stays silent: the lead is still stored,
+# but nobody is told. Must be https.
+# LEAD_WEBHOOK_URL=https://hooks.example.com/your-endpoint

@@ -1,5 +1,5 @@
 """
-Generate the nine service background images in assets/services/.
+Generate a background image in assets/services/ for each service.
 
 These are original, generated artwork -- not stock photography -- so there is
 no licensing question. The card CSS desaturates the image and washes it back
@@ -130,13 +130,9 @@ def window(d, col, col2):
 
 JOBS = [
     ("competitor-market-analysis", (DEEP, PRIM), bars,    (ACC,)),
-    ("content-strategy",           (PRIM, DEEP), grid,    (PALE,)),
     ("media-buying",               (DEEP, ACC),  rings,   (PALE,)),
     ("photography-reels",          (PRIM, DEEP), frames,  (PALE,)),
-    ("copywriting",                (DEEP, PRIM), lines,   (ACC,)),
     ("brand-identity",             (ACC,  DEEP), palette, (PALE, ACC)),
-    ("trend-monitoring",           (DEEP, PRIM), trend,   (PALE,)),
-    ("performance-reporting",      (PRIM, DEEP), donut,   (PALE, ACC)),
     ("web-development",            (DEEP, ACC),  window,  (PALE, ACC)),
 ]
 

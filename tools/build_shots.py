@@ -15,9 +15,9 @@ SRC = ROOT / "assets" / "services"
 OUT = ROOT / "css" / "service-shots.css"
 
 SLUGS = [
-    "competitor-market-analysis", "content-strategy", "media-buying",
-    "photography-reels", "copywriting", "brand-identity",
-    "trend-monitoring", "performance-reporting", "web-development",
+    "competitor-market-analysis", "media-buying",
+    "photography-reels", "brand-identity",
+    "web-development",
 ]
 
 lines = [

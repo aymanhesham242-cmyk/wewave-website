@@ -660,6 +660,10 @@ canvas{display:block;}
   transition:transform .45s var(--ease),box-shadow .4s var(--ease);
 }
 .chip:hover{transform:translateY(-5px);box-shadow:0 16px 32px rgba(0,0,0,.28);}
+/* Each logo twice: the plain url() is what a browser without image-set()
+   takes, and image-set() hands everything else the WebP. The WebP is a
+   lossless re-encode -- byte-for-byte the same pixels, 24% smaller -- so
+   which one a visitor gets cannot change how a logo looks. */
 .chip.arlux{background-image:url(../assets/clients/arlux.png);}
 .chip.nasaq{background-image:url(../assets/clients/nasaq.png);}
 .chip.zoya{background-image:url(../assets/clients/zoya.png);}
@@ -668,6 +672,14 @@ canvas{display:block;}
 .chip.zrex{background-image:url(../assets/clients/z-rex.png);}
 .chip.valle{background-image:url(../assets/clients/valle.png);}
 .chip.smart24{background-image:url(../assets/clients/twentyfour-smart.png);}
+.chip.arlux{background-image:image-set(url(../assets/clients/arlux.webp) type("image/webp"),url(../assets/clients/arlux.png) type("image/png"));}
+.chip.nasaq{background-image:image-set(url(../assets/clients/nasaq.webp) type("image/webp"),url(../assets/clients/nasaq.png) type("image/png"));}
+.chip.zoya{background-image:image-set(url(../assets/clients/zoya.webp) type("image/webp"),url(../assets/clients/zoya.png) type("image/png"));}
+.chip.royal{background-image:image-set(url(../assets/clients/royal-watch.webp) type("image/webp"),url(../assets/clients/royal-watch.png) type("image/png"));}
+.chip.mewa{background-image:image-set(url(../assets/clients/mewa.webp) type("image/webp"),url(../assets/clients/mewa.png) type("image/png"));}
+.chip.zrex{background-image:image-set(url(../assets/clients/z-rex.webp) type("image/webp"),url(../assets/clients/z-rex.png) type("image/png"));}
+.chip.valle{background-image:image-set(url(../assets/clients/valle.webp) type("image/webp"),url(../assets/clients/valle.png) type("image/png"));}
+.chip.smart24{background-image:image-set(url(../assets/clients/twentyfour-smart.webp) type("image/webp"),url(../assets/clients/twentyfour-smart.png) type("image/png"));}
 
 /* ---------- Voices ---------- */
 /* Two cards, held to the width three used to have. Letting a pair stretch the

@@ -1,0 +1,660 @@
+/**
+ * WeWave — Case Study Analytics.
+ *
+ * A dense ads-console surface, not a card dashboard. The rules that keep it
+ * that way, and that a later pass should not quietly undo:
+ *
+ *   - 12px base, 36px rows, 6px radius. Padding is measured in single digits.
+ *   - One type family, one weight scale. No display face, no mono, no webfont
+ *     (which also keeps the single-file build fully offline).
+ *   - Blue is action and link. Green is Create and "active" delivery only.
+ *     Nothing else is coloured.
+ *   - Borders separate; shadows do not. Shadows appear on popovers and drawers
+ *     and nowhere else.
+ *
+ * Nothing here is shared with the public site. It loads no site CSS and
+ * exports none, so it cannot affect any other page.
+ */
+
+:root{
+  --brand:#0866FF; --brand-dark:#0652CC; --brand-soft:#EBF2FF; --brand-line:#A9C8FF;
+  --create:#31A24C; --create-dark:#2B8F43;
+
+  --bg:#FFFFFF; --card:#FFFFFF; --sunken:#F5F6F7; --hover:#F2F2F2;
+  --rail-bg:#FFFFFF;
+  --line:#DADDE1; --line-soft:#E4E6EB;
+
+  --ink:#1C1E21; --ink-2:#444950; --dim:#65676B; --faint:#8A8D91;
+
+  --ok:#31A24C; --ok-soft:#E3F3E7;
+  --warn:#B26A00; --warn-soft:#FDF3E3;
+  --bad:#D0342C; --bad-soft:#FBE9E8;
+  --idle:#8A8D91; --idle-soft:#EBEDF0;
+  --pin:#6B4FBB; --pin-soft:#F0ECFA;
+
+  --sans:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --mono:var(--sans);
+  --display:var(--sans);
+
+  --rail:48px;
+  --topbar:44px;
+  --row:36px;
+
+  --r:6px; --r-lg:8px;
+  --shadow-lg:0 12px 28px rgba(0,0,0,.2),0 2px 4px rgba(0,0,0,.1);
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  background:var(--sunken);color:var(--ink);font-family:var(--sans);
+  font-size:12px;line-height:1.4;-webkit-font-smoothing:antialiased;
+}
+a{color:inherit;text-decoration:none;}
+button,input,select,textarea{font:inherit;color:inherit;}
+[hidden]{display:none !important;}
+
+/* Every figure is compared against the one above it, so tabular figures are
+   not a nicety — proportional digits make a column of numbers harder to scan. */
+.cell-num,.card-value,.t-foot,input.edit,.readout-value,.case-item-figs{
+  font-variant-numeric:tabular-nums;
+}
+
+/* Icons are stroked, never filled, at one weight throughout. */
+.ico,.caret{fill:none;stroke:currentColor;stroke-width:1.6;
+  stroke-linecap:round;stroke-linejoin:round;}
+.ico{width:15px;height:15px;flex:none;}
+.caret{width:9px;height:6px;flex:none;opacity:.6;}
+
+/* ----------------------------------------------------------------- the gate */
+
+.gate{max-width:360px;margin:16vh auto;padding:0 20px;text-align:center;}
+.gate-mark{font-size:12px;font-weight:600;color:var(--brand);margin-bottom:6px;}
+.gate h1{font-size:22px;font-weight:700;margin-bottom:6px;}
+.gate p{color:var(--dim);margin-bottom:16px;font-size:13px;}
+.gate .field{width:100%;margin-bottom:8px;}
+.gate .err{color:var(--bad);font-size:12px;min-height:18px;margin-top:8px;}
+
+/* --------------------------------------------------------------- the frame */
+
+.frame{display:flex;align-items:flex-start;min-height:100vh;}
+.stack{flex:1;min-width:0;display:flex;flex-direction:column;min-height:100vh;}
+
+/* ------------------------------------------------------------------- rail */
+
+.rail{
+  width:var(--rail);flex:none;background:var(--rail-bg);
+  border-right:1px solid var(--line);
+  height:100vh;position:sticky;top:0;z-index:70;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 0 9px;
+}
+.rail-mark{
+  width:28px;height:28px;border-radius:7px;background:var(--brand);color:#fff;
+  display:grid;place-items:center;font-size:13px;font-weight:700;
+  margin-bottom:8px;flex:none;
+}
+.rail-btn{
+  width:34px;height:34px;border:none;background:transparent;border-radius:var(--r);
+  display:grid;place-items:center;cursor:pointer;color:var(--dim);
+  position:relative;transition:background-color .14s,color .14s;
+}
+.rail-btn svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.5;
+  stroke-linecap:round;stroke-linejoin:round;}
+.rail-btn:hover{background:var(--hover);color:var(--ink);}
+.rail-btn.on{color:var(--brand);background:var(--brand-soft);}
+/* The active marker sits on the rail edge, as in a real console. */
+.rail-btn.on::before{
+  content:'';position:absolute;left:-7px;top:6px;bottom:6px;width:3px;
+  border-radius:0 3px 3px 0;background:var(--brand);
+}
+.rail-sp{flex:1;}
+
+/* ----------------------------------------------------------------- topbar */
+
+.topbar{
+  position:sticky;top:0;z-index:60;background:var(--card);
+  border-bottom:1px solid var(--line);
+}
+/* min-height is a LITERAL, never var(--topbar).
+   --topbar is the MEASURED height of this bar, written back by the
+   ResizeObserver in app.js. Feeding it in here closes the loop: taller bar ->
+   bigger --topbar -> bigger min-height -> taller bar. It ran away to 245px
+   once. The measured value is for the sidebar sticky offset only. */
+.topbar-in{
+  display:flex;align-items:center;gap:7px;
+  padding:6px 10px;min-height:44px;flex-wrap:wrap;
+}
+.wordmark{font-size:13px;color:var(--dim);white-space:nowrap;letter-spacing:-.01em;}
+.wordmark b{color:var(--ink);font-weight:700;}
+.hr-sep{width:1px;height:18px;background:var(--line);flex:none;}
+
+/* Not decoration: the standing statement that nothing here is reported data. */
+.demo-badge{
+  font-size:10.5px;font-weight:600;color:var(--warn);background:var(--warn-soft);
+  border:1px solid rgba(178,106,0,.3);border-radius:4px;padding:2px 6px;
+  white-space:nowrap;flex:none;
+}
+
+.acct{
+  display:flex;align-items:center;gap:6px;min-width:0;
+  border:1px solid var(--line);border-radius:var(--r);padding:3px 8px;background:var(--card);
+  cursor:pointer;transition:border-color .14s,background-color .14s;
+}
+.acct:hover{border-color:var(--brand-line);background:var(--brand-soft);}
+.acct-avatar{
+  width:20px;height:20px;border-radius:5px;background:var(--brand);color:#fff;
+  display:grid;place-items:center;font-size:10px;font-weight:700;flex:none;
+}
+.acct-name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;}
+.acct-meta{font-size:11px;color:var(--dim);white-space:nowrap;}
+
+.spacer{flex:1;min-width:0;}
+
+.sync{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--dim);white-space:nowrap;}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--ok);flex:none;}
+.sync.is-dirty .sync-dot{background:var(--warn);}
+.sync.is-off .sync-dot{background:var(--bad);}
+.sync.is-saving .sync-dot{background:var(--brand);animation:pulse 1s infinite;}
+@keyframes pulse{50%{opacity:.25;}}
+
+/* ---------------------------------------------------------------- buttons */
+
+.btn{
+  display:inline-flex;align-items:center;gap:5px;justify-content:center;
+  border:1px solid var(--line);background:var(--card);border-radius:var(--r);
+  padding:5px 9px;font-size:12px;font-weight:600;color:var(--ink-2);
+  cursor:pointer;white-space:nowrap;
+  transition:background-color .14s,border-color .14s,color .14s;
+}
+.btn:hover:not(:disabled){background:var(--hover);border-color:#C4C7CB;color:var(--ink);}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn-primary{background:var(--brand);border-color:var(--brand);color:#fff;}
+.btn-primary:hover:not(:disabled){background:var(--brand-dark);border-color:var(--brand-dark);color:#fff;}
+/* Create is the one green control, as in the reference. */
+.btn-create{background:var(--create);border-color:var(--create);color:#fff;}
+.btn-create:hover:not(:disabled){background:var(--create-dark);border-color:var(--create-dark);color:#fff;}
+.btn-danger{color:var(--bad);border-color:rgba(208,52,44,.35);}
+.btn-danger:hover:not(:disabled){background:var(--bad-soft);border-color:var(--bad);color:var(--bad);}
+.btn-ghost{border-color:transparent;background:transparent;}
+.btn-ghost:hover:not(:disabled){background:var(--hover);border-color:transparent;}
+.btn-sm{padding:4px 8px;font-size:11.5px;}
+.btn-icon{padding:4px 6px;}
+
+/* ----------------------------------------------------------------- fields */
+
+.field{
+  width:100%;border:1px solid var(--line);border-radius:var(--r);
+  padding:5px 9px;background:var(--card);font-size:12px;
+  transition:border-color .14s,box-shadow .14s;
+}
+.field:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft);}
+.field-sm{padding:4px 8px;font-size:11.5px;}
+select.field{cursor:pointer;appearance:none;padding-right:24px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2365676B' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;}
+textarea.field{resize:vertical;min-height:58px;line-height:1.5;}
+label.lbl{display:block;font-size:11.5px;font-weight:600;color:var(--ink-2);margin-bottom:4px;}
+.hint{font-size:11px;color:var(--dim);margin-top:4px;line-height:1.45;}
+
+/* ------------------------------------------------------------- notice bar */
+
+.notice{
+  display:flex;align-items:center;gap:10px;padding:6px 10px;
+  background:var(--warn-soft);border-bottom:1px solid rgba(178,106,0,.22);font-size:11.5px;
+}
+.notice b{color:var(--warn);}
+.notice .btn{margin-left:auto;}
+
+/* ----------------------------------------------------------------- layout */
+
+.shell{display:flex;align-items:flex-start;flex:1;min-height:0;}
+
+.side{
+  width:216px;flex:none;background:var(--card);border-right:1px solid var(--line);
+  height:calc(100vh - var(--topbar));position:sticky;top:var(--topbar);overflow-y:auto;
+  display:flex;flex-direction:column;
+}
+.side.collapsed{display:none;}
+.side-head{padding:8px 9px 5px;display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.side-title{font-size:12px;font-weight:700;color:var(--ink);}
+.side-search{padding:0 9px 7px;}
+.side-list{flex:1;padding:0 5px 10px;}
+
+.case-item{
+  display:block;width:100%;text-align:left;border:1px solid transparent;
+  border-radius:var(--r);padding:6px 7px;margin-bottom:1px;cursor:pointer;
+  background:transparent;transition:background-color .13s,border-color .13s;
+}
+.case-item:hover{background:var(--hover);}
+.case-item.is-open{background:var(--brand-soft);border-color:var(--brand-line);}
+.case-item-top{display:flex;align-items:baseline;gap:5px;}
+.case-item-name{font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.case-item-sub{font-size:10.5px;color:var(--dim);margin-top:1px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.case-item-figs{display:flex;gap:8px;margin-top:3px;font-size:10.5px;color:var(--ink-2);}
+.case-item-figs b{font-weight:700;}
+.case-item-dirty{width:5px;height:5px;border-radius:50%;background:var(--warn);flex:none;}
+
+.main{flex:1;min-width:0;padding:8px 10px 40px;background:var(--sunken);}
+
+/* ----------------------------------------------------- workspace controls */
+
+.view-tabs{display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-bottom:7px;}
+.view-tab{
+  display:inline-flex;align-items:center;gap:6px;background:var(--card);
+  border:1px solid var(--line);border-radius:var(--r);padding:5px 10px;
+  font-size:12px;font-weight:600;color:var(--ink-2);cursor:pointer;transition:all .14s;
+}
+.view-tab:hover{background:var(--hover);}
+.view-tab.on{border-color:var(--brand);color:var(--brand);background:var(--brand-soft);}
+
+.searchbar{margin-bottom:7px;position:relative;}
+.searchbar .field{padding-left:28px;height:30px;}
+.searchbar .ico{position:absolute;left:9px;top:50%;transform:translateY(-50%);
+  opacity:.5;pointer-events:none;}
+
+.level-row{display:flex;align-items:stretch;gap:6px;margin-bottom:7px;flex-wrap:wrap;}
+.level-tabs{display:flex;gap:4px;flex:1;min-width:0;}
+/* Tabs sit on the page ground and lift onto the table surface when active —
+   the same read as a real console's level switcher. */
+.level-tab{
+  flex:0 1 auto;display:flex;align-items:center;gap:7px;
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r) var(--r) 0 0;
+  padding:7px 14px;cursor:pointer;font-size:12.5px;font-weight:600;color:var(--ink-2);
+  transition:all .14s;position:relative;
+}
+.level-tab:hover{background:var(--hover);}
+.level-tab.on{
+  color:var(--brand);background:var(--card);border-color:var(--line);
+  box-shadow:inset 0 -2.5px 0 var(--brand);
+}
+.level-tab b{font-weight:700;font-size:11px;color:var(--dim);
+  background:var(--sunken);border-radius:9px;padding:1px 6px;}
+.level-tab.on b{color:var(--brand);background:var(--brand-soft);}
+
+.date-pill{
+  display:inline-flex;align-items:center;gap:7px;background:var(--card);
+  border:1px solid var(--line);border-radius:var(--r);padding:6px 11px;
+  cursor:pointer;font-size:12px;font-weight:600;color:var(--ink-2);
+  white-space:nowrap;transition:all .14s;
+}
+.date-pill:hover{border-color:var(--brand-line);background:var(--brand-soft);color:var(--brand);}
+
+.toolbar{
+  display:flex;align-items:center;gap:4px;flex-wrap:wrap;
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:5px 6px;margin-bottom:7px;
+}
+
+/* ----------------------------------------------------------- summary cards */
+
+.cards{
+  display:grid;gap:1px;margin-bottom:7px;background:var(--line-soft);
+  border:1px solid var(--line);border-radius:var(--r);overflow:hidden;
+  grid-template-columns:repeat(auto-fit,minmax(122px,1fr));
+}
+/* One strip of cells divided by hairlines, not a row of floating cards. */
+.card{background:var(--card);padding:7px 10px;min-width:0;overflow:hidden;}
+.card-label{font-size:11px;color:var(--dim);display:flex;align-items:center;gap:4px;
+  margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card-value{font-size:17px;font-weight:700;letter-spacing:-.02em;line-height:1.2;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:6px;
+  margin-top:2px;min-width:0;}
+.card-sub{font-size:10.5px;color:var(--dim);white-space:nowrap;
+  min-width:0;overflow:hidden;text-overflow:ellipsis;}
+.card-spark{width:58px;height:18px;flex:none;opacity:.75;}
+.spark-svg{width:100%;height:100%;display:block;}
+.spark-line{stroke-width:1.5;stroke-linejoin:round;stroke-linecap:round;}
+
+/* --------------------------------------------------------------- charts */
+
+.charts{display:grid;gap:7px;margin-bottom:7px;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));}
+.chart-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:9px 10px 5px;min-width:0;}
+.chart-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;}
+.chart-title{font-weight:700;font-size:12px;}
+.chart-total{font-size:11.5px;color:var(--dim);font-variant-numeric:tabular-nums;}
+.chart-body{position:relative;height:160px;}
+.chart-svg{width:100%;height:100%;display:block;overflow:visible;}
+.chart-grid{stroke:var(--line-soft);stroke-width:1;vector-effect:non-scaling-stroke;}
+.chart-line{stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;}
+.chart-area{stroke:none;}
+.chart-axis{font-size:10px;fill:var(--faint);}
+.chart-axis-y{text-anchor:end;}
+.chart-axis-x{text-anchor:middle;}
+.chart-crosshair{stroke:var(--faint);stroke-width:1;stroke-dasharray:3 3;vector-effect:non-scaling-stroke;}
+.chart-dot{fill:var(--card);stroke-width:2;}
+.chart-hit{cursor:crosshair;}
+.chart-focus{pointer-events:none;transition:opacity .1s;}
+.chart-tip{
+  position:absolute;top:2px;background:var(--ink);color:#fff;border-radius:4px;
+  padding:3px 7px;font-size:11px;pointer-events:none;white-space:nowrap;z-index:5;
+  display:flex;flex-direction:column;line-height:1.3;
+}
+.chart-tip span{opacity:.65;font-size:10px;}
+.chart-empty{display:grid;place-items:center;height:100%;color:var(--faint);
+  font-size:11.5px;text-align:center;}
+.chart-note{font-size:11px;color:var(--faint);padding:5px 2px 2px;line-height:1.4;}
+
+/* ---------------------------------------------------------------- table */
+
+.table-wrap{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;}
+.table-scroll{overflow-x:auto;overflow-y:visible;}
+
+table.grid{border-collapse:separate;border-spacing:0;width:100%;min-width:1180px;}
+.grid th,.grid td{
+  padding:0 9px;height:var(--row);text-align:left;vertical-align:middle;
+  border-bottom:1px solid var(--line-soft);white-space:nowrap;
+}
+/**
+ * `top:0`, not the height of the topbar.
+ *
+ * `.table-scroll` sets `overflow-x:auto`, and CSS promotes the other axis with
+ * it — so that element, not the viewport, is this header's scroll container.
+ * Any non-zero `top` offsets the header DOWN inside the table and parks it on
+ * the first row, which is exactly what happened once. Keep this at 0.
+ */
+.grid thead th{
+  position:sticky;top:0;z-index:20;background:var(--sunken);
+  font-size:11.5px;color:var(--dim);font-weight:600;height:32px;
+  border-bottom:1px solid var(--line);user-select:none;
+}
+.grid thead th.sortable{cursor:pointer;}
+.grid thead th.sortable:hover{color:var(--ink);background:var(--hover);}
+.th-in{display:inline-flex;align-items:center;gap:3px;}
+.sort-mark{opacity:.25;font-size:8px;}
+.sortable.is-sorted .sort-mark{opacity:1;color:var(--brand);}
+.sortable.is-sorted{color:var(--ink);}
+
+.grid td.cell-num,.grid th.cell-num{text-align:right;}
+.grid tbody tr{transition:background-color .1s;}
+.grid tbody tr:hover{background:var(--hover);}
+.grid tbody tr.is-selected{background:var(--brand-soft);}
+
+/* Identity columns stay put while the metrics scroll under them. */
+.col-check{width:32px;}
+.col-toggle{width:46px;}
+.col-name{min-width:290px;}
+.grid .sticky-1{position:sticky;left:0;z-index:15;background:var(--card);}
+.grid .sticky-2{position:sticky;left:32px;z-index:15;background:var(--card);}
+.grid .sticky-3{position:sticky;left:78px;z-index:15;background:var(--card);
+  box-shadow:1px 0 0 var(--line-soft);}
+.grid thead .sticky-1,.grid thead .sticky-2,.grid thead .sticky-3{z-index:25;background:var(--sunken);}
+.grid tbody tr:hover .sticky-1,.grid tbody tr:hover .sticky-2,.grid tbody tr:hover .sticky-3{background:var(--hover);}
+.grid tbody tr.is-selected .sticky-1,.grid tbody tr.is-selected .sticky-2,
+.grid tbody tr.is-selected .sticky-3{background:var(--brand-soft);}
+
+input[type=checkbox]{width:13px;height:13px;accent-color:var(--brand);cursor:pointer;}
+
+/* row identity */
+.name-cell{display:flex;flex-direction:column;justify-content:center;min-width:0;}
+.row-name{display:flex;align-items:center;gap:5px;min-width:0;}
+.twisty{
+  width:16px;height:16px;flex:none;display:grid;place-items:center;border:none;
+  background:transparent;cursor:pointer;border-radius:3px;color:var(--dim);
+}
+.twisty:hover{background:rgba(0,0,0,.07);color:var(--ink);}
+.twisty svg{transition:transform .16s var(--ease);}
+.twisty.open svg{transform:rotate(90deg);}
+.twisty.leaf{visibility:hidden;}
+
+.name-link{
+  color:var(--brand);font-weight:500;cursor:text;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;border-radius:2px;padding:0 1px;
+}
+.name-link:hover{text-decoration:underline;}
+
+/* Hierarchy is indentation plus a hairline guide — not nested cards. */
+.row-indent-2 .row-name{padding-left:16px;}
+.row-indent-3 .row-name{padding-left:32px;}
+tr.lvl-adset .sticky-3{box-shadow:inset 2px 0 0 var(--line-soft),1px 0 0 var(--line-soft);}
+tr.lvl-ad .sticky-3{box-shadow:inset 2px 0 0 var(--line),1px 0 0 var(--line-soft);}
+tr.lvl-adset td{background-color:#FCFCFD;}
+tr.lvl-ad td{background-color:#FAFBFC;}
+tr.lvl-adset:hover td,tr.lvl-ad:hover td{background-color:var(--hover);}
+
+.row-kind{font-size:10.5px;color:var(--faint);flex:none;}
+
+/* hover actions, as in the reference: chips under the name */
+.row-actions{display:none;gap:3px;margin-top:2px;}
+tr:hover .row-actions{display:flex;}
+.row-actions .btn{padding:1px 6px;font-size:10.5px;font-weight:500;}
+
+/* on / off toggle */
+.toggle{
+  width:30px;height:17px;border-radius:999px;background:#BCC0C4;border:none;
+  position:relative;cursor:pointer;transition:background-color .16s;flex:none;padding:0;
+}
+.toggle::after{
+  content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;
+  background:#fff;transition:transform .16s var(--ease);box-shadow:0 1px 2px rgba(0,0,0,.3);
+}
+.toggle.on{background:var(--brand);}
+.toggle.on::after{transform:translateX(13px);}
+.toggle.paused{background:#D8B978;}
+
+/* delivery */
+.delivery{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:500;}
+.dot{width:6px;height:6px;border-radius:50%;flex:none;}
+.dot.active{background:var(--ok);}
+.dot.paused{background:var(--warn);}
+.dot.completed,.dot.draft{background:var(--idle);}
+.delivery.active{color:var(--ok);}
+.delivery.paused{color:var(--warn);}
+.delivery.completed,.delivery.draft{color:var(--dim);}
+
+.badge{display:inline-block;font-size:10px;border-radius:3px;padding:1px 5px;}
+.badge.pin{color:var(--pin);background:var(--pin-soft);}
+
+.budget-cell{display:flex;flex-direction:column;line-height:1.2;}
+.budget-sub{font-size:10px;color:var(--dim);}
+
+/**
+ * The editable affordance.
+ *
+ * Deliberately invisible until hover: a table where every number is underlined
+ * reads as broken. The dotted rule appears under the cursor, which is the only
+ * moment it means anything.
+ */
+.editable{cursor:text;padding:1px 2px;border-radius:2px;
+  border-bottom:1px dashed transparent;transition:border-color .12s,background-color .12s;}
+tr:hover .editable{border-bottom-color:#C2C7CE;}
+.editable:hover{background:var(--brand-soft);border-bottom-color:var(--brand) !important;}
+.editable.is-pinned{border-bottom:1px solid var(--pin) !important;color:var(--pin);}
+.cell-empty{color:var(--faint);}
+
+input.edit{
+  width:100%;min-width:58px;border:1px solid var(--brand);border-radius:3px;
+  padding:2px 5px;background:var(--card);box-shadow:0 0 0 3px var(--brand-soft);
+  text-align:inherit;font-size:12px;
+}
+input.edit:focus{outline:none;}
+td.cell-num input.edit{text-align:right;}
+
+/* group header rows, for Breakdown */
+tr.group-row td{
+  background:var(--sunken);font-weight:700;font-size:11.5px;color:var(--ink-2);
+  height:28px;border-bottom:1px solid var(--line);
+}
+tr.group-row .sticky-1,tr.group-row .sticky-2,tr.group-row .sticky-3{background:var(--sunken);}
+
+/* totals strip */
+.t-foot{display:flex;align-items:stretch;border-top:1px solid var(--line);
+  background:var(--sunken);min-width:1180px;}
+.t-foot .tf-cell{padding:6px 9px;display:flex;flex-direction:column;justify-content:center;
+  white-space:nowrap;}
+.tf-label{font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px;}
+.tf-value{font-size:12.5px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums;}
+.tf-sub{font-size:10.5px;color:var(--dim);text-align:right;}
+
+.empty-state{padding:42px 20px;text-align:center;color:var(--dim);}
+.empty-state h3{font-size:14px;color:var(--ink);margin-bottom:4px;font-weight:700;}
+.empty-state p{margin-bottom:11px;font-size:12px;}
+
+/* --------------------------------------------------------------- popovers */
+
+.pop{
+  position:absolute;z-index:200;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--r-lg);box-shadow:var(--shadow-lg);padding:5px;min-width:200px;
+  animation:pop .12s var(--ease);
+}
+@keyframes pop{from{opacity:0;transform:translateY(-3px);}}
+.pop-title{font-size:11px;font-weight:700;color:var(--dim);padding:5px 8px 4px;
+  text-transform:none;}
+.pop-item{
+  display:flex;align-items:center;gap:7px;width:100%;text-align:left;border:none;
+  background:transparent;border-radius:4px;padding:5px 8px;cursor:pointer;font-size:12px;
+  color:var(--ink);
+}
+.pop-item:hover{background:var(--hover);}
+.pop-item.on{background:var(--brand-soft);color:var(--brand);font-weight:600;}
+.pop-item.danger{color:var(--bad);}
+.pop-item.danger:hover{background:var(--bad-soft);}
+.pop-sep{height:1px;background:var(--line-soft);margin:4px 3px;}
+.pop-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:3px;}
+
+/* ---------------------------------------------------------------- drawer */
+
+.scrim{position:fixed;inset:0;background:rgba(15,20,25,.4);z-index:300;animation:fade .15s ease;}
+@keyframes fade{from{opacity:0;}}
+
+.drawer{
+  position:fixed;top:0;right:0;bottom:0;width:min(420px,100%);z-index:310;
+  background:var(--card);border-left:1px solid var(--line);box-shadow:var(--shadow-lg);
+  display:flex;flex-direction:column;animation:slide .18s var(--ease);
+}
+@keyframes slide{from{transform:translateX(20px);opacity:.5;}}
+.drawer-head{display:flex;align-items:center;gap:8px;padding:10px 13px;border-bottom:1px solid var(--line);}
+.drawer-head h2{font-size:14px;font-weight:700;flex:1;}
+.drawer-body{flex:1;overflow-y:auto;padding:13px;}
+.drawer-foot{display:flex;gap:6px;padding:9px 13px;border-top:1px solid var(--line);
+  background:var(--sunken);flex-wrap:wrap;}
+
+.form-row{margin-bottom:10px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.form-sep{display:flex;align-items:center;gap:8px;margin:16px 0 10px;
+  font-size:11.5px;font-weight:700;color:var(--dim);}
+.form-sep::after{content:'';flex:1;height:1px;background:var(--line);}
+
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:1px;
+  background:var(--line-soft);border:1px solid var(--line-soft);border-radius:var(--r);
+  overflow:hidden;margin-top:3px;}
+.readout-cell{background:var(--sunken);padding:7px 9px;}
+.readout-label{font-size:10.5px;color:var(--dim);margin-bottom:2px;}
+.readout-value{font-size:14px;font-weight:700;}
+
+.modal{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:310;
+  width:min(500px,calc(100% - 28px));max-height:calc(100vh - 56px);
+  background:var(--card);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);
+  display:flex;flex-direction:column;animation:rise .15s var(--ease);
+}
+@keyframes rise{from{opacity:0;transform:translate(-50%,-47%);}}
+.modal-head{padding:13px 15px 8px;}
+.modal-head h2{font-size:14px;font-weight:700;}
+.modal-body{padding:0 15px 11px;overflow-y:auto;color:var(--ink-2);line-height:1.5;font-size:12px;}
+.modal-foot{display:flex;gap:6px;justify-content:flex-end;padding:9px 15px;
+  border-top:1px solid var(--line);background:var(--sunken);border-radius:0 0 var(--r-lg) var(--r-lg);}
+
+.issues{display:flex;flex-direction:column;gap:4px;}
+.issue{display:flex;gap:7px;padding:7px 9px;border-radius:var(--r);font-size:11.5px;
+  border:1px solid var(--line-soft);background:var(--sunken);line-height:1.4;}
+.issue.error{border-color:rgba(208,52,44,.3);background:var(--bad-soft);}
+.issue.warn{border-color:rgba(178,106,0,.28);background:var(--warn-soft);}
+.issue.info{border-color:rgba(107,79,187,.25);background:var(--pin-soft);}
+.issue-where{font-weight:700;white-space:nowrap;}
+
+.pill-count{display:inline-grid;place-items:center;min-width:15px;height:15px;padding:0 4px;
+  border-radius:999px;font-size:10px;font-weight:700;background:var(--warn);color:#fff;}
+.pill-count.zero{background:var(--idle-soft);color:var(--dim);}
+
+.toasts{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:400;
+  display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;}
+.toast{background:var(--ink);color:#fff;border-radius:var(--r);padding:7px 14px;font-size:12px;
+  box-shadow:var(--shadow-lg);animation:rise .15s var(--ease);max-width:90vw;}
+.toast.bad{background:var(--bad);}
+.toast.good{background:var(--create);}
+
+/* ------------------------------------------------ presentation / printing */
+
+/**
+ * Share mode strips the editing chrome so a case study can be shown to a client
+ * or printed. It hides controls only — the figures, the badge and the notice
+ * all stay exactly as they are.
+ */
+body.present .side,
+body.present .rail,
+body.present .toolbar,
+body.present .searchbar,
+body.present .view-tabs,
+body.present .row-actions,
+body.present .twisty,
+body.present .acct-meta,
+body.present .sync,
+body.present #refreshBtn,
+body.present #saveBtn,
+body.present #overflowBtn{display:none !important;}
+body.present .editable{border-bottom:none !important;cursor:default;background:none;}
+body.present .main{padding:12px 16px 32px;}
+body.present .level-tab{pointer-events:none;}
+
+@media print{
+  body{background:#fff;}
+  .topbar{position:static;}
+  .rail,.side,.toolbar,.searchbar,.view-tabs,.row-actions,.twisty,.sync,
+  .scrim,.drawer,.modal,.toasts{display:none !important;}
+  .main{padding:0;background:#fff;}
+  .card,.chart-card,.table-wrap{break-inside:avoid;box-shadow:none;}
+  .table-scroll{overflow:visible;}
+  table.grid,.t-foot{min-width:0;}
+  .grid thead th{position:static;}
+  .grid .sticky-1,.grid .sticky-2,.grid .sticky-3{position:static;box-shadow:none;}
+  .editable{border-bottom:none !important;}
+}
+
+/* ------------------------------------------------------------ responsive */
+
+@media (max-width:1180px){
+  .side{width:190px;}
+  .col-name{min-width:240px;}
+}
+
+@media (max-width:980px){
+  /* The library becomes an overlay so the workspace keeps full width. */
+  .side{position:fixed;top:var(--topbar);left:var(--rail);bottom:0;z-index:80;
+    width:230px;box-shadow:var(--shadow-lg);height:auto;}
+  .side.collapsed{display:none;}
+}
+
+@media (max-width:760px){
+  :root{--rail:42px;}
+  .topbar-in{gap:5px;padding:5px 7px;}
+  .wordmark{display:none;}
+  .acct-name{max-width:110px;}
+  .acct-meta{display:none;}
+  #builderBtn,#saveBtn{display:none;}   /* both live in the overflow menu */
+  .main{padding:7px 7px 32px;}
+  .cards{grid-template-columns:repeat(auto-fit,minmax(112px,1fr));}
+  .card-value{font-size:15px;}
+  .card-spark{display:none;}
+  .charts{grid-template-columns:1fr;}
+  /* Level tabs and the date range each take a full row rather than colliding. */
+  .level-row{flex-direction:column;}
+  .level-tabs{width:100%;}
+  .level-tab{flex:1 1 0;min-width:0;justify-content:center;padding:7px 8px;overflow:hidden;}
+  .level-tab .ico,.level-tab b{display:none;}
+  .date-pill{width:100%;justify-content:center;}
+  .drawer{width:100%;}
+  /* Editing must survive on a phone: the name column stays pinned and the
+     metric columns scroll beside it rather than being dropped. */
+  .col-name{min-width:186px;}
+}
+
+@media (max-width:420px){
+  .grid .sticky-2{display:none;}
+  .grid .sticky-3{left:32px;}
+  .col-toggle{display:none;}
+}
