@@ -240,8 +240,8 @@ h2{
 
 /* `hidden` only wins if nothing else sets display — the same guard the
    booking modal and the analytics gate both needed. */
-.showcase[hidden],.sc-panel[hidden],.sc-ph[hidden],.sc-frame[hidden],
-.sc-load[hidden],.sc-kind[hidden]{display:none!important;}
+.showcase-sec[hidden],.showcase[hidden],.sc-panel[hidden],.sc-ph[hidden],
+.sc-frame[hidden],.sc-load[hidden],.sc-kind[hidden]{display:none!important;}
 
 /* The plain card grid is the no-JavaScript fallback. Once the wheel is
    known to have built, the whole section goes — hiding only the grid left

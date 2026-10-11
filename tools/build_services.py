@@ -191,7 +191,9 @@ HEAD = """<!DOCTYPE html>
   </div>
 </section>
 
-<section>
+"""
+
+INCLUDES = """<section>
   <div class="wrap">
     <p class="sec-label">What it includes</p>
     <ul class="includes">{items}</ul>
@@ -232,7 +234,7 @@ CASE_SLOT = """
 """
 
 SHOWCASE = """
-<section class="showcase-sec">
+<section class="showcase-sec" hidden>
   <div class="wrap">
     <p class="sec-label">Selected work</p>
     <h2>Our web development portfolio</h2>
@@ -240,7 +242,7 @@ SHOWCASE = """
       look inside each one — where a client's server allows it, their site loads
       here live. Where it does not, you get a shot of the real thing and a way
       straight there.</p>
-    <div class="showcase" data-showcase hidden>
+    <div class="showcase" data-showcase>
       <div class="sc-wheel" data-sc-wheel></div>
       <div class="sc-panel" data-sc-panel hidden></div>
     </div>
@@ -301,10 +303,19 @@ def build(svc, others):
         num=svc["num"],
         title=svc["title"],
         lead=svc["lead"],
-        items=items,
     )
 
-    if svc.get("case"):
+    # A page with the showcase wheel leads with the work itself. The bullet
+    # list and the case-study block both sat between the hero and the wheel,
+    # pushing it below the fold and saying less than it does. Pages without a
+    # wheel keep both -- without them there would be nothing left on the page.
+    wheel_page = bool(svc.get("folio"))
+    if not wheel_page:
+        body += INCLUDES.format(items=items)
+
+    if wheel_page:
+        pass                      # the wheel is the case study
+    elif svc.get("case"):
         c = svc["case"]
         stats = "".join(
             f'<div class="stat"><div class="stat-v">{v}</div>'

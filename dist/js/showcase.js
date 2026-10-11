@@ -405,6 +405,11 @@
 
   /* The wheel replaces the plain card grid once it is known to work. The grid
      stays in the document for anyone this script never reaches. */
+  /* Reveal the whole section, not just the wheel inside it. Hiding only the
+     wheel left a heading and an intro telling a visitor without JavaScript to
+     move across something that was not there. */
+  var sec = root.closest('section');
+  if (sec) sec.hidden = false;
   root.hidden = false;
   source.closest('section').classList.add('is-replaced');
 
