@@ -139,8 +139,15 @@
   var loadTimer = null;
 
   panel.innerHTML =
+    /* A browser-style bar: three dots and the host, so the panel reads as a
+       window onto someone else's site rather than part of this page. */
+    '<div class="sc-bar" aria-hidden="true">' +
+      '<span class="sc-dots"><i></i><i></i><i></i></span>' +
+      '<span class="sc-addr" data-addr></span>' +
+    '</div>' +
     '<div class="sc-view" data-view>' +
       '<div class="sc-ph" data-ph></div>' +
+      '<div class="sc-load" data-load hidden><span class="sc-spin"></span></div>' +
     '</div>' +
     '<div class="sc-meta">' +
       '<p class="sc-name" data-name></p>' +
@@ -165,14 +172,21 @@
   if (window.ResizeObserver) new ResizeObserver(fitFrame).observe(view);
   else window.addEventListener('resize', fitFrame);
   fitFrame();
+  var loadEl = panel.querySelector('[data-load]');
+  var addrEl = panel.querySelector('[data-addr]');
   var nameEl = panel.querySelector('[data-name]');
   var kindEl = panel.querySelector('[data-kind]');
   var goEl = panel.querySelector('[data-go]');
 
   function fallback(p, why) {
+    loadEl.hidden = true;
     ph.className = 'sc-ph is-' + (p.thumb ? 'thumb' : 'plain');
+    /* No loading="lazy" here on purpose. The image is only created when its
+       segment is selected, which is already the lazy part; the attribute adds
+       a second, viewport-based gate that can leave the panel blank when the
+       browser decides the shot is not near enough to the fold. */
     ph.innerHTML = p.thumb
-      ? '<img src="' + p.thumb + '" alt="" loading="lazy">'
+      ? '<img src="' + p.thumb + '" alt="' + p.name + ' — screenshot of the live site">'
       : '<span class="sc-ph-host">' + p.host + '</span>' +
         '<span class="sc-ph-why">' + why + '</span>';
     ph.hidden = false;
@@ -197,12 +211,18 @@
       /* A server that refuses framing often still fires load, on its own error
          page, so a timeout is the honest signal: if nothing painted in time,
          fall back rather than leave a blank rectangle. */
-      f.addEventListener('load', function () { f.classList.add('is-on'); clearTimeout(loadTimer); ph.hidden = true; });
+      f.addEventListener('load', function () {
+        f.classList.add('is-on'); clearTimeout(loadTimer);
+        ph.hidden = true; loadEl.hidden = true;
+      });
       f.addEventListener('error', function () { fallback(p, 'preview unavailable'); });
     }
     for (var u in frames) if (frames.hasOwnProperty(u)) frames[u].hidden = (u !== p.url);
-    if (f.classList.contains('is-on')) { ph.hidden = true; return; }
+    if (f.classList.contains('is-on')) { ph.hidden = true; loadEl.hidden = true; return; }
+    /* Show the site's own shot behind the spinner while the live copy
+       arrives, so the panel is never an empty rectangle. */
     fallback(p, 'loading preview…');
+    loadEl.hidden = false;
     clearTimeout(loadTimer);
     loadTimer = setTimeout(function () {
       if (!f.classList.contains('is-on')) fallback(p, 'this site does not allow previews');
@@ -216,8 +236,10 @@
 
     segs.forEach(function (s, k) { s.g.classList.toggle('is-on', k === i); });
 
+    addrEl.textContent = p.host;
     nameEl.textContent = p.name;
     kindEl.textContent = p.kind;
+    kindEl.hidden = !p.kind;
     goEl.href = p.url;
     goEl.setAttribute('aria-label', 'Visit ' + p.name + ' — opens in a new tab');
 
@@ -243,6 +265,7 @@
 
   function closePreview() {
     panel.classList.remove('is-in');
+    loadEl.hidden = true;
     current = -1;
     segs.forEach(function (s) { s.g.classList.remove('is-on'); });
     clearTimeout(loadTimer);
@@ -270,7 +293,9 @@
 
   hub.addEventListener('click', function () {
     setOpen(!open);
-    if (open) segs[0].hit.focus({ preventScroll: true });
+    /* select() explicitly rather than letting the focus handler do it: see
+       the note on SVG focus events below. */
+    if (open) select(0, false);
   });
 
   /* ------------------------------------------------------------- pointers */
@@ -284,7 +309,6 @@
       holdOpen();
       select(i, true);
     });
-    s.hit.addEventListener('focus', function () { if (open) { holdOpen(); select(i, true); } });
     s.hit.addEventListener('click', function (e) {
       e.preventDefault();
       if (!open) { setOpen(true); select(i, true); return; }
@@ -311,6 +335,21 @@
       }
     });
   });
+
+  /* Focus events do not fire on SVG elements here. `wedge.focus()` moves
+     document.activeElement -- Enter and the arrow keys work off it -- but no
+     focus or focusin event is dispatched, so a listener on the wedge never
+     runs and tabbing in would leave the panel empty. Every path that moves
+     focus therefore calls select() itself, and these two catch a Tab from
+     outside the wheel: focusin if the browser sends one, the keyup as the
+     fallback that always works.  */
+  function syncToFocus() {
+    if (!open) return;
+    var i = segs.findIndex(function (s) { return s.hit === document.activeElement; });
+    if (i > -1) { holdOpen(); select(i, true); }
+  }
+  document.addEventListener('focusin', syncToFocus);
+  document.addEventListener('keyup', function (e) { if (e.key === 'Tab') syncToFocus(); });
 
   wheelBox.addEventListener('mouseleave', function () { if (!touch) armClose(); });
   wheelBox.addEventListener('mouseenter', holdOpen);

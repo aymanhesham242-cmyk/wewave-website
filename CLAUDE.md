@@ -254,10 +254,14 @@ built. `js/showcase.js` draws it; the projects come from the `folio` list in
   JavaScript the grid is simply what you see. Delete that one line if you
   would rather show both.
 - **`preview` is measured, not guessed.** A site sending `X-Frame-Options` or
-  `frame-ancestors` cannot be embedded by anyone. Laro and Zrex both do, so
-  they are `thumb`; Saffa and Royal Watch do not, so they are `live`. Check a
-  new one before setting `live`:
-  `curl -sI <url> | grep -iE "x-frame-options|content-security-policy"`
+  `frame-ancestors` cannot be embedded by anyone. ZREX, Valle and Laro all
+  do, so they are `thumb`; InstaPro, Iris, Saffa and Royal Watch do not, so
+  they are `live` and were each confirmed rendering. Check a new one before
+  setting `live` -- and note some servers refuse HEAD, so use GET:
+  `curl -s -D - -o /dev/null -L <url> | grep -iE "x-frame-options|content-security-policy"`
+- **Thumbnails are real screenshots**, captured by pointing a browser at the
+  live site and running `python tools/save_folio_shot.py <slug>`. A stock
+  photo or a drawn browser window would be a lie about the work.
 - **`frame-src https:` is in the CSP for this.** Without it `frame-src` falls
   back to `default-src 'self'` and every preview is blocked in silence.
 - Frames are built on first selection and kept, so moving back and forth
@@ -269,7 +273,19 @@ built. `js/showcase.js` draws it; the projects come from the `folio` list in
 - The entrance uses `void panel.offsetHeight` rather than
   `requestAnimationFrame`, which does not fire in a background tab and would
   strand the panel at opacity 0.
-- IRIS is commented out of `folio`: `iris-eg.net` no longer resolves.
+- **Focus events do not fire on SVG elements.** `wedge.focus()` moves
+  `document.activeElement` -- Enter and the arrow keys work off it -- but no
+  `focus` or `focusin` event is dispatched, so a listener on the wedge never
+  runs. Opening the wheel left the panel blank for exactly this reason. Every
+  path that moves focus now calls `select()` itself, and a document-level
+  `keyup` on Tab catches a tab in from outside. Do not put behaviour on an
+  SVG element's focus event.
+- **No `loading="lazy"` on the fallback screenshot.** The image is only
+  created when its segment is selected, which is already the lazy part; the
+  attribute added a second viewport-based gate and the thumbnails silently
+  never loaded at all.
+- The old `iris-eg.net` is dead. The live site is `iris-eg.org` -- a
+  different domain, not a redirect.
 
 ## The API
 

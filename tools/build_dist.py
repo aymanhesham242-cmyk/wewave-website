@@ -134,6 +134,13 @@ if services_art.exists():
         ignore=shutil.ignore_patterns("README.md"),
     )
 
+# client site screenshots for the work showcase. Real captures of the real
+# sites -- see tools/save_folio_shot.py. The panel only requests one when its
+# segment is selected, so these cost nothing on page load.
+folio = ROOT / "assets/folio"
+if folio.exists() and any(folio.iterdir()):
+    shutil.copytree(folio, DIST / "assets/folio")
+
 # case-study screenshots (the pages fall back to a labelled slot if absent)
 cases = ROOT / "assets/cases"
 if cases.exists() and any(cases.iterdir()):

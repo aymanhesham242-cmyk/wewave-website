@@ -295,6 +295,18 @@ h2{
 }
 .sc-panel.is-in{opacity:1;transform:none;}
 
+/* browser-style bar on the preview */
+.sc-bar{
+  display:flex;align-items:center;gap:10px;padding:9px 13px;
+  background:var(--mint);border-bottom:1px solid rgba(23,35,29,.09);
+}
+.sc-dots{display:flex;gap:5px;flex:none;}
+.sc-dots i{width:8px;height:8px;border-radius:50%;background:rgba(23,35,29,.17);}
+.sc-addr{
+  font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--text-2);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+
 .sc-view{
   position:relative;width:100%;aspect-ratio:16/10;overflow:hidden;
   background:var(--mint);border-bottom:1px solid rgba(23,35,29,.08);
@@ -320,6 +332,21 @@ h2{
 .sc-ph.is-thumb{padding:0;}
 .sc-ph-host{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--primary);}
 .sc-ph-why{font-size:11.5px;color:var(--text-2);max-width:26ch;line-height:1.5;}
+
+/* spinner, over whatever the panel is already showing */
+.sc-load{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:color-mix(in srgb,var(--mint) 72%,transparent);
+}
+.sc-load[hidden]{display:none!important;}
+.sc-spin{
+  width:22px;height:22px;border-radius:50%;
+  border:2px solid rgba(23,35,29,.16);border-top-color:var(--primary);
+  animation:sc-turn .7s linear infinite;
+}
+@keyframes sc-turn{to{transform:rotate(360deg);}}
+
+.sc-kind[hidden]{display:none!important;}
 
 .sc-meta{padding:clamp(15px,1.8vw,21px);display:flex;flex-direction:column;gap:6px;}
 .sc-name{font-family:var(--display);font-size:clamp(21px,2.3vw,27px);line-height:1;letter-spacing:.02em;}
@@ -356,5 +383,7 @@ h2{
   .sc-seg,.sc-panel,.sc-hub,.sc-hub svg,.sc-wedge,.sc-frame{
     transition:none!important;transition-delay:0ms!important;
   }
+  /* the spinner keeps turning: it reports state rather than decorating */
+  .sc-spin{animation-duration:1.4s;}
   .sc-seg{opacity:1;transform:none;}
 }

@@ -110,37 +110,47 @@ SERVICES = [
         # plain card grid underneath it. One list, so the two cannot disagree.
         #
         #   name     what the segment and the card say
-        #   kind     one line under the name
+        #   kind     one line under the name. Left blank where nobody has
+        #            written one yet -- the panel simply omits it.
         #   url      where "Visit website" goes
         #   preview  "live"  -> the real site loads in a sandboxed iframe
         #            "thumb" -> the site refuses to be framed; show `thumb`
-        #   thumb    optional still, e.g. "../assets/folio/laro.jpg".
-        #            Left empty, the panel shows a clean host-and-reason card
-        #            rather than a broken image.
+        #   thumb    a real screenshot of that site, captured with a browser
+        #            by tools/save_folio_shot.py. Never a stock image or a
+        #            mock-up: it is a picture of the work or it is nothing.
         #
-        # `preview` is not a guess. Checked against each server's headers on
-        # 11 Oct 2026 -- a site sending X-Frame-Options or frame-ancestors
-        # cannot be embedded by anyone, and no amount of client code changes
-        # that. Re-check with:
+        # `preview` is measured, not guessed. Checked 11 Oct 2026 -- a site
+        # sending X-Frame-Options or frame-ancestors cannot be embedded by
+        # anyone, and no client-side code changes that. Re-check with:
         #   curl -sI <url> | grep -iE "x-frame-options|content-security-policy"
+        # Some servers refuse HEAD; Valle needed a GET to answer at all.
         folio=[
+            dict(name="ZREX", kind="Brand site and product catalogue",
+                 url="https://zrexeg.com/",
+                 preview="thumb", thumb="../assets/folio/zrex.jpg"),
+            dict(name="Valle", kind="",
+                 url="https://valle.myeasyorders.com/",
+                 preview="thumb", thumb="../assets/folio/valle.jpg"),
+            dict(name="InstaPro", kind="",
+                 url="https://www.instapro.tech/",
+                 preview="live", thumb="../assets/folio/instapro.jpg"),
             dict(name="Laro Cosmetics", kind="Cosmetics e-commerce storefront",
-                 url="https://laro-cosmetics.com", preview="thumb", thumb=""),
+                 url="https://laro-cosmetics.com/",
+                 preview="thumb", thumb="../assets/folio/laro-cosmetics.jpg"),
+            dict(name="Iris", kind="Contemporary womenswear e-commerce",
+                 url="https://iris-eg.org/",
+                 preview="live", thumb="../assets/folio/iris.jpg"),
             dict(name="Saffa Fashion", kind="Fashion store, Arabic and English",
-                 url="https://www.saffafashion.shop", preview="live", thumb=""),
-            dict(name="Zrex", kind="Brand site and product catalogue",
-                 url="https://zrexeg.com", preview="thumb", thumb=""),
+                 url="https://www.saffafashion.shop/",
+                 preview="live", thumb="../assets/folio/saffa-fashion.jpg"),
             dict(name="Royal Watch", kind="Luxury watches, brand storefront",
-                 url="https://royalwatch.art/", preview="live", thumb=""),
+                 url="https://royalwatch.art/en",
+                 preview="live", thumb="../assets/folio/royal-watch.jpg"),
 
-            # IRIS is out until its domain comes back. iris-eg.net stopped
-            # resolving -- not a timeout, no DNS record at all -- so the link
-            # that used to sit here led nowhere. Uncomment when it returns.
-            # dict(name="IRIS", kind="Contemporary womenswear e-commerce",
-            #      url="https://iris-eg.net/", preview="thumb", thumb=""),
-
-            # To add one, copy a line above. The wheel divides itself evenly
-            # by however many entries are here, so nothing else needs editing.
+            # To add one: copy a line, capture its screenshot with
+            #   python tools/save_folio_shot.py <slug>
+            # and check its headers before setting preview="live". The wheel
+            # divides itself by however many entries are here.
         ],
     ),
 ]
@@ -225,10 +235,10 @@ SHOWCASE = """
 <section class="showcase-sec">
   <div class="wrap">
     <p class="sec-label">Explore the work</p>
-    <h2>Every site, one turn away</h2>
-    <p class="showcase-intro">Open the wheel and move across it. Where a client's
-      server allows it, their site loads here live — not a screenshot of one.
-      Where it does not, you get the next best thing and a way straight there.</p>
+    <h2>Our web development portfolio</h2>
+    <p class="showcase-intro">Seven sites we have built. Open the wheel and move
+      across it — where a client's server allows it, their site loads here live.
+      Where it does not, you get a shot of the real thing and a way straight there.</p>
     <div class="showcase" data-showcase hidden>
       <div class="sc-wheel" data-sc-wheel></div>
       <div class="sc-panel" data-sc-panel hidden></div>
