@@ -201,189 +201,260 @@ h2{
 
 /* =========================================================
    Circular work showcase  (js/showcase.js)
-   Lives on service pages that carry a `folio` list. The plain
-   card grid stays in the document and is what shows when the
-   script does not run.
+
+   The wheel sits on a dark band of its own. That is not decoration:
+   luminous separators, glass segments and a glow on the active wedge
+   all need darkness to read against, and the page already ends on a
+   deep-green .cta, so a dark band here belongs to the design rather
+   than fighting it.
+
+   Every colour below is scoped to .showcase-sec. Nothing here changes
+   the palette of any other section.
    ========================================================= */
+
+.showcase-sec{
+  --sc-stage:#0A2318;          /* a shade under --deep, so the band has depth */
+  --sc-emerald:#2E8B57;
+  --sc-bright:#3FD18B;         /* the highlight, used sparingly */
+  --sc-mint:#9FE6C4;
+  --sc-teal:#2BB39A;
+  --sc-line:rgba(159,230,196,.17);
+
+  position:relative;overflow:hidden;
+  background:var(--sc-stage);color:var(--white);
+}
+/* two soft lights behind the wheel, so the band is never flat */
+.showcase-sec::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(60% 55% at 22% 18%,rgba(46,139,87,.30),transparent 70%),
+    radial-gradient(46% 46% at 86% 88%,rgba(43,179,154,.18),transparent 72%);
+}
+.showcase-sec > .wrap{position:relative;}
+.showcase-sec .sec-label{color:var(--sc-mint);}
+.showcase-sec h2{color:var(--white);}
+.showcase-intro{
+  color:rgba(255,255,255,.68);line-height:1.65;max-width:56ch;
+  margin-bottom:clamp(26px,3.4vw,44px);
+}
 
 /* `hidden` only wins if nothing else sets display — the same guard the
    booking modal and the analytics gate both needed. */
-.showcase[hidden],.sc-panel[hidden],.sc-ph[hidden],.sc-frame[hidden]{display:none!important;}
+.showcase[hidden],.sc-panel[hidden],.sc-ph[hidden],.sc-frame[hidden],
+.sc-load[hidden],.sc-kind[hidden]{display:none!important;}
 
-/* Replaced by the wheel, but only once the script has proven it can run.
-   The whole section goes, not just the grid inside it -- hiding only the grid
-   left the section's own padding behind as an empty band. It stays in the
-   document (display:none, not removed) because it is still the data source,
-   and because it is what a visitor without JavaScript sees. */
+/* The plain card grid is the no-JavaScript fallback. Once the wheel is
+   known to have built, the whole section goes — hiding only the grid left
+   the section's padding behind as an empty band. */
 .is-replaced{display:none;}
 
-.showcase-intro{
-  color:var(--text-2);line-height:1.65;max-width:56ch;margin-bottom:clamp(26px,3.4vw,40px);
-}
-
 .showcase{
-  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,420px);
-  gap:clamp(22px,3.4vw,46px);align-items:center;
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,430px);
+  gap:clamp(24px,3.6vw,52px);align-items:center;
 }
 
 /* ---------- the wheel ---------- */
 .sc-wheel{
-  position:relative;width:100%;max-width:470px;margin-inline:auto;
-  aspect-ratio:1;           /* reserves the space before paint — no layout shift */
+  position:relative;width:100%;max-width:490px;margin-inline:auto;
+  aspect-ratio:1;              /* space reserved before paint — no layout shift */
 }
 .sc-svg{width:100%;height:100%;display:block;overflow:visible;}
 
+/* rings: the depth comes from these, not from a shadow on every wedge */
 .sc-ring{fill:none;}
-.sc-ring-out{stroke:rgba(23,35,29,.1);stroke-width:1;}
-.sc-ring-in{stroke:rgba(23,35,29,.08);stroke-width:1;}
+.sc-ring-halo{stroke:rgba(63,209,139,.10);stroke-width:16;}
+.sc-ring-out{stroke:var(--sc-line);stroke-width:1;}
+.sc-ring-edge{stroke:rgba(255,255,255,.07);stroke-width:1;}
+.sc-ring-in{stroke:rgba(159,230,196,.22);stroke-width:1;}
+
+/* the slow light that travels the outer ring */
+.sc-sweep{
+  fill:none;stroke:url(#scSweep);stroke-width:2.5;stroke-linecap:round;
+  transform-box:view-box;transform-origin:200px 200px;
+  animation:sc-orbit 16s linear infinite;
+}
+@keyframes sc-orbit{to{transform:rotate(360deg);}}
 
 .sc-seg{
-  /* scale about the circle's own centre, not the element's bounding box */
   transform-box:view-box;transform-origin:200px 200px;
-  opacity:0;transform:scale(.86);
-  transition:opacity .5s var(--ease),transform .5s var(--ease);
+  transition:opacity .55s var(--ease),transform .55s var(--ease);
 }
-.showcase.is-open .sc-seg{
+/* Armed by the script before first paint, lifted when the section scrolls
+   into view. Default is visible, so a failure here can never hide the work. */
+.showcase.is-armed .sc-seg{opacity:0;transform:scale(.9);}
+.showcase.is-armed.in-view .sc-seg{
   opacity:1;transform:scale(1);
-  transition-delay:calc(var(--d) * 45ms);
+  transition-delay:calc(var(--d) * 70ms);
 }
-.showcase:not(.is-open) .sc-seg{pointer-events:none;}
 
 .sc-wedge{
-  fill:var(--white);stroke:rgba(23,35,29,.09);stroke-width:1;
-  cursor:pointer;
-  transition:fill .34s var(--ease),stroke .34s var(--ease);
+  fill:url(#scFace);stroke:var(--sc-line);stroke-width:1;cursor:pointer;
+  transition:fill .3s var(--ease),stroke .3s var(--ease);
 }
-.sc-seg:hover .sc-wedge,.sc-seg.is-on .sc-wedge{fill:var(--light-green);stroke:var(--primary);}
-.sc-seg.is-on .sc-wedge{fill:var(--primary);stroke:var(--primary);}
-.sc-wedge:focus-visible{outline:none;stroke:var(--deep);stroke-width:2.5;}
+.sc-seg:hover .sc-wedge{fill:url(#scFaceHot);stroke:rgba(159,230,196,.42);}
+.sc-seg.is-on .sc-wedge{fill:url(#scFaceOn);stroke:var(--sc-bright);stroke-width:1.4;}
+/* the glow rides a wrapper so the wedge's own fill transition stays cheap */
+.sc-seg.is-on{filter:drop-shadow(0 0 13px rgba(63,209,139,.38));}
+.sc-wedge:focus-visible{outline:none;stroke:var(--white);stroke-width:2.4;}
 
 .sc-label{
-  font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;
-  text-transform:uppercase;fill:var(--text);pointer-events:none;
-  transition:fill .34s var(--ease);
+  font-family:var(--mono);font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;fill:rgba(255,255,255,.72);pointer-events:none;
+  transition:fill .3s var(--ease);
 }
+.sc-seg:hover .sc-label{fill:var(--sc-mint);}
 .sc-seg.is-on .sc-label{fill:var(--white);}
 
 /* ---------- the hub ---------- */
 .sc-hub{
   position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  width:37%;aspect-ratio:1;border-radius:50%;cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
-  background:var(--deep);color:var(--white);border:1px solid var(--deep);
-  box-shadow:0 14px 34px rgba(12,42,28,.26);
-  transition:transform .45s var(--ease),box-shadow .45s var(--ease),background-color .3s;
+  width:40%;aspect-ratio:1;border-radius:50%;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  color:var(--white);border:1px solid rgba(159,230,196,.30);
+  background:
+    radial-gradient(circle at 50% 24%,rgba(63,209,139,.34),transparent 62%),
+    linear-gradient(165deg,#15422D 0%,#0C2A1C 58%,#081C12 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.14),
+    inset 0 -14px 26px rgba(0,0,0,.42),
+    0 16px 38px rgba(0,0,0,.42),
+    0 0 0 7px rgba(63,209,139,.05);
+  transition:transform .45s var(--ease),box-shadow .45s var(--ease);
 }
-.sc-hub:hover{transform:translate(-50%,-50%) scale(1.045);box-shadow:0 20px 44px rgba(12,42,28,.32);}
-.sc-hub svg{width:24px;height:24px;transition:transform .5s var(--ease);}
-/* Half a turn, so the arrow points back the way it came. A quarter turn left
-   it pointing down, which reads as "more below", not "close". */
-.showcase.is-open .sc-hub svg{transform:rotate(180deg);}
+.sc-hub:hover{
+  transform:translate(-50%,-50%) scale(1.035);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.18),
+    inset 0 -14px 26px rgba(0,0,0,.4),
+    0 20px 46px rgba(0,0,0,.46),
+    0 0 0 9px rgba(63,209,139,.09);
+}
+/* one slow breath of light, nothing that competes with the content */
+.sc-hub::after{
+  content:'';position:absolute;inset:-2px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle at 50% 30%,rgba(63,209,139,.22),transparent 58%);
+  opacity:.55;animation:sc-breathe 5.5s ease-in-out infinite;
+}
+@keyframes sc-breathe{0%,100%{opacity:.4;}50%{opacity:.85;}}
+.sc-hub svg{width:21px;height:21px;position:relative;z-index:1;}
 .sc-hub-t{
-  font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;
-  opacity:.82;
+  position:relative;z-index:1;
+  font-family:var(--mono);font-size:8.5px;letter-spacing:.24em;
+  text-transform:uppercase;color:var(--sc-mint);
 }
-.showcase.is-open .sc-hub-t{opacity:0;}
 
 /* ---------- the preview ---------- */
 .sc-panel{
   position:relative;
-  background:var(--white);border:1px solid rgba(23,35,29,.1);border-radius:18px;
-  box-shadow:0 20px 48px rgba(23,35,29,.11);overflow:hidden;
-  opacity:0;transform:translateY(10px);
-  transition:opacity .28s var(--ease),transform .28s var(--ease);
+  background:linear-gradient(170deg,rgba(255,255,255,.07),rgba(255,255,255,.028));
+  border:1px solid rgba(159,230,196,.20);border-radius:20px;
+  box-shadow:0 26px 60px rgba(0,0,0,.42);
+  overflow:hidden;backdrop-filter:blur(6px);
+  opacity:0;transform:translateY(12px);
+  transition:opacity .3s var(--ease),transform .3s var(--ease);
 }
 .sc-panel.is-in{opacity:1;transform:none;}
+/* the thread back to the active wedge */
+.sc-panel::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;z-index:2;
+  background:linear-gradient(90deg,transparent,var(--sc-bright),var(--sc-teal),transparent);
+  opacity:.85;
+}
 
-/* browser-style bar on the preview */
 .sc-bar{
-  display:flex;align-items:center;gap:10px;padding:9px 13px;
-  background:var(--mint);border-bottom:1px solid rgba(23,35,29,.09);
+  display:flex;align-items:center;gap:11px;padding:11px 15px;
+  background:rgba(0,0,0,.26);border-bottom:1px solid rgba(159,230,196,.15);
 }
 .sc-dots{display:flex;gap:5px;flex:none;}
-.sc-dots i{width:8px;height:8px;border-radius:50%;background:rgba(23,35,29,.17);}
+.sc-dots i{width:8px;height:8px;border-radius:50%;background:rgba(159,230,196,.28);}
+.sc-dots i:first-child{background:rgba(63,209,139,.55);}
 .sc-addr{
-  font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--text-2);
+  font-family:var(--mono);font-size:10px;letter-spacing:.07em;
+  color:rgba(255,255,255,.62);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
 
 .sc-view{
   position:relative;width:100%;aspect-ratio:16/10;overflow:hidden;
-  background:var(--mint);border-bottom:1px solid rgba(23,35,29,.08);
+  background:#071710;
 }
-/* The frame is rendered at desktop width and scaled down, so the preview
-   shows the site's desktop layout rather than its phone one. --sc-scale is
-   written by the script from the panel's measured width. */
+/* Rendered at desktop width and scaled down, so the preview shows the site's
+   desktop layout. --sc-scale is written by the script from the measured
+   width: CSS cannot fit a fixed 1280px frame to a fluid box on its own. */
 .sc-frame{
   position:absolute;top:0;left:0;border:0;
   width:1280px;height:800px;
   transform:scale(var(--sc-scale,.33));transform-origin:0 0;
   pointer-events:none;                 /* the panel handles hover, not the site */
-  opacity:0;transition:opacity .3s var(--ease);
+  opacity:0;transition:opacity .35s var(--ease);
 }
 .sc-frame.is-on{opacity:1;}
 
-.sc-ph{
-  position:absolute;inset:0;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:7px;text-align:center;padding:18px;
-  background:var(--mint);
-}
+.sc-ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
 .sc-ph img{width:100%;height:100%;object-fit:cover;object-position:top center;}
-.sc-ph.is-thumb{padding:0;}
-.sc-ph-host{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--primary);}
-.sc-ph-why{font-size:11.5px;color:var(--text-2);max-width:26ch;line-height:1.5;}
+.sc-ph.is-plain{
+  flex-direction:column;gap:8px;text-align:center;padding:18px;
+  background:linear-gradient(160deg,rgba(46,139,87,.16),rgba(0,0,0,.2));
+}
+.sc-ph-host{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--sc-mint);}
+.sc-ph-why{font-size:11.5px;color:rgba(255,255,255,.55);max-width:26ch;line-height:1.5;}
 
-/* spinner, over whatever the panel is already showing */
 .sc-load{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  background:color-mix(in srgb,var(--mint) 72%,transparent);
+  background:rgba(7,23,16,.55);backdrop-filter:blur(2px);
 }
-.sc-load[hidden]{display:none!important;}
 .sc-spin{
-  width:22px;height:22px;border-radius:50%;
-  border:2px solid rgba(23,35,29,.16);border-top-color:var(--primary);
+  width:24px;height:24px;border-radius:50%;
+  border:2px solid rgba(159,230,196,.2);border-top-color:var(--sc-bright);
   animation:sc-turn .7s linear infinite;
 }
 @keyframes sc-turn{to{transform:rotate(360deg);}}
 
-.sc-kind[hidden]{display:none!important;}
-
-.sc-meta{padding:clamp(15px,1.8vw,21px);display:flex;flex-direction:column;gap:6px;}
-.sc-name{font-family:var(--display);font-size:clamp(21px,2.3vw,27px);line-height:1;letter-spacing:.02em;}
-.sc-kind{font-size:13px;color:var(--text-2);line-height:1.5;}
+.sc-meta{padding:clamp(16px,1.9vw,22px);display:flex;flex-direction:column;gap:6px;}
+.sc-name{
+  font-family:var(--display);font-size:clamp(22px,2.4vw,29px);
+  line-height:1;letter-spacing:.02em;color:var(--white);
+}
+.sc-kind{font-size:13px;color:rgba(255,255,255,.6);line-height:1.5;}
 .sc-go{
-  margin-top:7px;align-self:flex-start;
+  margin-top:9px;align-self:flex-start;
   font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--primary);border-bottom:1px solid currentColor;padding-bottom:2px;
+  color:var(--sc-bright);border-bottom:1px solid rgba(63,209,139,.45);padding-bottom:3px;
   transition:color .3s,border-color .3s;
 }
 .sc-go::after{content:' ↗';}
-.sc-go:hover{color:var(--deep);}
+.sc-go:hover{color:var(--white);border-color:var(--white);}
 
 .sc-x{
-  position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:50%;
+  position:absolute;top:11px;right:11px;width:28px;height:28px;border-radius:50%;z-index:3;
   display:flex;align-items:center;justify-content:center;cursor:pointer;
-  background:rgba(255,255,255,.92);border:1px solid rgba(23,35,29,.12);color:var(--text);
-  transition:background-color .3s,color .3s;
+  background:rgba(0,0,0,.4);border:1px solid rgba(159,230,196,.22);color:rgba(255,255,255,.8);
+  transition:background-color .3s,color .3s,border-color .3s;
 }
-.sc-x:hover{background:var(--deep);color:var(--white);}
-.sc-x svg{width:14px;height:14px;}
+.sc-x:hover{background:var(--sc-bright);border-color:var(--sc-bright);color:#07251A;}
+.sc-x svg{width:13px;height:13px;}
 
 /* ---------- narrow ---------- */
-@media (max-width:860px){
-  .showcase{grid-template-columns:1fr;gap:22px;}
-  .sc-wheel{max-width:min(94vw,420px);}
+@media (max-width:880px){
+  .showcase{grid-template-columns:1fr;gap:24px;}
+  .sc-wheel{max-width:min(92vw,400px);}
   .sc-panel{max-width:460px;margin-inline:auto;width:100%;}
-  .sc-label{font-size:9px;letter-spacing:.1em;}
-  /* a touch target that a thumb can actually hit */
-  .sc-hub{width:40%;}
+  .sc-label{font-size:8.5px;letter-spacing:.1em;}
+  .sc-hub{width:43%;}
+  .sc-hub svg{width:18px;height:18px;}
+  .sc-hub-t{font-size:7.5px;letter-spacing:.18em;}
+  /* the blur is the most expensive thing here and the least missed */
+  .sc-panel,.sc-load{backdrop-filter:none;}
+  .sc-ring-halo{display:none;}
 }
 
 @media (prefers-reduced-motion:reduce){
-  .sc-seg,.sc-panel,.sc-hub,.sc-hub svg,.sc-wedge,.sc-frame{
+  .sc-seg,.sc-panel,.sc-hub,.sc-wedge,.sc-frame,.sc-label{
     transition:none!important;transition-delay:0ms!important;
   }
-  /* the spinner keeps turning: it reports state rather than decorating */
+  .showcase.is-armed .sc-seg{opacity:1;transform:none;}
+  .sc-sweep,.sc-hub::after{animation:none;}
+  .sc-hub::after{opacity:.5;}
+  /* the spinner still turns: it reports state rather than decorating */
   .sc-spin{animation-duration:1.4s;}
-  .sc-seg{opacity:1;transform:none;}
 }

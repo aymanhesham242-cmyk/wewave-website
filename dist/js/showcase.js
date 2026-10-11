@@ -38,7 +38,7 @@
   if (items.length < 2) return;          /* a wheel of one is just a button */
 
   var SVG = 'http://www.w3.org/2000/svg';
-  var CX = 200, CY = 200, R_OUT = 190, R_IN = 94;
+  var CX = 200, CY = 200, R_OUT = 190, R_IN = 100;
   var GAP = 1.1;                         /* degrees trimmed off each side, the separator */
   var N = items.length;
   var STEP = 360 / N;
@@ -80,10 +80,41 @@
     role: 'group', 'aria-label': 'Websites we have built'
   });
 
-  /* Outer and inner rings: the depth in the design comes from these, not from
-     a drop shadow on every segment, which would cost a repaint per hover. */
-  svg.appendChild(el('circle', { cx: CX, cy: CY, r: R_OUT + 7, class: 'sc-ring sc-ring-out' }));
-  svg.appendChild(el('circle', { cx: CX, cy: CY, r: R_IN - 8, class: 'sc-ring sc-ring-in' }));
+  /* Gradients live in the SVG; the CSS only names them. Keeping them here
+     means the wedge fills can be swapped by class without inline styles,
+     which the page's CSP would otherwise be the only way around. */
+  var defs = el('defs', {});
+  function grad(id, stops, attrs) {
+    var g = el('linearGradient', attrs || { x1: '0', y1: '0', x2: '0', y2: '1' });
+    g.setAttribute('id', id);
+    stops.forEach(function (st) {
+      g.appendChild(el('stop', { offset: st[0], 'stop-color': st[1], 'stop-opacity': st[2] }));
+    });
+    defs.appendChild(g);
+  }
+  grad('scFace',    [['0%', '#9FE6C4', '.085'], ['100%', '#9FE6C4', '.025']]);
+  grad('scFaceHot', [['0%', '#3FD18B', '.26'],  ['100%', '#2BB39A', '.10']]);
+  grad('scFaceOn',  [['0%', '#3FD18B', '.92'],  ['55%', '#2E8B57', '.88'], ['100%', '#1F6B45', '.92']]);
+  /* the travelling highlight: opaque at its head, gone by its tail */
+  grad('scSweep',   [['0%', '#3FD18B', '0'], ['55%', '#3FD18B', '.85'], ['100%', '#9FE6C4', '0']],
+       { x1: '0', y1: '0', x2: '1', y2: '0' });
+  svg.appendChild(defs);
+
+  /* Rings, outermost in. The depth comes from these rather than from a
+     shadow on every wedge, which would cost a repaint on each hover. */
+  svg.appendChild(el('circle', { cx: CX, cy: CY, r: R_OUT + 14, class: 'sc-ring sc-ring-halo' }));
+  svg.appendChild(el('circle', { cx: CX, cy: CY, r: R_OUT + 8,  class: 'sc-ring sc-ring-out' }));
+  svg.appendChild(el('circle', { cx: CX, cy: CY, r: R_OUT + 2,  class: 'sc-ring sc-ring-edge' }));
+  svg.appendChild(el('circle', { cx: CX, cy: CY, r: R_IN - 9,   class: 'sc-ring sc-ring-in' }));
+
+  /* An arc, not a full circle: a quarter of the ring lit at a time, turning
+     slowly. Pure transform, so it stays off the main thread. */
+  var sweepR = R_OUT + 8;
+  var sweepLen = 2 * Math.PI * sweepR;
+  svg.appendChild(el('circle', {
+    cx: CX, cy: CY, r: sweepR, class: 'sc-sweep',
+    'stroke-dasharray': (sweepLen * 0.22).toFixed(1) + ' ' + (sweepLen * 0.78).toFixed(1)
+  }));
 
   var segs = [];
   items.forEach(function (p, i) {
@@ -96,18 +127,35 @@
     });
     g.appendChild(hit);
 
-    /* Label on the mid-angle, flipped on the left half so it is never upside
-       down. Positioned on the band's centre line so it cannot touch an edge. */
+    /* The label rides an invisible arc through the middle of its band, so it
+       curves with the ring instead of sitting at one flat angle. A straight
+       label rotated to the mid-angle looked fine at the top and ran straight
+       across the band at the bottom -- "Laro Cosmetics" is wider than the
+       band, so it overflowed into the hub and past the outer ring.
+
+       Below the horizontal the arc is drawn the other way round, otherwise
+       the text there hangs upside down. */
     var mid = i * STEP + STEP / 2;
-    var lp = pt((R_OUT + R_IN) / 2, mid);
-    var flip = mid > 180;
-    var t = el('text', {
-      x: lp[0].toFixed(2), y: lp[1].toFixed(2), class: 'sc-label',
-      'text-anchor': 'middle', 'dominant-baseline': 'middle',
-      transform: 'rotate(' + (mid - 90 + (flip ? 180 : 0)).toFixed(2) +
-                 ' ' + lp[0].toFixed(2) + ' ' + lp[1].toFixed(2) + ')'
-    });
-    t.textContent = p.name;
+    var pad = 3.2;                               /* degrees clear of the separator */
+    var under = mid > 90 && mid < 270;
+    var lr = (R_OUT + R_IN) / 2 + (under ? 5 : -2);
+    var la = under ? (i + 1) * STEP - GAP - pad : i * STEP + GAP + pad;
+    var lb = under ? i * STEP + GAP + pad : (i + 1) * STEP - GAP - pad;
+    var q0 = pt(lr, la), q1 = pt(lr, lb);
+    var arcId = 'scLab' + i;
+    defs.appendChild(el('path', {
+      id: arcId, fill: 'none',
+      d: 'M' + q0[0].toFixed(2) + ' ' + q0[1].toFixed(2) +
+         'A' + lr + ' ' + lr + ' 0 0 ' + (under ? 0 : 1) + ' ' +
+         q1[0].toFixed(2) + ' ' + q1[1].toFixed(2)
+    }));
+
+    var t = el('text', { class: 'sc-label', 'dominant-baseline': 'middle' });
+    var tp = el('textPath', { 'text-anchor': 'middle', startOffset: '50%' });
+    tp.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#' + arcId);
+    tp.setAttribute('href', '#' + arcId);
+    tp.textContent = p.name;
+    t.appendChild(tp);
     g.appendChild(t);
 
     g.style.setProperty('--d', i);        /* stagger index for the open animation */
@@ -122,13 +170,13 @@
   var hub = document.createElement('button');
   hub.type = 'button';
   hub.className = 'sc-hub';
-  hub.setAttribute('aria-expanded', 'false');
-  hub.setAttribute('aria-label', 'Open the work showcase');
+  hub.setAttribute('aria-label', 'Clear the selected project');
   hub.innerHTML =
     '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" ' +
-    'stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' +
-    '<path d="M5 12h13M12.5 6l6 6-6 6"/></svg>' +
-    '<span class="sc-hub-t">Explore</span>';
+    'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M12 3.6c4.6 0 8.4 3.8 8.4 8.4s-3.8 8.4-8.4 8.4S3.6 16.6 3.6 12"/>' +
+    '<path d="M12 7.8 16.2 12 12 16.2"/><path d="M7.8 12h8.4"/></svg>' +
+    '<span class="sc-hub-t">Our work</span>';
   wheelBox.appendChild(hub);
 
   /* ------------------------------------------------------------- preview */
@@ -229,7 +277,7 @@
     }, 6000);
   }
 
-  function select(i, viaPointer) {
+  function select(i, viaPointer, passive) {
     if (i === current) return;
     current = i;
     var p = segs[i].data;
@@ -243,11 +291,12 @@
     goEl.href = p.url;
     goEl.setAttribute('aria-label', 'Visit ' + p.name + ' — opens in a new tab');
 
-    if (p.mode === 'live') {
+    if (p.mode === 'live' && !passive) {
       showFrame(p);
     } else {
       for (var u in frames) if (frames.hasOwnProperty(u)) frames[u].hidden = true;
-      fallback(p, 'this site does not allow previews');
+      fallback(p, p.mode === 'live' ? 'hover to load the live site'
+                                    : 'this site does not allow previews');
     }
 
     panel.hidden = false;
@@ -281,21 +330,14 @@
 
   /* ----------------------------------------------------------- open/close */
 
-  var open = false;
-  function setOpen(next) {
-    open = next;
-    root.classList.toggle('is-open', open);
-    hub.setAttribute('aria-expanded', open ? 'true' : 'false');
-    hub.setAttribute('aria-label', open ? 'Close the work showcase' : 'Open the work showcase');
-    segs.forEach(function (s) { s.hit.setAttribute('tabindex', open ? '0' : '-1'); });
-    if (!open) { clearTimeout(closeTimer); closePreview(); }
-  }
+  /* There is no closed state. The wheel arrives expanded with every project
+     reachable, and the hub clears the selection rather than hiding the work. */
+  segs.forEach(function (s) { s.hit.setAttribute('tabindex', '0'); });
 
   hub.addEventListener('click', function () {
-    setOpen(!open);
-    /* select() explicitly rather than letting the focus handler do it: see
-       the note on SVG focus events below. */
-    if (open) select(0, false);
+    clearTimeout(closeTimer);
+    closePreview();
+    hub.focus({ preventScroll: true });
   });
 
   /* ------------------------------------------------------------- pointers */
@@ -305,13 +347,12 @@
 
   segs.forEach(function (s, i) {
     s.hit.addEventListener('mouseenter', function () {
-      if (!open || touch) return;
+      if (touch) return;
       holdOpen();
       select(i, true);
     });
     s.hit.addEventListener('click', function (e) {
       e.preventDefault();
-      if (!open) { setOpen(true); select(i, true); return; }
       /* On touch the first tap selects; only a tap on the already-selected
          segment travels, so a mis-tap never throws someone off the site. */
       if (touch && current !== i) { select(i, true); return; }
@@ -331,7 +372,7 @@
       } else if (k === 'End') {
         e.preventDefault(); select(N - 1, false);
       } else if (k === 'Escape') {
-        setOpen(false); hub.focus({ preventScroll: true });
+        closePreview(); hub.focus({ preventScroll: true });
       }
     });
   });
@@ -344,7 +385,6 @@
      outside the wheel: focusin if the browser sends one, the keyup as the
      fallback that always works.  */
   function syncToFocus() {
-    if (!open) return;
     var i = segs.findIndex(function (s) { return s.hit === document.activeElement; });
     if (i > -1) { holdOpen(); select(i, true); }
   }
@@ -358,7 +398,7 @@
   panel.querySelector('[data-x]').addEventListener('click', closePreview);
 
   root.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && open) { setOpen(false); hub.focus({ preventScroll: true }); }
+    if (e.key === 'Escape') { closePreview(); hub.focus({ preventScroll: true }); }
   });
 
   /* --------------------------------------------------------------- reveal */
@@ -367,5 +407,25 @@
      stays in the document for anyone this script never reaches. */
   root.hidden = false;
   source.closest('section').classList.add('is-replaced');
-  setOpen(false);
+
+  /* The entrance is armed only if it can also be disarmed. `is-armed` is what
+     hides the segments, so it goes on just before the observer that takes it
+     off again -- and a timer removes it regardless, because a wheel that
+     never animates is a small loss and a wheel that never appears is not. */
+  if (!reduced && 'IntersectionObserver' in window) {
+    root.classList.add('is-armed');
+    var reveal = function () { root.classList.add('in-view'); };
+    var io = new IntersectionObserver(function (entries) {
+      if (entries.some(function (e) { return e.isIntersecting; })) {
+        reveal(); io.disconnect();
+      }
+    }, { threshold: 0.18 });
+    io.observe(root);
+    setTimeout(reveal, 2500);
+  }
+
+  /* Open on the first project so the panel is never an empty column and the
+     section explains itself without being touched. `true` keeps it to the
+     still even for a live entry: nobody has asked for a site yet. */
+  select(0, true, true);
 })();

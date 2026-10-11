@@ -234,11 +234,12 @@ CASE_SLOT = """
 SHOWCASE = """
 <section class="showcase-sec">
   <div class="wrap">
-    <p class="sec-label">Explore the work</p>
+    <p class="sec-label">Selected work</p>
     <h2>Our web development portfolio</h2>
-    <p class="showcase-intro">Seven sites we have built. Open the wheel and move
-      across it — where a client's server allows it, their site loads here live.
-      Where it does not, you get a shot of the real thing and a way straight there.</p>
+    <p class="showcase-intro">Seven sites we have built. Move across the wheel to
+      look inside each one — where a client's server allows it, their site loads
+      here live. Where it does not, you get a shot of the real thing and a way
+      straight there.</p>
     <div class="showcase" data-showcase hidden>
       <div class="sc-wheel" data-sc-wheel></div>
       <div class="sc-panel" data-sc-panel hidden></div>

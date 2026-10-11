@@ -273,6 +273,23 @@ built. `js/showcase.js` draws it; the projects come from the `folio` list in
 - The entrance uses `void panel.offsetHeight` rather than
   `requestAnimationFrame`, which does not fire in a background tab and would
   strand the panel at opacity 0.
+- **The wheel has no closed state.** It arrives expanded with the first
+  project already selected, so the section explains itself untouched. The hub
+  clears the selection; it never hides the work. That opening selection is
+  passive -- it shows the still even for a `live` entry, because nobody has
+  asked for a site yet and a page load should not fetch one.
+- **Labels ride a `textPath` on an arc, not a rotated `<text>`.** Rotating a
+  straight label to the segment's mid-angle put it along the *radius*, and
+  "Laro Cosmetics" is wider than the 90-unit band, so it overflowed into the
+  hub and past the outer ring. Below the horizontal the arc is drawn in
+  reverse or the text hangs upside down.
+- **The showcase band is dark on purpose.** Luminous separators, glass
+  wedges and the glow on the active wedge need darkness to read against. Every
+  colour is scoped to `.showcase-sec`; nothing there touches another section.
+- **`is-armed` is only added when something can remove it.** It is what hides
+  the segments for the entrance, so it goes on beside the observer that lifts
+  it, with a timer behind that. Default is visible: a wheel that never
+  animates is a small loss, one that never appears is not.
 - **Focus events do not fire on SVG elements.** `wedge.focus()` moves
   `document.activeElement` -- Enter and the arrow keys work off it -- but no
   `focus` or `focusin` event is dispatched, so a listener on the wedge never
