@@ -35,6 +35,7 @@ adds a booking API backed by D1.
 | `admin/index.html` | Token-gated moderation panel |
 | `admin/analytics/index.html` | Token-gated analytics dashboard |
 | `js/contact.js` | Contact channels on the contact stage — self-contained IIFE |
+| `js/showcase.js` | The circular work showcase on service pages with a `folio` |
 | `js/analytics.js` | Visitor event collection — self-contained IIFE |
 | `worker/analytics.js` | Analytics ingest + queries, D1-backed |
 | `schema/analytics.sql` | Analytics tables (the Worker creates them lazily too) |
@@ -237,6 +238,38 @@ Things that will catch you out:
   curve every ratio — ROAS, CTR, CPC — comes out a dead flat line.
 - Charts are a *modelled* daily shape over period totals, never per-day input,
   and the UI says so. Each series still sums to exactly the headline figure.
+
+## The work showcase
+
+`/services/web-development` carries a segmented wheel of the sites we have
+built. `js/showcase.js` draws it; the projects come from the `folio` list in
+`tools/build_services.py`. Any service with a `folio` gets one.
+
+- **There is no second copy of the data.** The script reads the `.folio`
+  links the page already renders, including their `data-preview` and
+  `data-thumb` attributes. Edit `folio` and both the wheel and the plain grid
+  change together.
+- **The plain grid is the fallback, and the script hides it** by putting
+  `is-replaced` on its section once the wheel is known to have built. Without
+  JavaScript the grid is simply what you see. Delete that one line if you
+  would rather show both.
+- **`preview` is measured, not guessed.** A site sending `X-Frame-Options` or
+  `frame-ancestors` cannot be embedded by anyone. Laro and Zrex both do, so
+  they are `thumb`; Saffa and Royal Watch do not, so they are `live`. Check a
+  new one before setting `live`:
+  `curl -sI <url> | grep -iE "x-frame-options|content-security-policy"`
+- **`frame-src https:` is in the CSP for this.** Without it `frame-src` falls
+  back to `default-src 'self'` and every preview is blocked in silence.
+- Frames are built on first selection and kept, so moving back and forth
+  across the wheel never reloads a client's site. A site that is `live` but
+  stops answering falls back after six seconds rather than showing a blank.
+- `--sc-scale` is measured in JS, not hard-coded: the frame renders at
+  1280px so previews show the desktop layout, and the factor that shrinks it
+  to the panel comes from the panel's own width.
+- The entrance uses `void panel.offsetHeight` rather than
+  `requestAnimationFrame`, which does not fire in a background tab and would
+  strand the panel at opacity 0.
+- IRIS is commented out of `folio`: `iris-eg.net` no longer resolves.
 
 ## The API
 

@@ -106,12 +106,41 @@ SERVICES = [
             "Payment, shipping, and checkout integration",
             "Analytics and pixel setup wired to your ad accounts",
         ],
+        # The showcase wheel on the page is built from this list, and so is the
+        # plain card grid underneath it. One list, so the two cannot disagree.
+        #
+        #   name     what the segment and the card say
+        #   kind     one line under the name
+        #   url      where "Visit website" goes
+        #   preview  "live"  -> the real site loads in a sandboxed iframe
+        #            "thumb" -> the site refuses to be framed; show `thumb`
+        #   thumb    optional still, e.g. "../assets/folio/laro.jpg".
+        #            Left empty, the panel shows a clean host-and-reason card
+        #            rather than a broken image.
+        #
+        # `preview` is not a guess. Checked against each server's headers on
+        # 11 Oct 2026 -- a site sending X-Frame-Options or frame-ancestors
+        # cannot be embedded by anyone, and no amount of client code changes
+        # that. Re-check with:
+        #   curl -sI <url> | grep -iE "x-frame-options|content-security-policy"
         folio=[
-            ("Laro Cosmetics", "Cosmetics e-commerce storefront", "https://laro-cosmetics.com"),
-            ("Saffa Fashion", "Fashion store, Arabic and English", "https://www.saffafashion.shop"),
-            ("Zrex", "Brand site and product catalogue", "https://zrexeg.com"),
-            ("Royal Watch", "Luxury watches, brand storefront", "http://royalwatch.art"),
-            ("IRIS", "Contemporary womenswear e-commerce", "https://iris-eg.net/"),
+            dict(name="Laro Cosmetics", kind="Cosmetics e-commerce storefront",
+                 url="https://laro-cosmetics.com", preview="thumb", thumb=""),
+            dict(name="Saffa Fashion", kind="Fashion store, Arabic and English",
+                 url="https://www.saffafashion.shop", preview="live", thumb=""),
+            dict(name="Zrex", kind="Brand site and product catalogue",
+                 url="https://zrexeg.com", preview="thumb", thumb=""),
+            dict(name="Royal Watch", kind="Luxury watches, brand storefront",
+                 url="https://royalwatch.art/", preview="live", thumb=""),
+
+            # IRIS is out until its domain comes back. iris-eg.net stopped
+            # resolving -- not a timeout, no DNS record at all -- so the link
+            # that used to sit here led nowhere. Uncomment when it returns.
+            # dict(name="IRIS", kind="Contemporary womenswear e-commerce",
+            #      url="https://iris-eg.net/", preview="thumb", thumb=""),
+
+            # To add one, copy a line above. The wheel divides itself evenly
+            # by however many entries are here, so nothing else needs editing.
         ],
     ),
 ]
@@ -192,6 +221,22 @@ CASE_SLOT = """
 </section>
 """
 
+SHOWCASE = """
+<section class="showcase-sec">
+  <div class="wrap">
+    <p class="sec-label">Explore the work</p>
+    <h2>Every site, one turn away</h2>
+    <p class="showcase-intro">Open the wheel and move across it. Where a client's
+      server allows it, their site loads here live — not a screenshot of one.
+      Where it does not, you get the next best thing and a way straight there.</p>
+    <div class="showcase" data-showcase hidden>
+      <div class="sc-wheel" data-sc-wheel></div>
+      <div class="sc-panel" data-sc-panel hidden></div>
+    </div>
+  </div>
+</section>
+"""
+
 FOLIO = """
 <section>
   <div class="wrap">
@@ -226,7 +271,7 @@ TAIL = """
     <a href="https://instagram.com/wewaveagency" target="_blank" rel="noopener">Instagram</a>
   </div>
 </footer>
-</body>
+{scripts}</body>
 </html>
 """
 
@@ -263,19 +308,29 @@ def build(svc, others):
         body += CASE_SLOT.format(slug=svc["slug"])
 
     if svc.get("folio"):
+        # Each card carries its own preview settings. The wheel reads them off
+        # these elements, so there is no second copy of the data to drift.
         cards = "".join(
-            f'<a href="{u}" target="_blank" rel="noopener">'
-            f'<span class="folio-name">{n}</span>'
-            f'<span class="folio-kind">{k}</span>'
-            f'<span class="folio-url">{u.replace("https://", "").replace("http://", "").rstrip("/")}</span></a>'
-            for n, k, u in svc["folio"]
+            f'<a href="{f["url"]}" target="_blank" rel="noopener"'
+            f' data-preview="{f.get("preview", "thumb")}"'
+            f' data-thumb="{f.get("thumb", "")}">'
+            f'<span class="folio-name">{f["name"]}</span>'
+            f'<span class="folio-kind">{f["kind"]}</span>'
+            f'<span class="folio-url">'
+            f'{f["url"].replace("https://", "").replace("http://", "").rstrip("/")}'
+            f'</span></a>'
+            for f in svc["folio"]
         )
-        body += FOLIO.format(cards=cards)
+        body += SHOWCASE + FOLIO.format(cards=cards)
 
     links = "".join(
         f'<a href="{o["slug"]}.html">{plain(o["title"])}</a>' for o in others
     )
-    body += TAIL.format(others=links, year=2026)
+    scripts = (
+        '<script src="../js/showcase.js" defer></script>\n'
+        if svc.get("folio") else ""
+    )
+    body += TAIL.format(others=links, year=2026, scripts=scripts)
 
     path = OUT / f"{svc['slug']}.html"
     path.write_text(body, encoding="utf-8")

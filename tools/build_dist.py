@@ -98,7 +98,7 @@ subprocess.run([sys.executable, str(ROOT / "tools" / "build_shots.py")], check=T
 
 for rel in ("css/style.css", "css/service-shots.css", "css/service.css", "js/main.js",
             "js/meeting-modal.js", "js/voice.js", "js/contact.js",
-            "js/analytics.js"):
+            "js/showcase.js", "js/analytics.js"):
     dest = DIST / rel
     dest.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(ROOT / rel, dest)
@@ -199,6 +199,11 @@ CSP = (
     "font-src 'self' https://fonts.gstatic.com; "
     "img-src 'self' data:; "
     "media-src 'self'; "
+    # The work showcase frames clients' own sites. Without this,
+    # frame-src falls back to default-src 'self' and every preview is
+    # blocked silently. Kept to https so a preview can never be a
+    # cleartext page; narrow it to a host list if the roster settles.
+    "frame-src https:; "
     "connect-src 'self'; "
     "object-src 'none'; "
     "base-uri 'self'; "
