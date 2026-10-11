@@ -503,14 +503,21 @@ h2{
 
 /* ---------- figures ---------- */
 .cs-kpis{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
   gap:12px;margin-bottom:clamp(24px,3.2vw,38px);
 }
 .cs-kpi{
+  position:relative;
   background:linear-gradient(170deg,rgba(255,255,255,.07),rgba(255,255,255,.025));
   border:1px solid rgba(159,230,196,.18);border-radius:16px;
   padding:clamp(16px,2vw,23px);
 }
+/* the figure's mark, top right — present but never competing with the number */
+.cs-i{
+  position:absolute;top:clamp(14px,1.7vw,19px);right:clamp(14px,1.7vw,19px);
+  width:19px;height:19px;color:var(--cs-mint);opacity:.45;
+}
+.cs-kpi.is-hero .cs-i{width:24px;height:24px;color:var(--cs-bright);opacity:.6;}
 /* the headline figure earns more room and more light than the rest */
 .cs-kpi.is-hero{
   grid-column:span 2;
@@ -520,16 +527,20 @@ h2{
 .cs-kpi.is-derived{background:rgba(255,255,255,.028);border-style:dashed;}
 
 .cs-v{
-  font-family:var(--display);font-size:clamp(30px,4vw,50px);line-height:1;
+  font-family:var(--display);font-size:clamp(26px,3.2vw,44px);line-height:1;
   letter-spacing:.01em;color:var(--white);font-variant-numeric:tabular-nums;
+  white-space:nowrap;
 }
 .cs-kpi.is-hero .cs-v{color:var(--cs-bright);font-size:clamp(40px,6vw,76px);}
-.cs-u{font-size:.46em;margin-left:.12em;color:var(--cs-mint);letter-spacing:.04em;}
+.cs-u{font-size:.42em;margin-left:.1em;color:var(--cs-mint);letter-spacing:.03em;}
 .cs-k{
   font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;
   color:rgba(255,255,255,.72);margin-top:11px;
   display:flex;align-items:center;gap:8px;flex-wrap:wrap;
 }
+/* keep the first line clear of the icon sitting above it */
+.cs-kpi .cs-v{padding-right:26px;}
+.cs-kpi.is-hero .cs-v{padding-right:34px;}
 .cs-tag{
   font-size:8px;letter-spacing:.14em;padding:2px 7px;border-radius:999px;
   border:1px solid rgba(159,230,196,.3);color:var(--cs-mint);
@@ -565,7 +576,10 @@ h2{
 }
 
 @media (max-width:620px){
+  .cs-kpis{grid-template-columns:repeat(2,minmax(0,1fr));}
   .cs-kpi.is-hero{grid-column:span 2;}
+  .cs-i{width:16px;height:16px;}
+  .cs-kpi .cs-v{padding-right:22px;}
   .cs-row{grid-template-columns:62px 1fr;row-gap:6px;}
   .cs-rv{grid-column:2;justify-self:end;}
 }

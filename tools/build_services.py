@@ -323,6 +323,34 @@ def num(v):
     return f"{int(v):,}"
 
 
+# One icon per figure, in the same stroke style as the service icons. The
+# revenue and spend marks are banknotes rather than a dollar sign: these
+# figures are in EGP, and a $ beside them invites exactly the misreading this
+# page is built to avoid.
+CS_ICON = {
+    "roas": '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+    "revenue": '<rect x="2" y="6" width="20" height="12" rx="2"/>'
+               '<circle cx="12" cy="12" r="2.6"/><path d="M6 12h.01M18 12h.01"/>',
+    "purchases": '<circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/>'
+                 '<path d="M2 3h3l2.3 11.1a1.8 1.8 0 0 0 1.8 1.4h8.3a1.8 1.8 0 0 0 1.8-1.4L21 7H6"/>',
+    "spend": '<rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/>'
+             '<path d="M17 11h4v4h-4a2 2 0 0 1 0-4z"/>',
+    "cpa": '<path d="M3 11.5V4a1 1 0 0 1 1-1h7.5a1 1 0 0 1 .7.3l8.5 8.5a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L3.3 12.2a1 1 0 0 1-.3-.7z"/>'
+             '<circle cx="7.6" cy="7.6" r="1.3"/>',
+    "aov": '<path d="M5 3h14v18l-2.3-1.6L14.4 21l-2.4-1.6L9.6 21l-2.3-1.6L5 21z"/>'
+           '<path d="M9 8h6M9 12h6M9 16h3"/>',
+}
+
+
+def cs_icon(key):
+    d = CS_ICON.get(key)
+    if not d:
+        return ""
+    return ('<svg class="cs-i" viewBox="0 0 24 24" aria-hidden="true" fill="none" '
+            'stroke="currentColor" stroke-width="1.6" stroke-linecap="round" '
+            f'stroke-linejoin="round">{d}</svg>')
+
+
 def kpi(k, d, derived=False):
     """One figure. `derived` ones are marked, because a number this page
     worked out itself is not the same promise as one the report states."""
@@ -332,6 +360,7 @@ def kpi(k, d, derived=False):
     # correctly with no JavaScript, and the counter only animates up to it.
     return (
         f'<div class="cs-kpi{" is-derived" if derived else ""}{" is-hero" if k == "roas" else ""}">'
+        f"{cs_icon(k)}"
         f'<div class="cs-v" data-count="{d["value"]}">{num(d["value"])}{unit}</div>'
         f'<div class="cs-k">{d["label"]}{tag}</div>'
         f'<div class="cs-s">{d.get("sub", "")}</div>'
