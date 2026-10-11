@@ -13,6 +13,8 @@ Run:  python tools/build_services.py
 import html
 import pathlib
 
+from case_data import CASES, check, derive
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 OUT = ROOT / "services"
 OUT.mkdir(exist_ok=True)
@@ -201,6 +203,27 @@ INCLUDES = """<section>
 </section>
 """
 
+DASH = """
+<section class="cs" data-cs>
+  <div class="wrap">
+    <p class="sec-label">Case study</p>
+    <div class="cs-head">
+      <h2>{brand}</h2>
+      <span class="cs-when">{window}</span>
+    </div>
+{selector}
+    <div class="cs-kpis">{kpis}</div>
+{ratio}
+    <p class="cs-note">{note}</p>
+    <div class="cs-src">
+      <p><b>Reporting period</b> {window}</p>
+      <p><b>Source</b> {source}</p>
+      <p><b>Read it as</b> {limits}</p>
+    </div>
+  </div>
+</section>
+"""
+
 CASE_REAL = """
 <section class="case">
   <div class="wrap">
@@ -293,6 +316,92 @@ def plain(s):
     return html.unescape(s)
 
 
+def num(v):
+    """Thousands separators, and no trailing .0 on a whole number."""
+    if isinstance(v, float) and not v.is_integer():
+        return f"{v:,.2f}"
+    return f"{int(v):,}"
+
+
+def kpi(k, d, derived=False):
+    """One figure. `derived` ones are marked, because a number this page
+    worked out itself is not the same promise as one the report states."""
+    unit = f'<span class="cs-u">{d["unit"]}</span>' if d.get("unit") else ""
+    tag = '<span class="cs-tag">derived</span>' if derived else ""
+    # The value is in the HTML, not written in by script: the page has to read
+    # correctly with no JavaScript, and the counter only animates up to it.
+    return (
+        f'<div class="cs-kpi{" is-derived" if derived else ""}{" is-hero" if k == "roas" else ""}">'
+        f'<div class="cs-v" data-count="{d["value"]}">{num(d["value"])}{unit}</div>'
+        f'<div class="cs-k">{d["label"]}{tag}</div>'
+        f'<div class="cs-s">{d.get("sub", "")}</div>'
+        f"</div>"
+    )
+
+
+def ratio_bar(case):
+    """Spend against what came back, drawn to scale.
+
+    Only rendered when both figures exist. The bars are in true proportion --
+    at 14.57x the spend bar really is that small, and shrinking the gap to
+    make it look tidier would be a lie told in pixels.
+    """
+    r = case.get("reported", {})
+    if not ("spend" in r and "revenue" in r):
+        return ""
+    spend, rev = r["spend"]["value"], r["revenue"]["value"]
+    if not rev:
+        return ""
+    pct = max(spend / rev * 100, 0.6)      # a floor, or the bar is invisible
+    return f'''
+    <div class="cs-ratio">
+      <div class="cs-row">
+        <span class="cs-rl">Spent</span>
+        <div class="cs-track"><i class="cs-fill is-spend" style="width:{pct:.2f}%"></i></div>
+        <span class="cs-rv">{num(spend)} EGP</span>
+      </div>
+      <div class="cs-row">
+        <span class="cs-rl">Returned</span>
+        <div class="cs-track"><i class="cs-fill is-rev" style="width:100%"></i></div>
+        <span class="cs-rv">{num(rev)} EGP</span>
+      </div>
+      <p class="cs-rn">Drawn to scale — the bars are in the same proportion as the figures.</p>
+    </div>'''
+
+
+def dashboard(case):
+    """The whole section for one case study, from whatever data exists."""
+    agree = check(case)
+    if agree and not agree["agrees"]:
+        raise SystemExit(
+            f"{case['brand']}: reported ROAS {agree['stated']} does not match "
+            f"revenue / spend = {agree['computed']}. Fix the data, do not publish it."
+        )
+
+    cells = "".join(kpi(k, d) for k, d in case.get("reported", {}).items())
+    cells += "".join(kpi(k, d, True) for k, d in derive(case).items())
+
+    # A selector for one case study would be a control that does nothing.
+    selector = ""
+    if len(CASES) > 1:
+        opts = "".join(
+            f'<button type="button" class="cs-pick" data-cs-pick="{c["id"]}">{c["brand"]}</button>'
+            for c in CASES
+        )
+        selector = f'    <div class="cs-picker" role="tablist">{opts}</div>\n'
+
+    return DASH.format(
+        brand=case["brand"],
+        window=case.get("window", ""),
+        source=case.get("source", "not recorded"),
+        limits=case.get("limits", ""),
+        note=case.get("note", ""),
+        kpis=cells,
+        ratio=ratio_bar(case),
+        selector=selector,
+    )
+
+
 def build(svc, others):
     items = "".join(f"<li>{i}</li>" for i in svc["items"])
 
@@ -313,8 +422,15 @@ def build(svc, others):
     if not wheel_page:
         body += INCLUDES.format(items=items)
 
+    cases = [c for c in CASES if c.get("service") == svc["slug"]] or (
+        CASES if svc["slug"] == "media-buying" else []
+    )
+
     if wheel_page:
         pass                      # the wheel is the case study
+    elif cases:
+        body += dashboard(cases[0])
+        scripts_extra = True
     elif svc.get("case"):
         c = svc["case"]
         stats = "".join(
@@ -352,6 +468,8 @@ def build(svc, others):
         '<script src="../js/showcase.js" defer></script>\n'
         if svc.get("folio") else ""
     )
+    if cases:
+        scripts += '<script src="../js/casestudy.js" defer></script>\n'
     body += TAIL.format(others=links, year=2026, scripts=scripts)
 
     path = OUT / f"{svc['slug']}.html"

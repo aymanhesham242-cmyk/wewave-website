@@ -304,6 +304,40 @@ built. `js/showcase.js` draws it; the projects come from the `folio` list in
 - The old `iris-eg.net` is dead. The live site is `iris-eg.org` -- a
   different domain, not a redirect.
 
+## The case study dashboard
+
+`/services/media-buying` renders a performance dashboard from
+`tools/case_data.py`. `js/casestudy.js` only animates it.
+
+- **`tools/case_data.py` is for reported figures and nothing else.** In
+  particular, never move numbers out of `/admin/case-studies` into it. That
+  tool builds *hypothetical* Meta-Ads-shaped figures for presentations; this
+  file is published to the world as what clients actually got. The two must
+  never meet, and the dashboard's own `source` and attribution lines are the
+  standing promise that they have not.
+- **The build refuses to publish a case that disagrees with itself.**
+  `check()` reconciles a stated ROAS against the revenue and spend beside it
+  and stops the build on a mismatch, because that is a transcription error
+  and a page is the wrong place to find one. Velora: 357,777 / 24,561 =
+  14.5669 against a stated 14.57.
+- **Derived figures are marked `derived` on the page.** `derive()` only ever
+  divides two numbers the report already states, and returns nothing when an
+  input is missing or a denominator is zero. A number the site worked out is
+  not the same promise as one the client's account reported.
+- **Counters never author a value.** The build writes the figure into the
+  HTML; the script animates up to it and then restores the server's exact
+  string. So the page is right with no JavaScript, right if rAF never fires,
+  and cannot settle on a number that was not reported.
+- **Absent data is absent, not stubbed.** Velora has no time series, no
+  baseline period and no documented creative tests, so no charts for those
+  are drawn -- an empty chart frame implies a measurement nobody took. Add
+  `series`, `stages` or `creative` to the case and the renderer picks them up.
+- The spend-against-return bars are in true proportion. At 14.57x the spend
+  bar really is 6.9% of the other one; widening it to look tidier would be a
+  lie told in pixels.
+- The picker is only rendered with two or more cases. A control that cannot
+  change anything is worse than no control.
+
 ## The API
 
 Both public routes are rate limited, and the admin gate throttles failures.

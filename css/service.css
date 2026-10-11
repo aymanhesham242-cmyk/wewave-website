@@ -458,3 +458,117 @@ h2{
   /* the spinner still turns: it reports state rather than decorating */
   .sc-spin{animation-duration:1.4s;}
 }
+
+/* =========================================================
+   Case study dashboard  (js/casestudy.js, data in tools/case_data.py)
+   Same dark language as the work showcase, so the two read as
+   one system rather than two experiments.
+   ========================================================= */
+
+.cs{
+  --cs-stage:#0A2318;
+  --cs-bright:#3FD18B;
+  --cs-mint:#9FE6C4;
+  position:relative;overflow:hidden;
+  background:var(--cs-stage);color:var(--white);
+}
+.cs::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(55% 50% at 78% 10%,rgba(46,139,87,.28),transparent 70%),
+    radial-gradient(45% 45% at 10% 92%,rgba(43,179,154,.16),transparent 72%);
+}
+.cs > .wrap{position:relative;}
+.cs .sec-label{color:var(--cs-mint);}
+
+.cs-head{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:clamp(22px,3vw,34px);}
+.cs-head h2{color:var(--white);margin-bottom:0;}
+.cs-when{
+  font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+  color:var(--cs-mint);border:1px solid rgba(159,230,196,.3);
+  border-radius:999px;padding:5px 13px;white-space:nowrap;
+}
+
+/* the picker only exists when there is more than one case to pick */
+.cs-picker{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:clamp(20px,2.6vw,30px);}
+.cs-pick{
+  font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  padding:9px 18px;border-radius:999px;cursor:pointer;
+  background:transparent;color:rgba(255,255,255,.72);
+  border:1px solid rgba(159,230,196,.26);
+  transition:background-color .3s,color .3s,border-color .3s;
+}
+.cs-pick:hover{border-color:var(--cs-bright);color:var(--white);}
+.cs-pick.is-on{background:var(--cs-bright);border-color:var(--cs-bright);color:#07251A;}
+
+/* ---------- figures ---------- */
+.cs-kpis{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+  gap:12px;margin-bottom:clamp(24px,3.2vw,38px);
+}
+.cs-kpi{
+  background:linear-gradient(170deg,rgba(255,255,255,.07),rgba(255,255,255,.025));
+  border:1px solid rgba(159,230,196,.18);border-radius:16px;
+  padding:clamp(16px,2vw,23px);
+}
+/* the headline figure earns more room and more light than the rest */
+.cs-kpi.is-hero{
+  grid-column:span 2;
+  background:linear-gradient(165deg,rgba(63,209,139,.20),rgba(46,139,87,.07));
+  border-color:rgba(63,209,139,.42);
+}
+.cs-kpi.is-derived{background:rgba(255,255,255,.028);border-style:dashed;}
+
+.cs-v{
+  font-family:var(--display);font-size:clamp(30px,4vw,50px);line-height:1;
+  letter-spacing:.01em;color:var(--white);font-variant-numeric:tabular-nums;
+}
+.cs-kpi.is-hero .cs-v{color:var(--cs-bright);font-size:clamp(40px,6vw,76px);}
+.cs-u{font-size:.46em;margin-left:.12em;color:var(--cs-mint);letter-spacing:.04em;}
+.cs-k{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:rgba(255,255,255,.72);margin-top:11px;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.cs-tag{
+  font-size:8px;letter-spacing:.14em;padding:2px 7px;border-radius:999px;
+  border:1px solid rgba(159,230,196,.3);color:var(--cs-mint);
+}
+.cs-s{font-size:11.5px;color:rgba(255,255,255,.5);margin-top:6px;line-height:1.5;}
+
+/* ---------- spend against return ---------- */
+.cs-ratio{
+  border:1px solid rgba(159,230,196,.16);border-radius:16px;
+  padding:clamp(18px,2.2vw,26px);margin-bottom:clamp(24px,3.2vw,36px);
+  background:rgba(0,0,0,.16);
+}
+.cs-row{display:grid;grid-template-columns:72px 1fr auto;align-items:center;gap:14px;margin-bottom:12px;}
+.cs-rl{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.6);}
+.cs-track{height:12px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden;}
+.cs-fill{display:block;height:100%;border-radius:999px;}
+.cs-fill.is-spend{background:rgba(159,230,196,.42);}
+.cs-fill.is-rev{background:linear-gradient(90deg,var(--cs-bright),#2BB39A);}
+.cs-rv{font-family:var(--mono);font-size:12px;color:var(--white);white-space:nowrap;font-variant-numeric:tabular-nums;}
+.cs-rn{font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;}
+
+.cs-note{font-size:15.5px;line-height:1.7;max-width:62ch;color:rgba(255,255,255,.8);margin-bottom:clamp(22px,3vw,32px);}
+
+/* ---------- where the numbers came from ---------- */
+.cs-src{
+  border-top:1px solid rgba(159,230,196,.16);padding-top:18px;
+  display:grid;gap:9px;max-width:72ch;
+}
+.cs-src p{font-size:12.5px;line-height:1.6;color:rgba(255,255,255,.55);}
+.cs-src b{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--cs-mint);display:block;margin-bottom:2px;font-weight:400;
+}
+
+@media (max-width:620px){
+  .cs-kpi.is-hero{grid-column:span 2;}
+  .cs-row{grid-template-columns:62px 1fr;row-gap:6px;}
+  .cs-rv{grid-column:2;justify-self:end;}
+}
+@media (prefers-reduced-motion:reduce){
+  .cs-pick{transition:none;}
+}
