@@ -195,14 +195,14 @@ DASH = """
 <section class="cs" data-cs>
   <div class="wrap">
     <p class="sec-label">{label}</p>
-{intro}{selector}{panels}  </div>
+{panels}  </div>
 </section>
 """
 
 # One case study. The brand and the period live in here rather than in DASH
 # because they change with the panel, and a head that kept saying "Valle"
 # over Arlux's figures would be worse than no head at all.
-PANEL = """    <div class="cs-panel" data-cs-panel="{id}"{hide}>
+PANEL = """    <div class="cs-panel" data-cs-panel="{id}">
       <div class="cs-head">
         <h2>{brand}</h2>{when}
       </div>
@@ -415,7 +415,7 @@ def figures(case):
     return out
 
 
-def panel(case, first, multi):
+def panel(case):
     """One case study's panel. Fields with nothing behind them are left out
     rather than printed empty: an account with no recorded reporting period
     should show no period, not a blank pill beside the brand name."""
@@ -432,10 +432,6 @@ def panel(case, first, multi):
 
     return PANEL.format(
         id=case["id"],
-        # Every panel but the first starts hidden, so the page does not flash
-        # three dashboards before the script runs. The <noscript> block in the
-        # selector is what gives them back to a visitor without JavaScript.
-        hide="" if first or not multi else " hidden",
         brand=case["brand"],
         when=f'<span class="cs-when">{window}</span>' if window else "",
         kpis=cells,
@@ -455,44 +451,13 @@ def dashboard(cases):
                 f"revenue / spend = {agree['computed']}. Fix the data, do not publish it."
             )
 
-    multi = len(cases) > 1
-
-    # Said in words, because "3 ACCOUNTS" in 10px mono reads as decoration
-    # and this line has to be read.
-    WORDS = {2: "Two", 3: "Three", 4: "Four", 5: "Five", 6: "Six", 7: "Seven"}
-    intro = ""
-    if multi:
-        intro = (
-            f'    <p class="cs-intro">{WORDS.get(len(cases), len(cases))} accounts. '
-            f'Pick one to see its figures.</p>\n'
-        )
-
-    # A selector for one case study would be a control that does nothing.
-    selector = ""
-    if multi:
-        opts = "".join(
-            '<button type="button" role="tab" class="cs-pick{on}" '
-            'aria-selected="{sel}" data-cs-pick="{id}">{brand}</button>'.format(
-                on=" is-on" if i == 0 else "",
-                sel="true" if i == 0 else "false",
-                id=c["id"], brand=c["brand"],
-            )
-            for i, c in enumerate(cases)
-        )
-        selector = (
-            f'    <div class="cs-picker" role="tablist">{opts}</div>\n'
-            # Without JavaScript the picker cannot switch anything, so it
-            # removes itself and every case is shown at once. Two of three
-            # case studies silently disappearing is the worse failure.
-            '    <noscript><style>.cs-picker{display:none}'
-            '.cs-panel[hidden]{display:block!important}</style></noscript>\n'
-        )
-
+    # Every case study is on the page, one under the next. They were behind a
+    # tab strip once and two of the three went unfound -- by the owner of the
+    # site, on his own page. Scrolling is the one navigation nobody misses, so
+    # the section uses it and offers no control at all.
     return DASH.format(
-        label="Case studies" if multi else "Case study",
-        intro=intro,
-        selector=selector,
-        panels="".join(panel(c, i == 0, multi) for i, c in enumerate(cases)),
+        label="Case studies" if len(cases) > 1 else "Case study",
+        panels="".join(panel(c) for c in cases),
     )
 
 

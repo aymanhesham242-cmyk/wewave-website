@@ -490,28 +490,14 @@ h2{
 }
 
 /* the picker only exists when there is more than one case to pick */
-/* one panel per case study; the picker swaps them, and the panel carries
-   its own brand and period so a head can never caption the wrong figures */
-.cs-panel[hidden]{display:none;}
-/* The line that tells a reader the pills are a choice. Without it they were
-   read as a caption and two of three case studies went unfound. */
-.cs-intro{
-  font-size:14.5px;line-height:1.6;color:rgba(255,255,255,.66);
-  margin:-8px 0 16px;max-width:52ch;
+/* One panel per case study, stacked. Each carries its own brand and period,
+   so no head can ever caption the wrong figures, and the rule between them is
+   what stops three dashboards reading as one very long one. */
+.cs-panel + .cs-panel{
+  margin-top:clamp(44px,5.6vw,78px);
+  padding-top:clamp(40px,5vw,68px);
+  border-top:1px solid rgba(159,230,196,.17);
 }
-.cs-picker{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:clamp(22px,2.8vw,32px);}
-/* Bigger and brighter than the first version: at 10px on a transparent pill
-   these did not read as buttons at all. */
-.cs-pick{
-  font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;
-  padding:12px 24px;border-radius:999px;cursor:pointer;
-  background:rgba(159,230,196,.07);color:rgba(255,255,255,.88);
-  border:1px solid rgba(159,230,196,.45);
-  transition:background-color .3s,color .3s,border-color .3s;
-}
-.cs-pick:hover{background:rgba(159,230,196,.16);border-color:var(--cs-bright);color:var(--white);}
-.cs-pick:focus-visible{outline:2px solid var(--cs-bright);outline-offset:3px;}
-.cs-pick.is-on{background:var(--cs-bright);border-color:var(--cs-bright);color:#07251A;}
 
 /* ---------- figures ---------- */
 .cs-kpis{
@@ -603,6 +589,4 @@ h2{
   .cs-row{grid-template-columns:62px 1fr;row-gap:6px;}
   .cs-rv{grid-column:2;justify-self:end;}
 }
-@media (prefers-reduced-motion:reduce){
-  .cs-pick{transition:none;}
-}
+

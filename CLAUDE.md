@@ -353,20 +353,18 @@ built. `js/showcase.js` draws it; the projects come from the `folio` list in
   Dict order would put a derived ROAS last, behind the two numbers it is
   the ratio of. A case with no ROAS leads on revenue instead.
 - **Panels carry their own brand and period.** With three cases a shared
-  head would caption Arlux's figures "Valle". Non-first panels ship
-  `hidden` so the page does not flash three dashboards before the script
-  runs, and a `<noscript>` block drops the picker and shows them all.
+  head would caption Arlux's figures "Valle".
 - The spend-against-return bars are in true proportion. At 14.57x the spend
   bar really is 6.9% of the other one; widening it to look tidier would be a
   lie told in pixels.
-- The picker is only rendered with two or more cases. A control that cannot
-  change anything is worse than no control.
-- **The picker has to announce itself.** It shipped once as three 33px
-  pills in 10px mono with no label, and the site's owner scrolled past
-  them and reported two of the three case studies missing. `.cs-intro`
-  ("Three accounts. Pick one to see its figures.") and the larger, filled
-  pills are the fix. If a fourth case is added, the count in that line is
-  generated -- do not hard-code it.
+- **There is no picker. Do not add one back.** The cases shipped once
+  behind a tab strip, and two of the three went unfound -- by the owner
+  of the site, on his own page, who reported them missing. Making the
+  tabs louder was still a bet that a reader would notice a control.
+  They are stacked now and reached by scrolling, which is how the rest
+  of the page is read. A fourth case just appends to the stack.
+- `js/casestudy.js` animates counters and does nothing else. The
+  switching code went with the tab strip.
 
 ## The API
 

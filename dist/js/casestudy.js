@@ -1,7 +1,7 @@
 /* WeWave — case study dashboard.
  *
- * Counts the figures up when the section comes into view, and switches
- * between case studies once there is more than one.
+ * Counts the figures up when the section comes into view. Nothing else: the
+ * case studies are stacked on the page, not switched between.
  *
  * The numbers are rendered into the HTML by the build, not by this file. It
  * only animates up to them and then puts the server's exact string back, so
@@ -63,30 +63,8 @@
   /* With reduced motion, or no observer, the figures are already on screen —
      the build wrote them there. Nothing to do. */
 
-  /* ------------------------------------------------------------ switching */
-
-  /* Only wired when the build emitted more than one case. A picker that
-     cannot pick anything is not rendered at all, so this is usually a
-     no-op — but it is what makes adding a second case a data-only change. */
-  var picks = Array.prototype.slice.call(root.querySelectorAll('[data-cs-pick]'));
-  if (picks.length < 2) return;
-
-  var panels = {};
-  Array.prototype.forEach.call(root.querySelectorAll('[data-cs-panel]'), function (el) {
-    panels[el.getAttribute('data-cs-panel')] = el;
-  });
-
-  function show(id) {
-    picks.forEach(function (b) {
-      var on = b.getAttribute('data-cs-pick') === id;
-      b.classList.toggle('is-on', on);
-      b.setAttribute('aria-selected', on ? 'true' : 'false');
-    });
-    for (var k in panels) if (panels.hasOwnProperty(k)) panels[k].hidden = (k !== id);
-  }
-
-  picks.forEach(function (b) {
-    b.addEventListener('click', function () { show(b.getAttribute('data-cs-pick')); });
-  });
-  show(picks[0].getAttribute('data-cs-pick'));
+  /* There is deliberately nothing else in here. The case studies are stacked
+     on the page and reached by scrolling; the tab strip that used to switch
+     between them hid two of the three well enough that they were reported
+     missing. Counting the figures up is all this file does. */
 })();
