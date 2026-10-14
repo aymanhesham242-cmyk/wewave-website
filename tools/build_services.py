@@ -207,7 +207,7 @@ PANEL = """    <div class="cs-panel" data-cs-panel="{id}">
         <h2>{brand}</h2>{when}
       </div>
       <div class="cs-kpis">{kpis}</div>
-{ratio}{note}    </div>
+{ratio}    </div>
 """
 
 CASE_REAL = """
@@ -422,7 +422,7 @@ def panel(case):
         for i, (k, d, derived) in enumerate(figures(case))
     )
 
-    window, note = case.get("window", ""), case.get("note", "")
+    window = case.get("window", "")
 
     return PANEL.format(
         id=case["id"],
@@ -430,7 +430,6 @@ def panel(case):
         when=f'<span class="cs-when">{window}</span>' if window else "",
         kpis=cells,
         ratio=ratio_bar(case),
-        note=f'      <p class="cs-note">{note}</p>\n' if note else "",
     )
 
 

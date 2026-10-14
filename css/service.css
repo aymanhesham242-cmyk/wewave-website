@@ -572,7 +572,6 @@ h2{
 .cs-rv{font-family:var(--mono);font-size:12px;color:var(--white);white-space:nowrap;font-variant-numeric:tabular-nums;}
 .cs-rn{font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;}
 
-.cs-note{font-size:15.5px;line-height:1.7;max-width:62ch;color:rgba(255,255,255,.8);margin-bottom:clamp(22px,3vw,32px);}
 
 /* ---------- where the numbers came from ---------- */
 

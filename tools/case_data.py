@@ -24,7 +24,11 @@ selector and the switching on its own.
     objective   e.g. "Sales"                 (omit if undocumented)
     window      the reporting period, as written in the report (omit if not
                 recorded -- the page then says so rather than guessing)
-    note        how the account was actually run, in plain language
+    note        how the account was actually run, in plain language.
+                RECORDED, NOT RENDERED -- the panels carry figures only.
+                Still subject to the rule at the top of this file: a case
+                with no documented story leaves it out rather than
+                carrying a plausible-sounding one
     source      where the figures come from. RECORDED, NOT RENDERED -- the
                 panel no longer prints a provenance box. Keep it accurate
                 anyway: it is the only record of where a published number
