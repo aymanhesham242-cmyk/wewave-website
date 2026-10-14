@@ -493,15 +493,24 @@ h2{
 /* one panel per case study; the picker swaps them, and the panel carries
    its own brand and period so a head can never caption the wrong figures */
 .cs-panel[hidden]{display:none;}
-.cs-picker{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:clamp(20px,2.6vw,30px);}
+/* The line that tells a reader the pills are a choice. Without it they were
+   read as a caption and two of three case studies went unfound. */
+.cs-intro{
+  font-size:14.5px;line-height:1.6;color:rgba(255,255,255,.66);
+  margin:-8px 0 16px;max-width:52ch;
+}
+.cs-picker{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:clamp(22px,2.8vw,32px);}
+/* Bigger and brighter than the first version: at 10px on a transparent pill
+   these did not read as buttons at all. */
 .cs-pick{
-  font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
-  padding:9px 18px;border-radius:999px;cursor:pointer;
-  background:transparent;color:rgba(255,255,255,.72);
-  border:1px solid rgba(159,230,196,.26);
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;
+  padding:12px 24px;border-radius:999px;cursor:pointer;
+  background:rgba(159,230,196,.07);color:rgba(255,255,255,.88);
+  border:1px solid rgba(159,230,196,.45);
   transition:background-color .3s,color .3s,border-color .3s;
 }
-.cs-pick:hover{border-color:var(--cs-bright);color:var(--white);}
+.cs-pick:hover{background:rgba(159,230,196,.16);border-color:var(--cs-bright);color:var(--white);}
+.cs-pick:focus-visible{outline:2px solid var(--cs-bright);outline-offset:3px;}
 .cs-pick.is-on{background:var(--cs-bright);border-color:var(--cs-bright);color:#07251A;}
 
 /* ---------- figures ---------- */

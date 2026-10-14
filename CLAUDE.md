@@ -361,6 +361,12 @@ built. `js/showcase.js` draws it; the projects come from the `folio` list in
   lie told in pixels.
 - The picker is only rendered with two or more cases. A control that cannot
   change anything is worse than no control.
+- **The picker has to announce itself.** It shipped once as three 33px
+  pills in 10px mono with no label, and the site's owner scrolled past
+  them and reported two of the three case studies missing. `.cs-intro`
+  ("Three accounts. Pick one to see its figures.") and the larger, filled
+  pills are the fix. If a fourth case is added, the count in that line is
+  generated -- do not hard-code it.
 
 ## The API
 

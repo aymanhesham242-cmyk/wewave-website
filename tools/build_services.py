@@ -194,8 +194,8 @@ INCLUDES = """<section>
 DASH = """
 <section class="cs" data-cs>
   <div class="wrap">
-    <p class="sec-label">Case study</p>
-{selector}{panels}  </div>
+    <p class="sec-label">{label}</p>
+{intro}{selector}{panels}  </div>
 </section>
 """
 
@@ -457,6 +457,16 @@ def dashboard(cases):
 
     multi = len(cases) > 1
 
+    # Said in words, because "3 ACCOUNTS" in 10px mono reads as decoration
+    # and this line has to be read.
+    WORDS = {2: "Two", 3: "Three", 4: "Four", 5: "Five", 6: "Six", 7: "Seven"}
+    intro = ""
+    if multi:
+        intro = (
+            f'    <p class="cs-intro">{WORDS.get(len(cases), len(cases))} accounts. '
+            f'Pick one to see its figures.</p>\n'
+        )
+
     # A selector for one case study would be a control that does nothing.
     selector = ""
     if multi:
@@ -479,6 +489,8 @@ def dashboard(cases):
         )
 
     return DASH.format(
+        label="Case studies" if multi else "Case study",
+        intro=intro,
         selector=selector,
         panels="".join(panel(c, i == 0, multi) for i, c in enumerate(cases)),
     )
