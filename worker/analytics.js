@@ -27,6 +27,16 @@ const json = (data, status = 200) =>
     headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
   });
 
+/* Ingest answers 204 on anything it will not store, so a storage fault or a
+   bad payload never surfaces as an error on the site. It has to be a bodyless
+   Response: `new Response(body, { status: 204 })` throws, because 204 is a
+   null-body status. Every `json(..., 204)` here used to throw and be caught by
+   the handler in index.js, which returned the right status by accident. */
+const noContent = () => new Response(null, {
+  status: 204,
+  headers: { 'Cache-Control': 'no-store' }
+});
+
 const MAX_BATCH = 60;                 /* events accepted in one request */
 const MAX_BODY  = 64 * 1024;
 const SESSION_GAP = 30 * 60 * 1000;   /* a session is continuous within 30 min */
@@ -163,20 +173,20 @@ function refSource(referrer, host) {
 /* ------------------------------------------------------------- collection */
 
 export async function collect(request, env) {
-  if (!env.DB) return json({ ok: false }, 204);   /* never surface a failure to the page */
+  if (!env.DB) return noContent();   /* never surface a failure to the page */
 
   let body;
   try {
     const raw = await request.text();
-    if (raw.length > MAX_BODY) return json({ ok: false }, 204);
+    if (raw.length > MAX_BODY) return noContent();
     body = JSON.parse(raw);
-  } catch { return json({ ok: false }, 204); }
+  } catch { return noContent(); }
 
   const events = Array.isArray(body && body.events) ? body.events.slice(0, MAX_BATCH) : [];
   if (!events.length) return json({ ok: true, stored: 0 });
 
   const sid = s(body.sid, 64);
-  if (!sid || !/^[A-Za-z0-9_-]{8,64}$/.test(sid)) return json({ ok: false }, 204);
+  if (!sid || !/^[A-Za-z0-9_-]{8,64}$/.test(sid)) return noContent();
 
   const now = Date.now();
   const ua = request.headers.get('User-Agent') || '';
@@ -202,6 +212,13 @@ export async function collect(request, env) {
        inflating the session's span. */
     let firstTs = Infinity, lastTs = 0;
     let engaged = 0;
+    /* Tracked against the event timestamps rather than taken from the end of
+       the loop: `entry_path` is where the visit started and sticks for the
+       life of the session, so binding it to whatever happened to be last in
+       the first batch recorded the wrong landing page permanently. It went
+       unnoticed while index.html was the only page sending events, because
+       every path in a batch was then '/'. */
+    let firstPath = null, lastPath2 = null;
 
     for (const e of events) {
       if (!e || typeof e !== 'object') continue;
@@ -219,8 +236,8 @@ export async function collect(request, env) {
       if (INTERACTION.has(type)) interactions++;
       if (scroll !== null && scroll > maxScroll) maxScroll = Math.min(100, scroll);
       lastPath = path;
-      if (ts < firstTs) firstTs = ts;
-      if (ts > lastTs) lastTs = ts;
+      if (ts < firstTs) { firstTs = ts; firstPath = path; }
+      if (ts >= lastTs) { lastTs = ts; lastPath2 = path; }
       /* the client reports cumulative engaged milliseconds; keep the largest */
       if (e.meta && typeof e.meta.engaged === 'number' && e.meta.engaged > engaged) {
         engaged = Math.min(e.meta.engaged, 12 * 60 * 60 * 1000);
@@ -262,7 +279,7 @@ export async function collect(request, env) {
          ua           = COALESCE(a_session.ua, excluded.ua)`
     ).bind(
       sid, firstTs === Infinity ? now : firstTs, lastTs || now,
-      lastPath, lastPath, pageviews, rows.length, interactions,
+      firstPath || lastPath, lastPath2 || lastPath, pageviews, rows.length, interactions,
       maxScroll, device, browser, os, country, n(ctx.vw), n(ctx.vh),
       referrer, refSource(referrer, host),
       s(ctx.utm_source, 120), s(ctx.utm_medium, 120), s(ctx.utm_campaign, 120),
@@ -274,7 +291,7 @@ export async function collect(request, env) {
     return json({ ok: true, stored: rows.length - 1 });
   } catch {
     /* Storage trouble must never become a visible failure on the site. */
-    return json({ ok: false }, 204);
+    return noContent();
   }
 }
 
@@ -316,13 +333,17 @@ async function overview(env, url) {
       WHERE is_test = ? AND ts BETWEEN ? AND ? AND type = 'MEETING_FORM_SUBMIT'`
   ).bind(test, from, to));
 
-  /* daily buckets, in whole days back from `to` so the chart is stable */
+  /* Calendar days in UTC. These were 24-hour slices counted back from the
+     moment the dashboard was opened, which the chart then labelled with
+     dates -- so a point labelled "14 Oct" covered 13 Oct 14:00 to 14 Oct
+     14:00 and did not match any other tool's idea of that day. UTC is stated
+     on the chart rather than guessed from the viewer's clock. */
   const trend = await all(env.DB.prepare(
-    `SELECT CAST((? - started_at) / 86400000 AS INTEGER) AS days_ago,
+    `SELECT strftime('%Y-%m-%d', started_at / 1000, 'unixepoch') AS day,
             COUNT(*) AS sessions, SUM(pageviews) AS pageviews
        FROM a_session WHERE is_test = ? AND started_at BETWEEN ? AND ?
-      GROUP BY days_ago ORDER BY days_ago DESC`
-  ).bind(to, test, from, to));
+      GROUP BY day ORDER BY day ASC`
+  ).bind(test, from, to));
 
   const devices = await all(env.DB.prepare(
     `SELECT COALESCE(device,'unknown') AS device, COUNT(*) AS n
@@ -509,7 +530,7 @@ async function funnel(env, url) {
       WHERE is_test = ? AND ts BETWEEN ? AND ? AND type = ?`, type);
 
   const steps = [
-    { label: 'Visitors',        n: visitors },
+    { label: 'Sessions',        n: visitors },
     { label: 'Viewed services', n: await sectionSeen('services') },
     { label: 'Reached contact', n: await sectionSeen('contact') },
     { label: 'Clicked a CTA',   n: await evSeen('CTA_CLICK') },

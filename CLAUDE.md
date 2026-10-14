@@ -189,6 +189,41 @@ and the dashboard reads it at `/admin/analytics`. Things worth knowing:
 - Events are whitelisted by pattern, not by list, so `window.wwTrack('MY_EVENT',
   {...})` works without a Worker deploy.
 
+## Analytics traps found by the October 2026 audit
+
+Full report: `docs/analytics-qa-audit.md`. Regression tests:
+`python tools/test_analytics.py` (80 checks, needs `wrangler dev --local`).
+
+- **Every page must load `js/analytics.js`.** It shipped on `index.html` only,
+  so for as long as the service pages existed, every visit to one was invisible
+  -- no session, no page view, nothing. `tools/build_services.py` emits it now.
+  A new hand-written page has to include it too.
+- **`entry_path` is the first path, `exit_path` the last, both by timestamp.**
+  They were bound to the same variable, which held whatever was last in the
+  batch. It hid for months because `/` was the only instrumented page, and it
+  would have gone live the moment the service pages started reporting.
+- **Check the admin token before the failure throttle, never after.** Checking
+  the throttle first meant ten wrong guesses from any address sharing yours --
+  an office, a carrier NAT -- locked you out of your own dashboard for fifteen
+  minutes with the right token in hand.
+- **`json(data, 204)` throws.** 204 is a null-body status, so a Response with a
+  body is a TypeError. Every soft reject in `collect()` was an exception the
+  handler in `index.js` caught, returning the right status by accident. Use
+  `noContent()`.
+- **The trend is UTC calendar days and the chart says so.** It used to be
+  24-hour slices counted back from whenever the dashboard was opened, labelled
+  with dates -- so "14 Oct" meant 13 Oct 14:00 to 14 Oct 14:00 and moved if you
+  opened the page later.
+- **Sessions are not visitors.** Nothing here identifies a person across
+  sessions; the id is random and expires after 30 minutes idle. Two places
+  called a session count "Visitors". Do not reintroduce the claim without
+  building something that can support it.
+- **`/api/health` is public liveness only.** The `?deep=1` database probe is
+  admin-gated on purpose, so an uptime monitor cannot be turned into a lever
+  against D1.
+- Known and unfixed: no bot filtering, no new-vs-returning, `is_test` is
+  client-settable. All three are in the report with the reasoning.
+
 ## The case study simulator
 
 `/admin/case-studies` builds hypothetical Meta-Ads-shaped case studies for

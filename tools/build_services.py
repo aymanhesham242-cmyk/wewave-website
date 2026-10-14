@@ -515,7 +515,14 @@ def build(svc, others):
     links = "".join(
         f'<a href="{o["slug"]}.html">{plain(o["title"])}</a>' for o in others
     )
-    scripts = (
+    # Every page carries the collector. It shipped on index.html only, so a
+    # visit to a service page -- including one that landed there straight from
+    # an ad -- produced no session and no page view at all, and the dashboard's
+    # per-page figures were blank by construction rather than by traffic.
+    # The collector no-ops cleanly here: the stage engine, the booking modal
+    # and the service cards it watches for are all absent from these pages.
+    scripts = '<script src="../js/analytics.js" defer></script>\n'
+    scripts += (
         '<script src="../js/showcase.js" defer></script>\n'
         if svc.get("folio") else ""
     )

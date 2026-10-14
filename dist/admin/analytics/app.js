@@ -37,6 +37,10 @@ function dur(s) {
 }
 const clock = ts => new Date(ts).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 const dayStr = ts => new Date(ts).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+/* Formats a YYYY-MM-DD key without letting the viewer's timezone shift it
+   onto the day before -- the buckets are UTC and the label has to match. */
+const utcDayStr = iso => new Date(iso + 'T12:00:00Z')
+  .toLocaleDateString('en-GB', { day: '2-digit', month: 'short', timeZone: 'UTC' });
 const empty = msg => '<div class="empty">' + esc(msg) + '</div>';
 
 /* A readable sentence for one event, used in the feed and the session timeline. */
@@ -115,12 +119,15 @@ views.overview = async () => {
   const kpi = (t, v, s) => '<div class="card kpi"><h3>' + t + '</h3><div class="v">' + v + '</div>' +
     (s ? '<div class="s">' + esc(s) + '</div>' : '') + '</div>';
 
-  /* trend comes back as "days ago"; turn it into a dense series */
+  /* One row per UTC calendar day. Days with no sessions are missing from the
+     result rather than zero, so the gaps are filled here -- otherwise a quiet
+     day would close the line across it and read as a slow decline. */
   const byDay = {};
-  d.trend.forEach(r => { byDay[r.days_ago] = r.sessions; });
+  d.trend.forEach(r => { byDay[r.day] = r.sessions; });
   const pts = [];
   for (let i = days - 1; i >= 0; i--) {
-    pts.push({ k: dayStr(d.range.to - i * 86400000), v: byDay[i] || 0 });
+    const key = new Date(d.range.to - i * 86400000).toISOString().slice(0, 10);
+    pts.push({ k: utcDayStr(key), v: byDay[key] || 0 });
   }
 
   const devTotal = d.devices.reduce((a, r) => a + r.n, 0);
@@ -136,7 +143,7 @@ views.overview = async () => {
       kpi('Conversion rate', pct(k.conversionRate), nf(k.meetingRequests) + ' of ' + nf(k.sessions)) +
     '</div>' +
     '<div class="grid three" style="margin-top:12px">' +
-      '<div class="card"><h3>Visitors over time</h3>' + lineChart(pts, 640, 170) + '</div>' +
+      '<div class="card"><h3>Sessions per day <span style="color:var(--dim);font-weight:400">(UTC)</span></h3>' + lineChart(pts, 640, 170) + '</div>' +
       '<div class="card"><h3>Devices</h3>' + barRows(d.devices, 'device', 'n', devTotal) + '</div>' +
     '</div>' +
     '<div class="grid two" style="margin-top:12px">' +
@@ -531,9 +538,13 @@ async function render() {
   }
 }
 
-async function refreshFeed() {
+async function refreshFeed(pre) {
   try {
-    const d = await api('/api/a/realtime');
+    /* `pre` is the response the caller already has. The 15s tick used to fetch
+       /api/a/realtime for the active count and then call this, which fetched
+       the identical response a second time -- two requests and four D1 reads
+       every 15s, against the database the booking form shares. */
+    const d = pre || await api('/api/a/realtime');
     $('#activeNow').textContent = d.active;
     const feed = $('#feed');
     if (!feed) return;
@@ -545,10 +556,13 @@ async function refreshFeed() {
 }
 
 async function tickActive() {
+  /* A hidden tab has no one reading it. Without this the dashboard kept
+     polling in a background tab for as long as it was left open. */
+  if (document.visibilityState === 'hidden') return;
   try {
     const d = await api('/api/a/realtime');
     $('#activeNow').textContent = d.active;
-    if (view === 'overview') refreshFeed();
+    if (view === 'overview') refreshFeed(d);
   } catch (e) {}
 }
 

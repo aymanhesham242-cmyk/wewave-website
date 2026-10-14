@@ -176,14 +176,20 @@ async function noteAuthFailure(request, env) {
  * writes a row, so normal use costs one read and nothing else.
  */
 async function requireAdmin(request, env) {
+  /* The token is checked first, and only a failure consults the throttle.
+     Checking the throttle first meant ten wrong guesses from any address --
+     an office, a mobile carrier's NAT, a bored visitor -- locked the owner
+     out of their own dashboard for fifteen minutes with the correct token in
+     hand. Comparing the token costs nothing and leaks nothing: it is a
+     constant-time compare against a secret the guesser does not have, so a
+     brute-forcer still gets 429 and learns no more than before. */
+  if (isAdmin(request, env)) return null;
+
   if (await overRateLimit(request, env, 'adminfail', false)) {
     return json({ error: 'Too many attempts. Please try again later.' }, 429);
   }
-  if (!isAdmin(request, env)) {
-    await noteAuthFailure(request, env);
-    return json({ error: 'Unauthorised.' }, 401);
-  }
-  return null;                                     /* null means: allowed */
+  await noteAuthFailure(request, env);
+  return json({ error: 'Unauthorised.' }, 401);                                     /* null means: allowed */
 }
 
 /**
@@ -373,6 +379,26 @@ export default {
 
     if (path === '/api/meeting' && request.method === 'POST') {
       return createMeeting(request, env, ctx);
+    }
+
+    /* Liveness, and -- with a token -- readiness.
+       The public form answers from the Worker alone and touches no storage,
+       so an uptime monitor hitting it every minute cannot cost D1 reads or be
+       turned into a probe against the database. `?deep=1` runs a trivial
+       query and is admin-only for the same reason. Neither form returns
+       anything about visitors, the schema, or the environment. */
+    if (path === '/api/health') {
+      if (url.searchParams.get('deep') !== '1') {
+        return json({ ok: true, service: 'wewave', time: new Date().toISOString() });
+      }
+      const denied = await requireAdmin(request, env);
+      if (denied) return denied;
+      let db = 'down';
+      try {
+        if (env.DB) { await env.DB.prepare('SELECT 1 AS ok').first(); db = 'up'; }
+        else db = 'unbound';
+      } catch { db = 'down'; }
+      return json({ ok: db === 'up', db, time: new Date().toISOString() }, db === 'up' ? 200 : 503);
     }
 
     /* Analytics ingest — public, like the booking form. It answers 204 on any
