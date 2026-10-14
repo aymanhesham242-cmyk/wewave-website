@@ -48,7 +48,6 @@ HEAD = """<!DOCTYPE html>
     <p class="sec-label">Selected work</p>
     <h1>Creative that makes brands<br>impossible to ignore.</h1>
     <p class="wk-lead">{lead}</p>
-    <div class="wk-stats">{stats}</div>
   </div>
 </section>
 """
@@ -261,21 +260,15 @@ def build():
     films_ready = [f for f in FILMS
                    if (ROOT / "assets" / "work" / f"{f['slug']}.mp4").exists()]
 
+    # No counts in the hero. What is uploaded is a fraction of the work, so a
+    # number here reads as the whole body of it and undersells the agency.
     lead = (
         "Campaign creative, product photography, film and storefronts for "
         "beauty, fashion and interiors brands. Everything here was made by "
         "WeWave for a paying client &mdash; no mockups, no stock, no filler."
     )
 
-    stats = [("pieces of work", n_pieces + len(films_ready)),
-             ("brands", len(CHAPTERS)),
-             ("sites built", len([w for w in WORK if w["brand"] == "clients"]))]
-    if films_ready:
-        stats.insert(2, ("films", len(films_ready)))
-
-    stat_html = "".join(f'<span class="wk-stat"><b>{v}</b>{k}</span>' for k, v in stats)
-
-    body = HEAD.format(lead=lead, stats=stat_html)
+    body = HEAD.format(lead=lead)
 
     n = 1
     for key in CHAPTERS:

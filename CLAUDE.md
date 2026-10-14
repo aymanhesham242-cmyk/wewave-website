@@ -367,6 +367,10 @@ Report: `docs/portfolio-build-report.md`.
   pixel sizes to `tools/work_dimensions.py`, which the grid uses to reserve each
   tile's box so nothing shifts while images load. The sources total ~60MB; the
   page costs ~272KB above the fold.
+- **No counts in the hero.** It carried "33 pieces / 4 brands / 4 films /
+  7 sites" and the client had them taken out: what is uploaded is a
+  fraction of the work, so a number there reads as the whole body of it
+  and undersells the agency. Do not add a tally back.
 - **The page is four brand chapters, not a grid, and not a filter bar.** The
   first build was a flat masonry of twenty-nine mixed tiles with category
   chips; the client called it a contact sheet and he was right. Each brand now
