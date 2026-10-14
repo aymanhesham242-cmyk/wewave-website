@@ -81,6 +81,7 @@ CASES = [
     dict(
         id="royal-watch",
         brand="Royal Watch",
+        window="13 Sep – 14 Oct 2026",
         source="Account reporting, supplied by the WeWave media buying team",
         attribution="platform",
         # Spend, revenue and orders as reported. ROAS, cost per purchase and
@@ -101,18 +102,18 @@ CASES = [
                        sub="total for the period"),
         ),
         limits=(
-            "No reporting period has been recorded for this account yet, so "
-            "the figures are a total rather than a rate. Orders were reported "
-            "as more than 80 without an exact count; 80 is used because it is "
-            "the lower bound and the only figure that reconciles with the "
-            "4,500 EGP average order value stated with it. Revenue is "
-            "platform-attributed, not audited business revenue."
+            "Orders were reported as more than 80 without an exact count; 80 "
+            "is used because it is the lower bound and the only figure that "
+            "reconciles with the 4,500 EGP average order value stated with "
+            "it. Revenue is platform-attributed over the window above, not "
+            "audited business revenue, and it covers paid media only."
         ),
     ),
 
     dict(
         id="arlux",
         brand="Arlux",
+        window="22 Apr – 20 May 2026",
         source="Account reporting, supplied by the WeWave media buying team",
         attribution="platform",
         # Spend, revenue and orders as reported. ROAS, cost per purchase and
@@ -134,11 +135,10 @@ CASES = [
                        sub="total for the period"),
         ),
         limits=(
-            "No reporting period has been recorded for this account yet, so "
-            "the figures are a total rather than a rate. Purchase ROAS, cost "
-            "per purchase and average order value are all this page's own "
-            "arithmetic on the three figures beside them. Revenue is "
-            "platform-attributed, not audited business revenue."
+            "Purchase ROAS, cost per purchase and average order value are all "
+            "this page's own arithmetic on the three figures beside them. "
+            "Revenue is platform-attributed over the window above, not "
+            "audited business revenue, and it covers paid media only."
         ),
     ),
 ]

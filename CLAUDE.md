@@ -349,6 +349,10 @@ built. `js/showcase.js` draws it; the projects come from the `folio` list in
   as "more than 80 orders" with no exact figure; 80 is used because it is
   the only count that reconciles with the 4,500 EGP average order value
   quoted beside it, and `limits` says so on the page.
+- **All three cases now carry a reporting period**, so no panel reads "not
+  recorded" any more. The year was not stated for Royal Watch (13 Sep -
+  14 Oct) or Arlux (22 Apr - 20 May) and 2026 was taken from context;
+  correct it here if either is actually an earlier year.
 - **`FIG_ORDER` fixes the reading order, and the first card is the hero.**
   Dict order would put a derived ROAS last, behind the two numbers it is
   the ratio of. A case with no ROAS leads on revenue instead.
