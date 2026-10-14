@@ -34,20 +34,7 @@ ICON = {
 
 SERVICES = [
     dict(
-        slug="competitor-market-analysis", num="01", icon="analysis",
-        title="Competitor &amp; Market Analysis",
-        lead="Before anything is written or shot, we work out who already holds attention in your category and what is actually earning it for them. That tells us where the opening is.",
-        items=[
-            "Competitor audit across the platforms your audience actually uses",
-            "Content teardown — formats, hooks, and posting cadence that perform",
-            "Audience and demand research for your specific market",
-            "Positioning gaps: what nobody in your category is claiming",
-            "Pricing and offer comparison against direct competitors",
-            "A written read of where you stand and what to do about it",
-        ],
-    ),
-    dict(
-        slug="media-buying", num="02", icon="target",
+        slug="media-buying", num="01", icon="target",
         title="Media Buying",
         lead="Paid campaigns run with budget accountability. We build the structure, launch it, and keep cutting what does not earn its spend.",
         items=[
@@ -60,33 +47,7 @@ SERVICES = [
         ],
     ),
     dict(
-        slug="photography-reels", num="03", icon="camera",
-        title="Photography &amp; Reels",
-        lead="Product and lifestyle shoots produced for the feed, then cut for pacing, sound, colour, and motion — because a still that works on a shelf rarely works on a scroll.",
-        items=[
-            "Product, lifestyle, and campaign photography",
-            "Reel and short-form video production",
-            "Editing: pacing, sound design, colour, motion graphics",
-            "Formats delivered per platform and aspect ratio",
-            "Shot lists built from the content calendar",
-            "Retouching and final delivery in usable formats",
-        ],
-    ),
-    dict(
-        slug="brand-identity", num="04", icon="palette",
-        title="Brand &amp; Visual Identity",
-        lead="The system that makes every post recognisably yours before anyone reads the handle — logo, colour, type, and the rules that hold it together.",
-        items=[
-            "Logo and wordmark design",
-            "Colour system and typography",
-            "Templates for recurring post formats",
-            "Brand guidelines your whole team can apply",
-            "Profile, highlight, and packaging assets",
-            "Rollout across every channel you run",
-        ],
-    ),
-    dict(
-        slug="web-development", num="05", icon="code",
+        slug="web-development", num="02", icon="code",
         title="Web Development",
         lead="Storefronts and brand sites built to load fast, read well on a phone, and turn the traffic your campaigns generate into orders.",
         items=[
@@ -142,6 +103,45 @@ SERVICES = [
             #   python tools/save_folio_shot.py <slug>
             # and check its headers before setting preview="live". The wheel
             # divides itself by however many entries are here.
+        ],
+    ),
+    dict(
+        slug="brand-identity", num="03", icon="palette",
+        title="Brand &amp; Visual Identity",
+        lead="The system that makes every post recognisably yours before anyone reads the handle — logo, colour, type, and the rules that hold it together.",
+        items=[
+            "Logo and wordmark design",
+            "Colour system and typography",
+            "Templates for recurring post formats",
+            "Brand guidelines your whole team can apply",
+            "Profile, highlight, and packaging assets",
+            "Rollout across every channel you run",
+        ],
+    ),
+    dict(
+        slug="competitor-market-analysis", num="04", icon="analysis",
+        title="Competitor &amp; Market Analysis",
+        lead="Before anything is written or shot, we work out who already holds attention in your category and what is actually earning it for them. That tells us where the opening is.",
+        items=[
+            "Competitor audit across the platforms your audience actually uses",
+            "Content teardown — formats, hooks, and posting cadence that perform",
+            "Audience and demand research for your specific market",
+            "Positioning gaps: what nobody in your category is claiming",
+            "Pricing and offer comparison against direct competitors",
+            "A written read of where you stand and what to do about it",
+        ],
+    ),
+    dict(
+        slug="photography-reels", num="05", icon="camera",
+        title="Photography &amp; Reels",
+        lead="Product and lifestyle shoots produced for the feed, then cut for pacing, sound, colour, and motion — because a still that works on a shelf rarely works on a scroll.",
+        items=[
+            "Product, lifestyle, and campaign photography",
+            "Reel and short-form video production",
+            "Editing: pacing, sound design, colour, motion graphics",
+            "Formats delivered per platform and aspect ratio",
+            "Shot lists built from the content calendar",
+            "Retouching and final delivery in usable formats",
         ],
     ),
 ]
