@@ -336,10 +336,15 @@ built. `js/showcase.js` draws it; the projects come from the `folio` list in
   because nobody has written down how those accounts were run, and a
   plausible-sounding one would be a fabrication with a byline.
 - **A figure the account did not state is divided out and marked.** Royal
-  Watch's ROAS, cost per purchase and average order value are all `derive`
-  output. Arlux has no recorded media spend, so it gets three cards instead
-  of six -- ROAS and cost per purchase are simply absent, because there is
-  nothing to divide. Never fill that gap with an assumed budget.
+  Watch's and Arlux's ROAS, cost per purchase and average order value are
+  all `derive` output; only Valle states its own ROAS. A case missing an
+  input simply loses the figures that need it -- Arlux rendered three cards
+  instead of six until its media spend was recorded. Never close that gap
+  with an assumed budget; wait for the number.
+- **Arlux's average order value is 7,361.11, not the 7,300 it was quoted
+  as.** 265,000 / 36 is what that figure is a rounding of, and a panel
+  whose whole claim is that its figures reconcile cannot carry one that
+  does not. Publish the arithmetic, not the rounding.
 - **Royal Watch's order count is a lower bound.** The account was reported
   as "more than 80 orders" with no exact figure; 80 is used because it is
   the only count that reconciles with the 4,500 EGP average order value

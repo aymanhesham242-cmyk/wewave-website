@@ -115,26 +115,30 @@ CASES = [
         brand="Arlux",
         source="Account reporting, supplied by the WeWave media buying team",
         attribution="platform",
-        # Only two figures exist for this account: sales and orders. No media
-        # spend has been recorded, so purchase ROAS and cost per purchase
-        # cannot be worked out and are not drawn -- there is no honest way to
-        # produce them from what is here, and the dashboard is built to show
-        # three figures rather than invent a fourth.
+        # Spend, revenue and orders as reported. ROAS, cost per purchase and
+        # average order value are all left for `derive`, so the page marks
+        # them as this file's arithmetic rather than the account's claims.
+        # They land on 10.6x / 694.44 EGP / 7,361.11 EGP.
         #
-        # Average order value is left to `derive`: 265,000 / 36 = 7,361.11.
-        # The account was quoted as roughly 7,300, which is this rounded.
+        # That last one is worth knowing: the account was quoted as roughly
+        # 7,300 average order value, and 265,000 / 36 = 7,361.11 is what that
+        # figure is a rounding of. The arithmetic is published, not the
+        # rounding -- a panel whose whole claim is that its figures reconcile
+        # cannot carry one that does not.
         reported=dict(
             revenue=dict(value=265000, unit="EGP", label="Revenue returned",
                          sub="attributed sales value"),
             purchases=dict(value=36, unit="", label="Purchases",
                            sub="total orders"),
+            spend=dict(value=25000, unit="EGP", label="Media spend",
+                       sub="total for the period"),
         ),
         limits=(
-            "No media spend and no reporting period have been recorded for "
-            "this account, so purchase ROAS and cost per purchase are not "
-            "shown — there is nothing to divide. The average order value is "
-            "this page's own arithmetic on the two figures beside it. Revenue "
-            "is platform-attributed, not audited business revenue."
+            "No reporting period has been recorded for this account yet, so "
+            "the figures are a total rather than a rate. Purchase ROAS, cost "
+            "per purchase and average order value are all this page's own "
+            "arithmetic on the three figures beside them. Revenue is "
+            "platform-attributed, not audited business revenue."
         ),
     ),
 ]
