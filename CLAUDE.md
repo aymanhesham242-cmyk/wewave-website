@@ -353,6 +353,16 @@ built. `js/showcase.js` draws it; the projects come from the `folio` list in
   recorded" any more. The year was not stated for Royal Watch (13 Sep -
   14 Oct) or Arlux (22 Apr - 20 May) and 2026 was taken from context;
   correct it here if either is actually an earlier year.
+- **`source`, `attribution` and `limits` are recorded but not rendered.**
+  The provenance box under each panel was removed at the client's request.
+  Keep those fields accurate anyway -- they are the only record of where a
+  published number came from. A caveat that genuinely changes how a figure
+  reads has to go in that figure's own `sub` line instead, where it sits on
+  the card: Royal Watch's "reported as 80+; the lower bound is used" is the
+  example, and it survived the removal for that reason.
+- **A panel's trailing space comes from `.cs-panel > :last-child`,** not from
+  whatever ends it. Valle ends on a note and the other two on the ratio bar,
+  and without that rule the gaps differed by 36px.
 - **`FIG_ORDER` fixes the reading order, and the first card is the hero.**
   Dict order would put a derived ROAS last, behind the two numbers it is
   the ratio of. A case with no ROAS leads on revenue instead.

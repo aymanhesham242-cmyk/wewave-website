@@ -207,9 +207,7 @@ PANEL = """    <div class="cs-panel" data-cs-panel="{id}">
         <h2>{brand}</h2>{when}
       </div>
       <div class="cs-kpis">{kpis}</div>
-{ratio}{note}      <div class="cs-src">
-{src}      </div>
-    </div>
+{ratio}{note}    </div>
 """
 
 CASE_REAL = """
@@ -425,10 +423,6 @@ def panel(case):
     )
 
     window, note = case.get("window", ""), case.get("note", "")
-    src = [("Reporting period", window or "not recorded"),
-           ("Source", case.get("source", "not recorded"))]
-    if case.get("limits"):
-        src.append(("Read it as", case["limits"]))
 
     return PANEL.format(
         id=case["id"],
@@ -437,7 +431,6 @@ def panel(case):
         kpis=cells,
         ratio=ratio_bar(case),
         note=f'      <p class="cs-note">{note}</p>\n' if note else "",
-        src="".join(f"        <p><b>{k}</b> {v}</p>\n" for k, v in src),
     )
 
 

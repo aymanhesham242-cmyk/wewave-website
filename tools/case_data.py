@@ -25,10 +25,14 @@ selector and the switching on its own.
     window      the reporting period, as written in the report (omit if not
                 recorded -- the page then says so rather than guessing)
     note        how the account was actually run, in plain language
-    source      where the figures come from, shown to the visitor
+    source      where the figures come from. RECORDED, NOT RENDERED -- the
+                panel no longer prints a provenance box. Keep it accurate
+                anyway: it is the only record of where a published number
+                came from, and the next person to question a figure will
+                look here
     attribution "platform" or "verified" -- platform means the ad platform
-                reported it, which is not the same as audited revenue, and
-                the page says so
+                reported it, which is not the same as audited revenue.
+                Recorded, not rendered, same as `source`
     reported    the figures as the report gives them. key -> dict of
                 value / unit / label / sub. Anything not in here that can be
                 divided out of what is gets drawn as a *derived* figure,
@@ -39,7 +43,10 @@ selector and the switching on its own.
     stages      optional campaign story, list of {title, body}
     creative    optional list of documented creative/audience tests
     shot        optional screenshot path, relative to services/
-    limits      anything a reader needs in order not to over-read the numbers
+    limits      anything a reader needs in order not to over-read the numbers.
+                Recorded, not rendered. A caveat that genuinely changes how a
+                figure reads belongs in that figure's own `sub` line, where
+                it is on the card -- see Royal Watch's purchases
 """
 
 CASES = [
