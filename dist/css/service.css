@@ -490,6 +490,9 @@ h2{
 }
 
 /* the picker only exists when there is more than one case to pick */
+/* one panel per case study; the picker swaps them, and the panel carries
+   its own brand and period so a head can never caption the wrong figures */
+.cs-panel[hidden]{display:none;}
 .cs-picker{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:clamp(20px,2.6vw,30px);}
 .cs-pick{
   font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
@@ -525,6 +528,14 @@ h2{
   border-color:rgba(63,209,139,.42);
 }
 .cs-kpi.is-derived{background:rgba(255,255,255,.028);border-style:dashed;}
+/* a derived figure can still be the headline: Royal Watch's ROAS is divided
+   out of the spend and revenue beside it, and without this it would inherit
+   the dim derived card and stop reading as the number the panel is about.
+   It keeps the hero's light and the derived dashed edge, so it reads as both. */
+.cs-kpi.is-derived.is-hero{
+  background:linear-gradient(165deg,rgba(63,209,139,.20),rgba(46,139,87,.07));
+  border-color:rgba(63,209,139,.42);border-style:dashed;
+}
 
 .cs-v{
   font-family:var(--display);font-size:clamp(26px,3.2vw,44px);line-height:1;

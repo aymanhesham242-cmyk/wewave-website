@@ -57,18 +57,6 @@ SERVICES = [
             "Catalogue and retargeting setup for e-commerce",
             "Plain-language reporting on what the spend returned",
         ],
-        case=dict(
-            client="Velora", window="13 Jul – 4 Aug 2026",
-            note="A sales-focused build across six campaigns, weighted toward the structures that were already converting and scaled through CBO once the winners were clear. Every figure below is taken directly from the account's reporting for the period.",
-            stats=[
-                ("14.57×", "Purchase ROAS", "average across campaigns"),
-                ("357,777", "EGP returned", "attributed website value"),
-                ("514", "Purchases", "in the period"),
-                ("24,561", "EGP spent", "total media spend"),
-            ],
-            shot="../assets/cases/velora-media-buying.png",
-            shot_alt="Velora campaign results in Meta Ads Manager",
-        ),
     ),
     dict(
         slug="photography-reels", num="03", icon="camera",
@@ -207,21 +195,21 @@ DASH = """
 <section class="cs" data-cs>
   <div class="wrap">
     <p class="sec-label">Case study</p>
-    <div class="cs-head">
-      <h2>{brand}</h2>
-      <span class="cs-when">{window}</span>
-    </div>
-{selector}
-    <div class="cs-kpis">{kpis}</div>
-{ratio}
-    <p class="cs-note">{note}</p>
-    <div class="cs-src">
-      <p><b>Reporting period</b> {window}</p>
-      <p><b>Source</b> {source}</p>
-      <p><b>Read it as</b> {limits}</p>
-    </div>
-  </div>
+{selector}{panels}  </div>
 </section>
+"""
+
+# One case study. The brand and the period live in here rather than in DASH
+# because they change with the panel, and a head that kept saying "Valle"
+# over Arlux's figures would be worse than no head at all.
+PANEL = """    <div class="cs-panel" data-cs-panel="{id}"{hide}>
+      <div class="cs-head">
+        <h2>{brand}</h2>{when}
+      </div>
+      <div class="cs-kpis">{kpis}</div>
+{ratio}{note}      <div class="cs-src">
+{src}      </div>
+    </div>
 """
 
 CASE_REAL = """
@@ -351,7 +339,7 @@ def cs_icon(key):
             f'stroke-linejoin="round">{d}</svg>')
 
 
-def kpi(k, d, derived=False):
+def kpi(k, d, derived=False, hero=False):
     """One figure. `derived` ones are marked, because a number this page
     worked out itself is not the same promise as one the report states."""
     unit = f'<span class="cs-u">{d["unit"]}</span>' if d.get("unit") else ""
@@ -359,7 +347,7 @@ def kpi(k, d, derived=False):
     # The value is in the HTML, not written in by script: the page has to read
     # correctly with no JavaScript, and the counter only animates up to it.
     return (
-        f'<div class="cs-kpi{" is-derived" if derived else ""}{" is-hero" if k == "roas" else ""}">'
+        f'<div class="cs-kpi{" is-derived" if derived else ""}{" is-hero" if hero else ""}">'
         f"{cs_icon(k)}"
         f'<div class="cs-v" data-count="{d["value"]}">{num(d["value"])}{unit}</div>'
         f'<div class="cs-k">{d["label"]}{tag}</div>'
@@ -398,36 +386,101 @@ def ratio_bar(case):
     </div>'''
 
 
-def dashboard(case):
-    """The whole section for one case study, from whatever data exists."""
-    agree = check(case)
-    if agree and not agree["agrees"]:
-        raise SystemExit(
-            f"{case['brand']}: reported ROAS {agree['stated']} does not match "
-            f"revenue / spend = {agree['computed']}. Fix the data, do not publish it."
-        )
+# The order figures are read in, which is not the order they happen to sit in
+# the data. It is fixed here so the headline is always the first card: Royal
+# Watch's ROAS is divided out rather than reported, and left to dict order it
+# would land last -- behind the two numbers it is the ratio of.
+FIG_ORDER = ["roas", "revenue", "purchases", "spend", "cpa", "aov"]
 
-    cells = "".join(kpi(k, d) for k, d in case.get("reported", {}).items())
-    cells += "".join(kpi(k, d, True) for k, d in derive(case).items())
+
+def figures(case):
+    """Every figure for one case, in reading order, each tagged with whether
+    the report stated it or this build divided it out of what the report said.
+
+    A reported figure always wins over a derivable one -- `derive` refuses to
+    recompute anything already in `reported`, and `check` is what makes sure
+    the two would have agreed anyway.
+    """
+    r = case.get("reported", {})
+    d = derive(case)
+    out = []
+    for k in FIG_ORDER:
+        if k in r:
+            out.append((k, r[k], False))
+        elif k in d:
+            out.append((k, d[k], True))
+    # anything outside the known order still gets drawn, after the rest
+    out += [(k, v, False) for k, v in r.items() if k not in FIG_ORDER]
+    out += [(k, v, True) for k, v in d.items() if k not in FIG_ORDER and k not in r]
+    return out
+
+
+def panel(case, first, multi):
+    """One case study's panel. Fields with nothing behind them are left out
+    rather than printed empty: an account with no recorded reporting period
+    should show no period, not a blank pill beside the brand name."""
+    cells = "".join(
+        kpi(k, d, derived, hero=(i == 0))
+        for i, (k, d, derived) in enumerate(figures(case))
+    )
+
+    window, note = case.get("window", ""), case.get("note", "")
+    src = [("Reporting period", window or "not recorded"),
+           ("Source", case.get("source", "not recorded"))]
+    if case.get("limits"):
+        src.append(("Read it as", case["limits"]))
+
+    return PANEL.format(
+        id=case["id"],
+        # Every panel but the first starts hidden, so the page does not flash
+        # three dashboards before the script runs. The <noscript> block in the
+        # selector is what gives them back to a visitor without JavaScript.
+        hide="" if first or not multi else " hidden",
+        brand=case["brand"],
+        when=f'<span class="cs-when">{window}</span>' if window else "",
+        kpis=cells,
+        ratio=ratio_bar(case),
+        note=f'      <p class="cs-note">{note}</p>\n' if note else "",
+        src="".join(f"        <p><b>{k}</b> {v}</p>\n" for k, v in src),
+    )
+
+
+def dashboard(cases):
+    """The whole section, one panel per case study."""
+    for case in cases:
+        agree = check(case)
+        if agree and not agree["agrees"]:
+            raise SystemExit(
+                f"{case['brand']}: reported ROAS {agree['stated']} does not match "
+                f"revenue / spend = {agree['computed']}. Fix the data, do not publish it."
+            )
+
+    multi = len(cases) > 1
 
     # A selector for one case study would be a control that does nothing.
     selector = ""
-    if len(CASES) > 1:
+    if multi:
         opts = "".join(
-            f'<button type="button" class="cs-pick" data-cs-pick="{c["id"]}">{c["brand"]}</button>'
-            for c in CASES
+            '<button type="button" role="tab" class="cs-pick{on}" '
+            'aria-selected="{sel}" data-cs-pick="{id}">{brand}</button>'.format(
+                on=" is-on" if i == 0 else "",
+                sel="true" if i == 0 else "false",
+                id=c["id"], brand=c["brand"],
+            )
+            for i, c in enumerate(cases)
         )
-        selector = f'    <div class="cs-picker" role="tablist">{opts}</div>\n'
+        selector = (
+            f'    <div class="cs-picker" role="tablist">{opts}</div>\n'
+            # Without JavaScript the picker cannot switch anything, so it
+            # removes itself and every case is shown at once. Two of three
+            # case studies silently disappearing is the worse failure.
+            '    <noscript><style>.cs-picker{display:none}'
+            '.cs-panel[hidden]{display:block!important}</style></noscript>\n'
+        )
 
     return DASH.format(
-        brand=case["brand"],
-        window=case.get("window", ""),
-        source=case.get("source", "not recorded"),
-        limits=case.get("limits", ""),
-        note=case.get("note", ""),
-        kpis=cells,
-        ratio=ratio_bar(case),
         selector=selector,
+        panels="".join(panel(c, i == 0, multi) for i, c in enumerate(cases)),
     )
 
 
@@ -458,7 +511,7 @@ def build(svc, others):
     if wheel_page:
         pass                      # the wheel is the case study
     elif cases:
-        body += dashboard(cases[0])
+        body += dashboard(cases)
         scripts_extra = True
     elif svc.get("case"):
         c = svc["case"]
@@ -511,6 +564,10 @@ if __name__ == "__main__":
     for svc in SERVICES:
         others = [o for o in SERVICES if o["slug"] != svc["slug"]]
         p = build(svc, others)
-        tag = "case study" if svc.get("case") else "slot"
+        n = len([c for c in CASES if c.get("service") == svc["slug"]] or
+                (CASES if svc["slug"] == "media-buying" else []))
+        tag = (f"{n} case stud" + ("y" if n == 1 else "ies")) if n else (
+            "wheel" if svc.get("folio") else
+            "case study" if svc.get("case") else "slot")
         print(f"  {p.relative_to(ROOT).as_posix():46s} ({tag})")
     print(f"\n{len(SERVICES)} pages -> {OUT.relative_to(ROOT).as_posix()}/")

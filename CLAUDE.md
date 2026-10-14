@@ -318,7 +318,7 @@ built. `js/showcase.js` draws it; the projects come from the `folio` list in
 - **The build refuses to publish a case that disagrees with itself.**
   `check()` reconciles a stated ROAS against the revenue and spend beside it
   and stops the build on a mismatch, because that is a transcription error
-  and a page is the wrong place to find one. Velora: 357,777 / 24,561 =
+  and a page is the wrong place to find one. Valle: 357,777 / 24,561 =
   14.5669 against a stated 14.57.
 - **Derived figures are marked `derived` on the page.** `derive()` only ever
   divides two numbers the report already states, and returns nothing when an
@@ -328,10 +328,29 @@ built. `js/showcase.js` draws it; the projects come from the `folio` list in
   HTML; the script animates up to it and then restores the server's exact
   string. So the page is right with no JavaScript, right if rAF never fires,
   and cannot settle on a number that was not reported.
-- **Absent data is absent, not stubbed.** Velora has no time series, no
-  baseline period and no documented creative tests, so no charts for those
-  are drawn -- an empty chart frame implies a measurement nobody took. Add
-  `series`, `stages` or `creative` to the case and the renderer picks them up.
+- **Absent data is absent, not stubbed.** No case has a time series, a
+  baseline period or documented creative tests, so no charts for those are
+  drawn -- an empty chart frame implies a measurement nobody took. Add
+  `series`, `stages` or `creative` to the case and the renderer picks them
+  up. The same rule governs prose: Royal Watch and Arlux carry no `note`
+  because nobody has written down how those accounts were run, and a
+  plausible-sounding one would be a fabrication with a byline.
+- **A figure the account did not state is divided out and marked.** Royal
+  Watch's ROAS, cost per purchase and average order value are all `derive`
+  output. Arlux has no recorded media spend, so it gets three cards instead
+  of six -- ROAS and cost per purchase are simply absent, because there is
+  nothing to divide. Never fill that gap with an assumed budget.
+- **Royal Watch's order count is a lower bound.** The account was reported
+  as "more than 80 orders" with no exact figure; 80 is used because it is
+  the only count that reconciles with the 4,500 EGP average order value
+  quoted beside it, and `limits` says so on the page.
+- **`FIG_ORDER` fixes the reading order, and the first card is the hero.**
+  Dict order would put a derived ROAS last, behind the two numbers it is
+  the ratio of. A case with no ROAS leads on revenue instead.
+- **Panels carry their own brand and period.** With three cases a shared
+  head would caption Arlux's figures "Valle". Non-first panels ship
+  `hidden` so the page does not flash three dashboards before the script
+  runs, and a `<noscript>` block drops the picker and shows them all.
 - The spend-against-return bars are in true proportion. At 14.57x the spend
   bar really is 6.9% of the other one; widening it to look tidier would be a
   lie told in pixels.
