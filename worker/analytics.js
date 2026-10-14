@@ -257,6 +257,7 @@ export async function collect(request, env) {
     }
 
     if (!rows.length) return json({ ok: true, stored: 0 });
+    const stored = rows.length;      /* fixed before the session upsert joins */
 
     /* Upsert the session. started_at/entry_path stick to their first value;
        the counters accumulate. */
@@ -276,7 +277,13 @@ export async function collect(request, env) {
          interactions = a_session.interactions + excluded.interactions,
          max_scroll   = MAX(a_session.max_scroll, excluded.max_scroll),
          engaged_ms   = MAX(a_session.engaged_ms, excluded.engaged_ms),
-         ua           = COALESCE(a_session.ua, excluded.ua)`
+         ua           = COALESCE(a_session.ua, excluded.ua),
+         /* Ever flagged as ours, always ours. The flag is decided per batch
+            in the browser, so a session that starts before the owner opens
+            the dashboard and continues after it would otherwise keep a live
+            session row while its later events were excluded as test -- the
+            counters below then describe rows no view can see. */
+         is_test      = MAX(a_session.is_test, excluded.is_test)`
     ).bind(
       sid, firstTs === Infinity ? now : firstTs, lastTs || now,
       firstPath || lastPath, lastPath2 || lastPath, pageviews, rows.length, interactions,
@@ -287,8 +294,17 @@ export async function collect(request, env) {
       engaged, ua.slice(0, 220)
     ));
 
+    /* Lift this session's earlier events to match. Only runs for a batch
+       that is flagged test, which means only for the owner's own browsing,
+       and it is a single indexed update against one session. */
+    if (isTest) {
+      rows.push(env.DB.prepare(
+        'UPDATE a_event SET is_test = 1 WHERE session_id = ? AND is_test = 0'
+      ).bind(sid));
+    }
+
     await env.DB.batch(rows);
-    return json({ ok: true, stored: rows.length - 1 });
+    return json({ ok: true, stored: stored });
   } catch {
     /* Storage trouble must never become a visible failure on the site. */
     return noContent();
@@ -312,15 +328,26 @@ const all = async (stmt) => ((await stmt.all()).results || []);
 async function overview(env, url) {
   const { from, to, test } = window_(url);
 
+  /* `pageviews` and `interactions` are counted from a_event below rather
+     than summed from these denormalised columns. A counter that drifts from
+     the rows it summarises makes the dashboard disagree with its own Pages
+     table, and the rows are the thing every other view already reads. */
   const k = await first(env.DB.prepare(
     `SELECT COUNT(*) AS sessions,
-            SUM(pageviews) AS pageviews,
-            SUM(interactions) AS interactions,
             AVG(max_scroll) AS avg_scroll,
             AVG(CASE WHEN engaged_ms > 0 THEN engaged_ms/1000.0 END) AS avg_seconds,
             AVG(CASE WHEN last_at > started_at THEN (last_at - started_at)/1000.0 END) AS avg_span,
             SUM(CASE WHEN interactions = 0 AND engaged_ms < 10000 THEN 1 ELSE 0 END) AS bounced
        FROM a_session WHERE is_test = ? AND started_at BETWEEN ? AND ?`
+  ).bind(test, from, to));
+
+  const countRow = await first(env.DB.prepare(
+    `SELECT SUM(CASE WHEN type = 'PAGE_VIEW' THEN 1 ELSE 0 END) AS pageviews,
+            SUM(CASE WHEN type IN ('CLICK','TOUCH','CTA_CLICK','NAVIGATION_CLICK',
+                                   'LOGO_CLICK','EXTERNAL_LINK_CLICK','SERVICE_VIEW',
+                                   'MEETING_MODAL_OPEN','MEETING_FORM_START',
+                                   'MEETING_FORM_SUBMIT') THEN 1 ELSE 0 END) AS interactions
+       FROM a_event WHERE is_test = ? AND ts BETWEEN ? AND ?`
   ).bind(test, from, to));
 
   const ctaRow = await first(env.DB.prepare(
@@ -369,8 +396,8 @@ async function overview(env, url) {
     range: { from, to },
     kpi: {
       sessions,
-      pageviews: k.pageviews || 0,
-      interactions: k.interactions || 0,
+      pageviews: countRow.pageviews || 0,
+      interactions: countRow.interactions || 0,
       avgSeconds: k.avg_seconds || 0,
       avgSpan: k.avg_span || 0,
       avgScroll: k.avg_scroll || 0,

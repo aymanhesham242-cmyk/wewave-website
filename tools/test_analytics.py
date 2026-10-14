@@ -272,6 +272,70 @@ def t_concurrency():
     check("every concurrent session was stored", n_se == 8, n_se)
 
 
+def t_owner_mid_session():
+    """REGRESSION: the owner browses, opens the dashboard, comes back.
+
+    The collector decides `test` per batch from the presence of the admin
+    token. The session row used to set is_test on insert and never again, so
+    the session stayed "live" while its later events were flagged test --
+    excluded from every view, yet still counted by the session's own counters.
+    On production this overstated page views by 37% and total events by 42%,
+    and put two of seventeen "live" sessions in the owner's lap.
+    """
+    print(chr(10) + "[7b] the owner's session, before and after opening the dashboard")
+    s = sid("o")
+    send(s, [{"type": "PAGE_VIEW", "dt": 4000, "path": "/"},
+             {"type": "CTA_CLICK", "dt": 3500, "path": "/", "x": 0.3, "y": 0.3}], test=0)
+    send(s, [{"type": "PAGE_VIEW", "dt": 1000, "path": "/services/media-buying"}], test=1)
+
+    ses = sql(f"SELECT is_test, pageviews FROM a_session WHERE id='{s}'")[0]
+    check("a session flagged test once stays test", ses["is_test"] == 1, ses["is_test"])
+
+    flags = {r["is_test"] for r in sql(f"SELECT DISTINCT is_test FROM a_event WHERE session_id='{s}'")}
+    check("its earlier events are lifted with it", flags == {1}, flags)
+
+    live_pv = scalar(f"SELECT COUNT(*) FROM a_event WHERE session_id='{s}' "
+                     f"AND type='PAGE_VIEW' AND is_test=0")
+    check("no live page view is left behind by that session", live_pv == 0, live_pv)
+
+
+def t_counters_match_rows():
+    """REGRESSION: the headline counters must equal the rows they describe."""
+    print(chr(10) + "[8b] the dashboard cannot disagree with itself")
+    for flag in (0, 1):
+        st, ov = get(f"/api/a/overview?days=90&test={flag}")
+        if st != 200:
+            return block("counters vs rows", f"overview returned {st}")
+        frm, to = ov["range"]["from"], ov["range"]["to"]
+        pv = scalar(f"SELECT COUNT(*) FROM a_event WHERE is_test={flag} "
+                    f"AND type='PAGE_VIEW' AND ts BETWEEN {frm} AND {to}")
+        iv = scalar("SELECT COUNT(*) FROM a_event WHERE is_test=" + str(flag) +
+                    " AND type IN ('CLICK','TOUCH','CTA_CLICK','NAVIGATION_CLICK',"
+                    "'LOGO_CLICK','EXTERNAL_LINK_CLICK','SERVICE_VIEW','MEETING_MODAL_OPEN',"
+                    "'MEETING_FORM_START','MEETING_FORM_SUBMIT') "
+                    f"AND ts BETWEEN {frm} AND {to}")
+        label = "test" if flag else "live"
+        check(f"{label}: page views equal the PAGE_VIEW rows",
+              ov["kpi"]["pageviews"] == pv, f"kpi={ov['kpi']['pageviews']} rows={pv}")
+        check(f"{label}: interactions equal the interaction rows",
+              ov["kpi"]["interactions"] == iv, f"kpi={ov['kpi']['interactions']} rows={iv}")
+
+    # No session this run wrote may hold events on both sides of the flag.
+    # Scoped to this run on purpose: a database restored from an older build
+    # can legitimately contain sessions that straddle it, and that is a data
+    # repair, not a regression. `tools/verify_dashboard.py` reports those.
+    bad = scalar("SELECT COUNT(*) FROM (SELECT session_id FROM a_event "
+                 f"WHERE session_id LIKE 't{RUN}%' "
+                 "GROUP BY session_id HAVING COUNT(DISTINCT is_test) > 1)")
+    check("no session written by this run straddles the test flag", bad == 0, bad)
+
+    legacy = scalar("SELECT COUNT(*) FROM (SELECT session_id FROM a_event "
+                    "GROUP BY session_id HAVING COUNT(DISTINCT is_test) > 1)")
+    if legacy:
+        print(f"  NOTE  {legacy} pre-existing session(s) straddle the test flag "
+              f"-- written before the fix; see docs/admin-analytics-test-report.md")
+
+
 def t_api_matches_db():
     print("\n[8] the dashboard's figures match the database")
     st, ov = get("/api/a/overview?days=1&test=1")
@@ -470,7 +534,8 @@ def main():
 
     print(f"analytics pipeline checks — run id {RUN}, all rows flagged is_test=1")
     for fn in (t_ingest, t_clock_and_derived, t_validation, t_clamping, t_batch_cap,
-               t_session_continuity, t_concurrency, t_api_matches_db, t_isolation,
+               t_session_continuity, t_owner_mid_session, t_concurrency,
+               t_api_matches_db, t_counters_match_rows, t_isolation,
                t_windows, t_trend_and_labels, t_auth, t_no_leaks, t_site_survives, t_health, t_ratelimit):
         try:
             fn()

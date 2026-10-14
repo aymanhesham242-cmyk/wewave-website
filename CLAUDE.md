@@ -223,6 +223,21 @@ Full report: `docs/analytics-qa-audit.md`. Regression tests:
   against D1.
 - Known and unfixed: no bot filtering, no new-vs-returning, `is_test` is
   client-settable. All three are in the report with the reasoning.
+- **A session and its events must never straddle `is_test`.** The collector
+  decides the flag per batch from the presence of the admin token, and the
+  session row used to set it only on insert. So the owner browsing, opening the
+  dashboard, then coming back inside the 30-minute window left a *live* session
+  whose later events were flagged test -- excluded from every view while the
+  session's own counters kept adding them. On production that overstated page
+  views 37%, interactions 16% and events 42%. The flag now escalates
+  (`MAX(...)`) and earlier events are lifted with it.
+- **Headline counters are counted from `a_event`, never summed from the
+  `a_session` columns.** The overview and the Pages table have to read the same
+  source or they drift apart and the dashboard contradicts itself.
+- `tools/verify_dashboard.py` recomputes every dashboard figure in Python from
+  the raw rows and compares with the API -- run it after touching any query.
+  Two integrity rows still FAIL against production data until the repair in
+  `docs/admin-analytics-test-report.md` is approved and run.
 
 ## The case study simulator
 
