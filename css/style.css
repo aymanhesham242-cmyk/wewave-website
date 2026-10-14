@@ -1066,3 +1066,13 @@ canvas{display:block;}
   .ticker-row .chip:nth-child(n+9){display:none;}
   body{background:var(--deep);}
 }
+
+/* the one way into the work gallery from the stage experience */
+.clients-work-link{
+  display:inline-block;margin-top:18px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--ink);text-decoration:none;
+  border-bottom:1px solid currentColor;padding-bottom:4px;opacity:.82;
+  transition:opacity .3s var(--ease);
+}
+.clients-work-link:hover{opacity:1;}

@@ -656,6 +656,31 @@ $$('[data-goto]').forEach(link => {
   });
 });
 
+/* An arrival carrying a hash. The stages are a timeline rather than a
+   document, so `#services` means nothing to the browser -- it has to be
+   turned into a scroll position. This is also what lets another page link
+   into the booking modal with `index.html#book`.
+
+   Guarded throughout: an unknown hash is ignored and nothing throws. */
+function openFromHash() {
+  const raw = (location.hash || '').replace('#', '').trim().toLowerCase();
+  if (!raw) return;
+
+  if (raw === 'book' || raw === 'meeting') {
+    const s = STAGES.find(x => x.key === 'contact');
+    if (s) scrollToProgress(s.start + (s.end - s.start) * 0.45);
+    /* let the stage settle before the dialog opens over it */
+    const btn = $('#meetingBtn');
+    if (btn) setTimeout(() => btn.click(), 650);
+    return;
+  }
+
+  const s = STAGES.find(x => x.key === raw);
+  if (s) scrollToProgress(s.start + (s.end - s.start) * 0.45);
+}
+openFromHash();
+window.addEventListener('hashchange', openFromHash);
+
 /* mobile menu */
 const burger = $('#burger');
 const navEl  = $('#nav');

@@ -282,6 +282,7 @@ TAIL = """
     <h2>Want this for your brand?</h2>
     <p>Tell us what you are building, launching, or rethinking — and we will tell you how WeWave moves it.</p>
     <a class="btn" href="mailto:wewavemarketing@gmail.com">Start a brief</a>
+    <a class="btn ghost" href="../work">See the work</a>
     <a class="btn ghost" href="../index.html">Back to site</a>
   </div>
 </section>

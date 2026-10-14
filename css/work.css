@@ -1,0 +1,267 @@
+/* =========================================================
+   WeWave — the work gallery (work.html)
+
+   Loaded after css/service.css and reuses its tokens, its header, its
+   .wrap, .sec-label, .btn and .foot. Nothing here redefines a brand
+   colour or a typeface; everything is scoped to .work-body or a wk-
+   class so it cannot reach another page.
+   ========================================================= */
+
+.work-body{ background:var(--warm); }
+
+/* ---------------------------------------------------------- hero */
+
+.wk-hero{
+  background:var(--deep);
+  color:var(--white);
+  padding:clamp(86px,13vw,150px) 0 clamp(44px,6vw,70px);
+  position:relative;overflow:hidden;
+}
+/* one soft light from the top left, the same move the service hero makes */
+.wk-hero::before{
+  content:"";position:absolute;inset:-40% -10% auto -30%;height:120%;
+  background:radial-gradient(60% 60% at 20% 20%,rgba(46,139,87,.30),transparent 70%);
+  pointer-events:none;
+}
+.wk-hero > .wrap{position:relative;}
+.wk-hero .sec-label{color:#9FE6C4;}
+.wk-hero h1{
+  font-family:var(--display);font-weight:400;text-transform:uppercase;
+  font-size:clamp(38px,7.4vw,92px);line-height:.94;letter-spacing:.01em;
+  color:var(--white);margin:0 0 clamp(18px,2.4vw,26px);
+}
+.wk-lead{
+  font-size:clamp(15px,1.5vw,18px);line-height:1.65;max-width:58ch;
+  color:rgba(255,255,255,.76);margin:0 0 clamp(26px,3.4vw,40px);
+}
+.wk-stats{display:flex;flex-wrap:wrap;gap:clamp(22px,4vw,56px);}
+.wk-stat{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:rgba(255,255,255,.55);
+  display:flex;flex-direction:column;gap:6px;
+}
+.wk-stat b{
+  font-family:var(--display);font-size:clamp(30px,4vw,46px);line-height:1;
+  color:#9FE6C4;letter-spacing:.02em;font-weight:400;
+}
+
+/* ------------------------------------------------------- filters */
+
+.wk-filters-sec{
+  position:sticky;top:0;z-index:20;
+  background:rgba(250,248,242,.93);
+  backdrop-filter:saturate(140%) blur(10px);
+  border-bottom:1px solid rgba(23,35,29,.09);
+  padding:14px 0;
+}
+.wk-filters{display:flex;gap:9px;flex-wrap:wrap;}
+.wk-chip{
+  font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;padding:11px 20px;border-radius:999px;
+  cursor:pointer;background:transparent;color:var(--text);
+  border:1px solid rgba(23,35,29,.18);
+  display:inline-flex;align-items:center;gap:9px;
+  transition:background-color .28s var(--ease),color .28s var(--ease),
+             border-color .28s var(--ease);
+}
+.wk-chip:hover{border-color:var(--primary);color:var(--primary);}
+.wk-chip.is-on{background:var(--primary);border-color:var(--primary);color:var(--white);}
+.wk-n{
+  font-size:9.5px;opacity:.6;padding:2px 6px;border-radius:999px;
+  border:1px solid currentColor;line-height:1;
+}
+.wk-chip:focus-visible{outline:2px solid var(--primary);outline-offset:3px;}
+
+/* ---------------------------------------------------------- grid */
+
+.wk-grid-sec{padding:clamp(28px,4vw,52px) 0 clamp(50px,7vw,90px);}
+.wk-grid{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:clamp(10px,1.4vw,18px);
+  align-items:start;
+}
+.wk-item{
+  grid-column:span var(--span,2);
+  position:relative;display:block;padding:0;border:0;cursor:pointer;
+  background:#E8E4DA;border-radius:4px;overflow:hidden;
+  aspect-ratio:var(--ar,3/4);
+  /* the box is reserved from the real pixel size, so the grid never jumps */
+}
+.wk-item img{
+  width:100%;height:100%;object-fit:cover;display:block;
+  transition:transform .7s var(--ease),opacity .5s var(--ease);
+}
+.wk-item:hover img,.wk-item:focus-visible img{transform:scale(1.035);}
+.wk-item:focus-visible{outline:2px solid var(--primary);outline-offset:3px;}
+
+/* the caption sits on a wash that only appears on hover, so the work is
+   never covered while you are looking at it */
+.wk-meta{
+  position:absolute;inset:auto 0 0 0;padding:16px 16px 14px;
+  display:flex;flex-direction:column;gap:3px;text-align:left;
+  background:linear-gradient(to top,rgba(10,26,18,.86),rgba(10,26,18,.42) 55%,transparent);
+  opacity:0;transform:translateY(8px);
+  transition:opacity .35s var(--ease),transform .35s var(--ease);
+}
+.wk-item:hover .wk-meta,.wk-item:focus-visible .wk-meta{opacity:1;transform:none;}
+.wk-brand{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:#9FE6C4;
+}
+.wk-title{font-size:14px;line-height:1.35;color:#fff;font-weight:500;}
+.wk-flag{
+  position:absolute;top:12px;right:12px;
+  font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:#fff;padding:5px 9px;border-radius:999px;
+  background:rgba(10,26,18,.55);backdrop-filter:blur(4px);
+}
+
+/* filtering: hidden tiles leave the layout entirely rather than collapsing
+   to a zero-height box, which would leave gaps in the grid */
+.wk-item[hidden]{display:none;}
+.wk-empty{
+  font-family:var(--mono);font-size:12px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--text-2);padding:60px 0;text-align:center;
+}
+
+/* entrance: tiles lift in as they arrive. Only ever removed, never added
+   by script after load, so a tile can never be stranded invisible. */
+.wk-item{opacity:1;}
+.js .wk-item.is-armed{opacity:0;transform:translateY(16px);}
+.js .wk-item{transition:opacity .6s var(--ease),transform .6s var(--ease);}
+
+/* ------------------------------------------------------ features */
+
+.wk-features-sec{
+  background:var(--white);
+  padding:clamp(54px,7vw,96px) 0;
+  border-top:1px solid rgba(23,35,29,.08);
+}
+.wk-features{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:clamp(22px,3vw,40px);
+}
+.wk-feature{display:flex;flex-direction:column;gap:12px;}
+.wk-feature-head{display:flex;flex-direction:column;gap:5px;}
+.wk-feature h3{
+  font-family:var(--display);font-weight:400;text-transform:uppercase;
+  font-size:clamp(22px,2.4vw,30px);line-height:1;color:var(--text);margin:0;
+  letter-spacing:.02em;
+}
+.wk-kind{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--primary);
+}
+.wk-blurb{font-size:14.5px;line-height:1.7;color:var(--text-2);margin:0;}
+.wk-delivers{list-style:none;margin:2px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px;}
+.wk-delivers li{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--text-2);
+  border:1px solid rgba(23,35,29,.14);border-radius:999px;padding:5px 10px;
+}
+.wk-links{display:flex;flex-wrap:wrap;gap:14px;margin-top:4px;}
+.wk-link{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--primary);text-decoration:none;
+  border-bottom:1px solid currentColor;padding-bottom:2px;
+}
+.wk-link:hover{color:var(--dark);}
+.wk-link.is-case{color:var(--accent);}
+
+/* ----------------------------------------------------------- CTA */
+
+.wk-cta{background:var(--deep);color:var(--white);padding:clamp(60px,8vw,110px) 0;text-align:center;}
+.wk-cta h2{
+  font-family:var(--display);font-weight:400;text-transform:uppercase;
+  font-size:clamp(28px,5vw,62px);line-height:1;color:var(--white);
+  margin:0 0 16px;letter-spacing:.01em;
+}
+.wk-cta p{
+  font-size:15.5px;line-height:1.7;color:rgba(255,255,255,.72);
+  max-width:48ch;margin:0 auto clamp(26px,3vw,36px);
+}
+.wk-cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+
+/* ------------------------------------------------------ lightbox */
+
+.wk-box{
+  position:fixed;inset:0;z-index:100;
+  background:rgba(8,20,14,.93);
+  display:flex;align-items:center;justify-content:center;
+  padding:clamp(16px,4vw,54px);
+  opacity:0;transition:opacity .3s var(--ease);
+}
+.wk-box.is-open{opacity:1;}
+/* [hidden] is overridden by the display above unless it is said again --
+   this exact trap has bitten this project before */
+.wk-box[hidden]{display:none;}
+.wk-box-in{
+  margin:0;max-width:min(1100px,100%);max-height:100%;
+  display:flex;flex-direction:column;gap:14px;align-items:center;
+}
+.wk-box img{
+  max-width:100%;max-height:calc(100vh - 170px);
+  width:auto;height:auto;object-fit:contain;border-radius:4px;
+  background:#101c16;
+}
+.wk-box figcaption{
+  display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;justify-content:center;
+  text-align:center;
+}
+.wk-box-brand{
+  font-family:var(--mono);font-size:10px;letter-spacing:.18em;
+  text-transform:uppercase;color:#9FE6C4;
+}
+.wk-box-title{font-size:15px;color:#fff;}
+.wk-box-count{
+  font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+  color:rgba(255,255,255,.45);
+}
+.wk-x,.wk-nav{
+  position:absolute;background:rgba(255,255,255,.08);color:#fff;
+  border:1px solid rgba(255,255,255,.18);cursor:pointer;
+  width:46px;height:46px;border-radius:50%;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  transition:background-color .25s var(--ease);
+}
+.wk-x:hover,.wk-nav:hover{background:rgba(255,255,255,.2);}
+.wk-x:focus-visible,.wk-nav:focus-visible{outline:2px solid #9FE6C4;outline-offset:3px;}
+.wk-x{top:clamp(12px,2vw,24px);right:clamp(12px,2vw,24px);font-size:26px;}
+.wk-nav{top:50%;transform:translateY(-50%);font-size:28px;}
+.wk-prev{left:clamp(8px,1.6vw,22px);}
+.wk-next{right:clamp(8px,1.6vw,22px);}
+body.wk-locked{overflow:hidden;}
+
+/* --------------------------------------------------- responsive */
+
+@media (max-width:1100px){
+  .wk-grid{grid-template-columns:repeat(4,1fr);}
+  .wk-item{grid-column:span min(var(--span,2),4);}
+}
+@media (max-width:760px){
+  /* Two columns on a phone, and the wide banners take the full width --
+     a 2.4:1 banner inside a half-column is a letterbox nobody can read. */
+  .wk-grid{grid-template-columns:repeat(2,1fr);gap:9px;}
+  .wk-item{grid-column:span 1;}
+  .wk-item.is-wide{grid-column:span 2;}
+  /* no hover on a touch screen, so the caption is simply always there */
+  .wk-meta{opacity:1;transform:none;padding:12px 12px 11px;}
+  .wk-title{font-size:12.5px;}
+  .wk-brand{font-size:8.5px;}
+  .wk-filters-sec{padding:11px 0;}
+  /* 34px was under the 44px touch guideline; the chips are the only
+     control on this page, so they get a real target. */
+  .wk-chip{padding:13px 16px;font-size:10px;min-height:44px;}
+  .wk-nav{width:40px;height:40px;font-size:24px;}
+  .wk-box img{max-height:calc(100vh - 200px);}
+}
+@media (max-width:420px){
+  .wk-stats{gap:18px;}
+  .wk-stat b{font-size:26px;}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .wk-item,.wk-item img,.wk-meta,.wk-chip,.wk-box,.wk-x,.wk-nav{transition:none!important;}
+  .js .wk-item.is-armed{opacity:1;transform:none;}
+}
