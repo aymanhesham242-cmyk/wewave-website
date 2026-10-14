@@ -23,12 +23,10 @@ Adding work is a data change:
     alt       a real description, for screen readers and for a failed load
 """
 
-CATEGORIES = [
-    ("all",      "All work"),
-    ("creative", "Campaign creative"),
-    ("product",  "Product photography"),
-    ("web",      "Web development"),
-]
+# The page is four brand chapters in this order. A flat grid of everything
+# was the first attempt and it read as a contact sheet -- the work is the
+# story, and a story has chapters.
+CHAPTERS = ["iris", "laro", "arlux", "clients"]
 
 BRANDS = {
     "laro": dict(
@@ -208,14 +206,22 @@ WORK = [
          alt="Screenshot of the Saffa Fashion storefront."),
 ]
 
-# Brands given a block of their own under the grid, in this order. A brand
-# only earns one when there is enough real work and real context to fill it.
-FEATURED = ["laro", "iris", "arlux", "clients"]
+# Short films. Only rendered when the .mp4 is actually in assets/work/ --
+# a play button over a file that is not there is worse than no section.
+#
+#   slug    assets/work/<slug>.mp4 and <slug>-poster.webp
+#   brand   leave empty where the client is not cleared to be named
+FILMS = [
+    dict(slug="film-motion", title="Motion", brand="", length="0:32",
+         alt="Still from the Motion showreel."),
+    dict(slug="film-we", title="We", brand="", length="0:22",
+         alt="Still from the We film."),
+    dict(slug="film-alkamal", title="Al Kamal Hospital", brand="", length="0:28",
+         alt="Still from the Al Kamal Hospital film."),
+    dict(slug="film-eraasoft", title="Eraa Soft", brand="", length="0:50",
+         alt="Still from the Eraa Soft film."),
+]
 
 
-def by_cat(cat):
-    return [w for w in WORK if cat == "all" or w["cat"] == cat]
-
-
-def counts():
-    return {key: len(by_cat(key)) for key, _ in CATEGORIES}
+def in_chapter(key):
+    return [w for w in WORK if w["brand"] == key]

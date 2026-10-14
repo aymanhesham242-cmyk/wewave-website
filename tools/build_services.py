@@ -14,6 +14,7 @@ import html
 import pathlib
 
 from case_data import CASES, check, derive
+from build_work import VIEWER, embed
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 OUT = ROOT / "services"
@@ -157,7 +158,7 @@ HEAD = """<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/service.css">
+<link rel="stylesheet" href="../css/service.css">{work_css}
 </head>
 <body>
 
@@ -287,7 +288,7 @@ TAIL = """
   </div>
 </section>
 </main>
-
+{viewer}
 <footer class="foot">
   <div class="foot-in">
     <span>&copy; {year} WeWave</span>
@@ -458,6 +459,8 @@ def build(svc, others):
     items = "".join(f"<li>{i}</li>" for i in svc["items"])
 
     body = HEAD.format(
+        work_css=('\n<link rel="stylesheet" href="../css/work.css">'
+                  if svc["slug"] == "brand-identity" else ""),
         title_plain=plain(svc["title"]),
         desc=plain(svc["lead"])[:150],
         icon=ICON[svc["icon"]],
@@ -465,6 +468,25 @@ def build(svc, others):
         title=svc["title"],
         lead=svc["lead"],
     )
+
+    # Brand & Visual Identity can show the work rather than only describe it.
+    # Same pieces, same viewer, same stylesheet as /work -- rendered by the
+    # same function, so the two cannot drift apart.
+    gallery = ""
+    if svc["slug"] == "brand-identity":
+        gallery = embed(
+            [
+                "iris-essentials", "iris-white-bodysuit", "iris-black-bodysuit",
+                "laro-your-glow", "laro-but-brighter", "laro-shimmer-night",
+                "arlux-bamboo-bliss", "arlux-lumicane", "arlux-solara-weave",
+                "iris-own-everyday", "laro-reveal-banner",
+            ],
+            "The identity, applied",
+            "A visual system is only real once it survives contact with a "
+            "campaign. These are the same brands across product, portrait and "
+            "banner placements &mdash; one identity each, holding together "
+            "wherever it lands.",
+        )
 
     # A page with the showcase wheel leads with the work itself. The bullet
     # list and the case-study block both sat between the hero and the wheel,
@@ -478,7 +500,9 @@ def build(svc, others):
         CASES if svc["slug"] == "media-buying" else []
     )
 
-    if wheel_page:
+    if gallery:
+        pass                      # the gallery is the case study
+    elif wheel_page:
         pass                      # the wheel is the case study
     elif cases:
         body += dashboard(cases)
@@ -523,13 +547,18 @@ def build(svc, others):
     # The collector no-ops cleanly here: the stage engine, the booking modal
     # and the service cards it watches for are all absent from these pages.
     scripts = '<script src="../js/analytics.js" defer></script>\n'
+    if gallery:
+        scripts += '<script src="../js/work.js" defer></script>\n'
     scripts += (
         '<script src="../js/showcase.js" defer></script>\n'
         if svc.get("folio") else ""
     )
     if cases:
         scripts += '<script src="../js/casestudy.js" defer></script>\n'
-    body += TAIL.format(others=links, year=2026, scripts=scripts)
+    if gallery:
+        body += gallery
+    body += TAIL.format(others=links, year=2026, scripts=scripts,
+                        viewer=(VIEWER if gallery else ""))
 
     path = OUT / f"{svc['slug']}.html"
     path.write_text(body, encoding="utf-8")

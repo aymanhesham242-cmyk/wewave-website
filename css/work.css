@@ -1,10 +1,13 @@
 /* =========================================================
-   WeWave — the work gallery (work.html)
+   WeWave — the work page (work.html) and the embedded chapter
+   on /services/brand-identity.
 
-   Loaded after css/service.css and reuses its tokens, its header, its
-   .wrap, .sec-label, .btn and .foot. Nothing here redefines a brand
-   colour or a typeface; everything is scoped to .work-body or a wk-
-   class so it cannot reach another page.
+   Loaded after css/service.css and reuses its tokens, header, .wrap,
+   .sec-label, .btn and .foot. Nothing here redefines a brand colour or a
+   typeface; everything is scoped to .work-body or a wk- class.
+
+   The page is brand chapters, not a grid. The first build was a flat
+   masonry of twenty-nine mixed tiles and it read as a contact sheet.
    ========================================================= */
 
 .work-body{ background:var(--warm); }
@@ -12,12 +15,10 @@
 /* ---------------------------------------------------------- hero */
 
 .wk-hero{
-  background:var(--deep);
-  color:var(--white);
+  background:var(--deep);color:var(--white);
   padding:clamp(86px,13vw,150px) 0 clamp(44px,6vw,70px);
   position:relative;overflow:hidden;
 }
-/* one soft light from the top left, the same move the service hero makes */
 .wk-hero::before{
   content:"";position:absolute;inset:-40% -10% auto -30%;height:120%;
   background:radial-gradient(60% 60% at 20% 20%,rgba(46,139,87,.30),transparent 70%);
@@ -45,133 +46,152 @@
   color:#9FE6C4;letter-spacing:.02em;font-weight:400;
 }
 
-/* ------------------------------------------------------- filters */
+/* ------------------------------------------------------ chapters */
 
-.wk-filters-sec{
-  position:sticky;top:0;z-index:20;
-  background:rgba(250,248,242,.93);
-  backdrop-filter:saturate(140%) blur(10px);
-  border-bottom:1px solid rgba(23,35,29,.09);
-  padding:14px 0;
+.wk-chapter{
+  padding:clamp(56px,8vw,118px) 0 clamp(40px,5.5vw,76px);
+  border-top:1px solid rgba(23,35,29,.09);
 }
-.wk-filters{display:flex;gap:9px;flex-wrap:wrap;}
-.wk-chip{
-  font-family:var(--mono);font-size:11px;letter-spacing:.14em;
-  text-transform:uppercase;padding:11px 20px;border-radius:999px;
-  cursor:pointer;background:transparent;color:var(--text);
-  border:1px solid rgba(23,35,29,.18);
-  display:inline-flex;align-items:center;gap:9px;
-  transition:background-color .28s var(--ease),color .28s var(--ease),
-             border-color .28s var(--ease);
-}
-.wk-chip:hover{border-color:var(--primary);color:var(--primary);}
-.wk-chip.is-on{background:var(--primary);border-color:var(--primary);color:var(--white);}
-.wk-n{
-  font-size:9.5px;opacity:.6;padding:2px 6px;border-radius:999px;
-  border:1px solid currentColor;line-height:1;
-}
-.wk-chip:focus-visible{outline:2px solid var(--primary);outline-offset:3px;}
+.wk-chapter:first-of-type{border-top:0;}
+/* alternating ground keeps four long bands from reading as one */
+.wk-chapter:nth-of-type(even){background:var(--white);}
 
-/* ---------------------------------------------------------- grid */
-
-.wk-grid-sec{padding:clamp(28px,4vw,52px) 0 clamp(50px,7vw,90px);}
-.wk-grid{
+.wk-ch-head{
   display:grid;
-  grid-template-columns:repeat(6,1fr);
-  gap:clamp(10px,1.4vw,18px);
+  grid-template-columns:auto minmax(0,1fr);
+  grid-template-areas:
+    "num  id"
+    ".    blurb"
+    ".    delivers"
+    ".    links";
+  gap:4px clamp(18px,2.6vw,34px);
   align-items:start;
+  margin-bottom:clamp(30px,4vw,52px);
 }
-.wk-item{
-  grid-column:span var(--span,2);
-  position:relative;display:block;padding:0;border:0;cursor:pointer;
-  background:#E8E4DA;border-radius:4px;overflow:hidden;
-  aspect-ratio:var(--ar,3/4);
-  /* the box is reserved from the real pixel size, so the grid never jumps */
+.wk-ch-num{
+  grid-area:num;
+  font-family:var(--display);font-size:clamp(30px,4.4vw,56px);line-height:.9;
+  color:rgba(31,107,69,.22);letter-spacing:.02em;
 }
-.wk-item img{
-  width:100%;height:100%;object-fit:cover;display:block;
-  transition:transform .7s var(--ease),opacity .5s var(--ease);
-}
-.wk-item:hover img,.wk-item:focus-visible img{transform:scale(1.035);}
-.wk-item:focus-visible{outline:2px solid var(--primary);outline-offset:3px;}
-
-/* the caption sits on a wash that only appears on hover, so the work is
-   never covered while you are looking at it */
-.wk-meta{
-  position:absolute;inset:auto 0 0 0;padding:16px 16px 14px;
-  display:flex;flex-direction:column;gap:3px;text-align:left;
-  background:linear-gradient(to top,rgba(10,26,18,.86),rgba(10,26,18,.42) 55%,transparent);
-  opacity:0;transform:translateY(8px);
-  transition:opacity .35s var(--ease),transform .35s var(--ease);
-}
-.wk-item:hover .wk-meta,.wk-item:focus-visible .wk-meta{opacity:1;transform:none;}
-.wk-brand{
-  font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;
-  text-transform:uppercase;color:#9FE6C4;
-}
-.wk-title{font-size:14px;line-height:1.35;color:#fff;font-weight:500;}
-.wk-flag{
-  position:absolute;top:12px;right:12px;
-  font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;
-  text-transform:uppercase;color:#fff;padding:5px 9px;border-radius:999px;
-  background:rgba(10,26,18,.55);backdrop-filter:blur(4px);
-}
-
-/* filtering: hidden tiles leave the layout entirely rather than collapsing
-   to a zero-height box, which would leave gaps in the grid */
-.wk-item[hidden]{display:none;}
-.wk-empty{
-  font-family:var(--mono);font-size:12px;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--text-2);padding:60px 0;text-align:center;
-}
-
-/* entrance: tiles lift in as they arrive. Only ever removed, never added
-   by script after load, so a tile can never be stranded invisible. */
-.wk-item{opacity:1;}
-.js .wk-item.is-armed{opacity:0;transform:translateY(16px);}
-.js .wk-item{transition:opacity .6s var(--ease),transform .6s var(--ease);}
-
-/* ------------------------------------------------------ features */
-
-.wk-features-sec{
-  background:var(--white);
-  padding:clamp(54px,7vw,96px) 0;
-  border-top:1px solid rgba(23,35,29,.08);
-}
-.wk-features{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-  gap:clamp(22px,3vw,40px);
-}
-.wk-feature{display:flex;flex-direction:column;gap:12px;}
-.wk-feature-head{display:flex;flex-direction:column;gap:5px;}
-.wk-feature h3{
+.wk-ch-id{grid-area:id;display:flex;flex-direction:column;gap:5px;}
+.wk-ch-head h2{
   font-family:var(--display);font-weight:400;text-transform:uppercase;
-  font-size:clamp(22px,2.4vw,30px);line-height:1;color:var(--text);margin:0;
-  letter-spacing:.02em;
+  font-size:clamp(30px,5.2vw,62px);line-height:.95;color:var(--text);
+  margin:0;letter-spacing:.015em;
 }
-.wk-kind{
-  font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;
+.wk-ch-kind{
+  font-family:var(--mono);font-size:10px;letter-spacing:.18em;
   text-transform:uppercase;color:var(--primary);
 }
-.wk-blurb{font-size:14.5px;line-height:1.7;color:var(--text-2);margin:0;}
-.wk-delivers{list-style:none;margin:2px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px;}
-.wk-delivers li{
+.wk-ch-blurb{
+  grid-area:blurb;font-size:15.5px;line-height:1.72;color:var(--text-2);
+  max-width:56ch;margin:14px 0 0;
+}
+.wk-ch-delivers{
+  grid-area:delivers;list-style:none;margin:16px 0 0;padding:0;
+  display:flex;flex-wrap:wrap;gap:7px;
+}
+.wk-ch-delivers li{
   font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;
   text-transform:uppercase;color:var(--text-2);
-  border:1px solid rgba(23,35,29,.14);border-radius:999px;padding:5px 10px;
+  border:1px solid rgba(23,35,29,.14);border-radius:999px;padding:6px 11px;
 }
-.wk-links{display:flex;flex-wrap:wrap;gap:14px;margin-top:4px;}
+.wk-ch-links{grid-area:links;display:flex;flex-wrap:wrap;gap:18px;margin-top:16px;}
 .wk-link{
   font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;
   text-transform:uppercase;color:var(--primary);text-decoration:none;
-  border-bottom:1px solid currentColor;padding-bottom:2px;
+  display:inline-flex;align-items:center;gap:7px;
+  border-bottom:1px solid currentColor;padding-bottom:3px;
+  transition:color .3s var(--ease),gap .3s var(--ease);
 }
-.wk-link:hover{color:var(--dark);}
+.wk-link:hover{color:var(--dark);gap:11px;}
 .wk-link.is-case{color:var(--accent);}
+
+/* ---- the work itself: edge to edge, large, varied ---- */
+
+.wk-ch-work{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:clamp(8px,1.1vw,16px);
+  padding:0 clamp(8px,1.1vw,16px);
+}
+/* a banner takes the full width of the band -- that is what it was made for */
+.wk-piece.is-wide{grid-column:1 / -1;}
+
+.wk-piece{
+  position:relative;display:block;padding:0;border:0;cursor:pointer;
+  background:#E8E4DA;overflow:hidden;
+  aspect-ratio:var(--ar,3/4);
+  border-radius:3px;
+}
+.wk-piece img{
+  width:100%;height:100%;object-fit:cover;display:block;
+  transition:transform .85s var(--ease);
+}
+.wk-piece:hover img,.wk-piece:focus-visible img{transform:scale(1.03);}
+.wk-piece:focus-visible{outline:2px solid var(--primary);outline-offset:3px;}
+
+.wk-piece-cap{
+  position:absolute;inset:auto 0 0 0;padding:18px;
+  background:linear-gradient(to top,rgba(10,26,18,.82),transparent);
+  opacity:0;transform:translateY(10px);
+  transition:opacity .4s var(--ease),transform .4s var(--ease);
+  text-align:left;
+}
+.wk-piece:hover .wk-piece-cap,.wk-piece:focus-visible .wk-piece-cap{opacity:1;transform:none;}
+.wk-piece-title{font-size:13.5px;color:#fff;font-weight:500;line-height:1.35;}
+
+/* entrance — only armed where something can disarm it */
+.js .wk-piece{transition:opacity .7s var(--ease),transform .7s var(--ease);}
+.js .wk-piece.is-armed{opacity:0;transform:translateY(22px);}
+.js .wk-piece.is-armed img{transition:none;}
+
+/* --------------------------------------------------- motion & film */
+
+.wk-films{background:var(--deep)!important;color:var(--white);}
+.wk-films .wk-ch-num{color:rgba(159,230,196,.26);}
+.wk-films .wk-ch-head h2{color:var(--white);}
+.wk-films .wk-ch-kind{color:#9FE6C4;}
+.wk-films .wk-ch-blurb{color:rgba(255,255,255,.72);}
+
+/* The films are vertical 9:16 reels, so the cards are too. Four across on a
+   desktop, two on a phone -- a reel shown in a landscape box is a reel with
+   its top and bottom cut off. */
+.wk-film-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:clamp(10px,1.4vw,18px);
+}
+.wk-film{
+  position:relative;display:block;padding:0;border:0;cursor:pointer;
+  background:#0A1C12;overflow:hidden;border-radius:4px;
+  aspect-ratio:9/16;
+}
+.wk-film img{width:100%;height:100%;object-fit:cover;display:block;
+  transition:transform .8s var(--ease),opacity .4s var(--ease);opacity:.86;}
+.wk-film:hover img{transform:scale(1.04);opacity:1;}
+.wk-film-blank{position:absolute;inset:0;background:linear-gradient(140deg,#123C2A,#0A1C12);}
+.wk-film:focus-visible{outline:2px solid #9FE6C4;outline-offset:3px;}
+.wk-film-play{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:60px;height:60px;border-radius:50%;
+  background:rgba(255,255,255,.14);backdrop-filter:blur(6px);
+  border:1px solid rgba(255,255,255,.3);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  transition:background-color .3s var(--ease),transform .3s var(--ease);
+}
+.wk-film-play svg{width:26px;height:26px;margin-left:3px;}
+.wk-film:hover .wk-film-play{background:rgba(255,255,255,.26);transform:translate(-50%,-50%) scale(1.07);}
+.wk-film-meta{
+  position:absolute;inset:auto 0 0 0;padding:16px 18px;
+  display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  background:linear-gradient(to top,rgba(6,16,11,.85),transparent);
+}
+.wk-film-title{font-size:14px;color:#fff;font-weight:500;}
+.wk-film-len{font-family:var(--mono);font-size:10.5px;color:rgba(255,255,255,.6);letter-spacing:.1em;}
 
 /* ----------------------------------------------------------- CTA */
 
-.wk-cta{background:var(--deep);color:var(--white);padding:clamp(60px,8vw,110px) 0;text-align:center;}
+.wk-cta{background:var(--dark);color:var(--white);padding:clamp(60px,8vw,110px) 0;text-align:center;}
 .wk-cta h2{
   font-family:var(--display);font-weight:400;text-transform:uppercase;
   font-size:clamp(28px,5vw,62px);line-height:1;color:var(--white);
@@ -183,78 +203,134 @@
 }
 .wk-cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
 
-/* ------------------------------------------------------ lightbox */
+/* ======================================================= the viewer
 
-.wk-box{
-  position:fixed;inset:0;z-index:100;
-  background:rgba(8,20,14,.93);
-  display:flex;align-items:center;justify-content:center;
-  padding:clamp(16px,4vw,54px);
-  opacity:0;transition:opacity .3s var(--ease);
+   Full-bleed, dark, with the piece given the whole screen, a title card
+   under it and a strip of the rest of the chapter to jump between. The
+   first version was a plain overlay with a small caption and it was the
+   part of the page that felt cheapest.
+   ======================================================= */
+
+.wk-view{
+  position:fixed;inset:0;z-index:120;
+  background:rgba(6,16,11,.97);
+  display:grid;grid-template-rows:auto 1fr auto;
+  opacity:0;transition:opacity .34s var(--ease);
 }
-.wk-box.is-open{opacity:1;}
-/* [hidden] is overridden by the display above unless it is said again --
-   this exact trap has bitten this project before */
-.wk-box[hidden]{display:none;}
-.wk-box-in{
-  margin:0;max-width:min(1100px,100%);max-height:100%;
-  display:flex;flex-direction:column;gap:14px;align-items:center;
+.wk-view.is-open{opacity:1;}
+/* [hidden] loses to the display above unless it is said again -- this trap
+   has bitten this project before */
+.wk-view[hidden]{display:none;}
+
+.wk-view-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:clamp(14px,2vw,22px) clamp(16px,3vw,34px);
 }
-.wk-box img{
-  max-width:100%;max-height:calc(100vh - 170px);
-  width:auto;height:auto;object-fit:contain;border-radius:4px;
-  background:#101c16;
-}
-.wk-box figcaption{
-  display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;justify-content:center;
-  text-align:center;
-}
-.wk-box-brand{
-  font-family:var(--mono);font-size:10px;letter-spacing:.18em;
+.wk-view-brand{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;
   text-transform:uppercase;color:#9FE6C4;
 }
-.wk-box-title{font-size:15px;color:#fff;}
-.wk-box-count{
-  font-family:var(--mono);font-size:10px;letter-spacing:.14em;
-  color:rgba(255,255,255,.45);
-}
-.wk-x,.wk-nav{
-  position:absolute;background:rgba(255,255,255,.08);color:#fff;
-  border:1px solid rgba(255,255,255,.18);cursor:pointer;
-  width:46px;height:46px;border-radius:50%;line-height:1;
-  display:flex;align-items:center;justify-content:center;
+.wk-view-x{
+  width:42px;height:42px;border-radius:50%;cursor:pointer;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);
+  color:#fff;display:flex;align-items:center;justify-content:center;
   transition:background-color .25s var(--ease);
 }
-.wk-x:hover,.wk-nav:hover{background:rgba(255,255,255,.2);}
-.wk-x:focus-visible,.wk-nav:focus-visible{outline:2px solid #9FE6C4;outline-offset:3px;}
-.wk-x{top:clamp(12px,2vw,24px);right:clamp(12px,2vw,24px);font-size:26px;}
-.wk-nav{top:50%;transform:translateY(-50%);font-size:28px;}
-.wk-prev{left:clamp(8px,1.6vw,22px);}
-.wk-next{right:clamp(8px,1.6vw,22px);}
+.wk-view-x svg{width:19px;height:19px;}
+.wk-view-x:hover{background:rgba(255,255,255,.2);}
+
+.wk-stage{
+  position:relative;display:flex;align-items:center;justify-content:center;
+  padding:0 clamp(16px,6vw,96px);min-height:0;
+}
+.wk-stage img{
+  max-width:100%;max-height:100%;width:auto;height:auto;
+  object-fit:contain;border-radius:3px;
+  transition:opacity .28s var(--ease),transform .28s var(--ease);
+}
+/* the slide between pieces, driven by a class the script toggles */
+.wk-stage.is-swapping img{opacity:0;transform:translateX(var(--slide,0));}
+
+.wk-view-nav{
+  position:absolute;top:50%;transform:translateY(-50%);z-index:2;
+  width:52px;height:52px;border-radius:50%;cursor:pointer;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  transition:background-color .25s var(--ease);
+}
+.wk-view-nav svg{width:22px;height:22px;}
+.wk-view-nav:hover{background:rgba(255,255,255,.22);}
+.wk-view-prev{left:clamp(8px,2vw,30px);}
+.wk-view-next{right:clamp(8px,2vw,30px);}
+.wk-view-x:focus-visible,.wk-view-nav:focus-visible,.wk-thumb:focus-visible{
+  outline:2px solid #9FE6C4;outline-offset:3px;
+}
+
+.wk-view-foot{
+  padding:clamp(12px,2vw,20px) clamp(16px,3vw,34px) clamp(16px,2.4vw,26px);
+  display:flex;flex-direction:column;gap:14px;align-items:center;
+}
+.wk-view-title{
+  margin:0;font-size:14.5px;color:rgba(255,255,255,.88);text-align:center;
+}
+.wk-strip{
+  display:flex;gap:8px;overflow-x:auto;max-width:100%;
+  padding:4px 2px;scrollbar-width:thin;
+}
+.wk-strip::-webkit-scrollbar{height:4px;}
+.wk-strip::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:999px;}
+.wk-thumb{
+  flex:0 0 auto;width:46px;height:58px;padding:0;cursor:pointer;
+  border:1px solid transparent;border-radius:3px;overflow:hidden;
+  background:#132a1f;opacity:.42;
+  transition:opacity .28s var(--ease),border-color .28s var(--ease);
+}
+.wk-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.wk-thumb:hover{opacity:.8;}
+.wk-thumb.is-on{opacity:1;border-color:#9FE6C4;}
+
+/* a film plays in the same viewer */
+/* a 9:16 reel is taller than it is wide; height has to be the constraint or
+   it runs off the top and bottom of the screen */
+.wk-stage video{
+  max-width:100%;max-height:100%;width:auto;height:auto;
+  border-radius:3px;background:#000;
+}
+.wk-view.is-film .wk-stage video{max-height:min(100%,78vh);}
+.wk-view.is-film .wk-view-foot{padding-top:8px;}
+
 body.wk-locked{overflow:hidden;}
+
+/* ------------------------------------------- embedded in a service page */
+
+/* The brand-identity page carries one chapter inline. It keeps the chapter
+   styling but loses the page chrome around it. */
+.wk-embed{padding-top:0;border-top:0;}
+.wk-embed .wk-ch-head{margin-bottom:clamp(24px,3vw,38px);}
 
 /* --------------------------------------------------- responsive */
 
-@media (max-width:1100px){
-  .wk-grid{grid-template-columns:repeat(4,1fr);}
-  .wk-item{grid-column:span min(var(--span,2),4);}
+@media (max-width:980px){
+  .wk-ch-work{grid-template-columns:repeat(2,1fr);}
 }
-@media (max-width:760px){
-  /* Two columns on a phone, and the wide banners take the full width --
-     a 2.4:1 banner inside a half-column is a letterbox nobody can read. */
-  .wk-grid{grid-template-columns:repeat(2,1fr);gap:9px;}
-  .wk-item{grid-column:span 1;}
-  .wk-item.is-wide{grid-column:span 2;}
-  /* no hover on a touch screen, so the caption is simply always there */
-  .wk-meta{opacity:1;transform:none;padding:12px 12px 11px;}
-  .wk-title{font-size:12.5px;}
-  .wk-brand{font-size:8.5px;}
-  .wk-filters-sec{padding:11px 0;}
-  /* 34px was under the 44px touch guideline; the chips are the only
-     control on this page, so they get a real target. */
-  .wk-chip{padding:13px 16px;font-size:10px;min-height:44px;}
-  .wk-nav{width:40px;height:40px;font-size:24px;}
-  .wk-box img{max-height:calc(100vh - 200px);}
+@media (max-width:700px){
+  .wk-ch-work{grid-template-columns:1fr;gap:8px;padding:0 8px;}
+  /* two reels across on a phone: one 9:16 card at full width is nearly 700px
+     tall, which is a lot of scrolling for four of them */
+  .wk-film-grid{grid-template-columns:repeat(2,1fr);}
+  /* no hover on touch, so the caption is simply always there */
+  .wk-piece-cap{opacity:1;transform:none;padding:14px;}
+  .wk-ch-head{
+    grid-template-columns:1fr;
+    grid-template-areas:"num" "id" "blurb" "delivers" "links";
+    gap:0;
+  }
+  .wk-ch-num{margin-bottom:6px;}
+  .wk-view-nav{width:44px;height:44px;}
+  .wk-view-prev{left:6px;}
+  .wk-view-next{right:6px;}
+  .wk-stage{padding:0 8px;}
+  .wk-thumb{width:40px;height:50px;}
 }
 @media (max-width:420px){
   .wk-stats{gap:18px;}
@@ -262,6 +338,9 @@ body.wk-locked{overflow:hidden;}
 }
 
 @media (prefers-reduced-motion:reduce){
-  .wk-item,.wk-item img,.wk-meta,.wk-chip,.wk-box,.wk-x,.wk-nav{transition:none!important;}
-  .js .wk-item.is-armed{opacity:1;transform:none;}
+  .wk-piece,.wk-piece img,.wk-piece-cap,.wk-film img,.wk-film-play,
+  .wk-view,.wk-stage img,.wk-view-nav,.wk-view-x,.wk-thumb,.wk-link{
+    transition:none!important;
+  }
+  .js .wk-piece.is-armed{opacity:1;transform:none;}
 }

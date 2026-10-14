@@ -367,10 +367,26 @@ Report: `docs/portfolio-build-report.md`.
   pixel sizes to `tools/work_dimensions.py`, which the grid uses to reserve each
   tile's box so nothing shifts while images load. The sources total ~60MB; the
   page costs ~272KB above the fold.
-- **Only categories with real assets are rendered.** There is no UGC/Reels
-  filter because no video could be retrieved -- a category with nothing behind
-  it is worse than no category. The data model takes video; adding it later is
-  a data change.
+- **The page is four brand chapters, not a grid, and not a filter bar.** The
+  first build was a flat masonry of twenty-nine mixed tiles with category
+  chips; the client called it a contact sheet and he was right. Each brand now
+  gets a band of its own with the work edge to edge. Do not put the grid back.
+- **The reels are vertical 9:16**, 1080x1920. A hand-rolled MP4 parser said
+  landscape and it was wrong -- use ffprobe. They are transcoded to H.264 CRF
+  26 at 30fps with `+faststart`: Workers Assets refuses anything over 25 MiB
+  and the originals were 30-60 MB each.
+- **`FILMS` entries only render when the .mp4 is actually in assets/work/.** A
+  play button over a missing file is worse than no section.
+- **The viewer is scoped to the chapter it was opened from.** Next from a LARO
+  piece stays inside LARO. It carries `data-full` on each tile rather than
+  building the path in script, which is what lets the same markup work from
+  /services/brand-identity one directory down.
+- **Only one video ever exists in the DOM.** It is created on open and removed
+  on close, so nothing keeps downloading behind a closed viewer.
+- **`/services/brand-identity` embeds a band through `embed()` in
+  build_work.py** -- the same `piece()`, the same viewer, the same stylesheet.
+  One implementation, so the service page and /work cannot drift. That page
+  also loses the placeholder case-study slot, because it now shows real work.
 - **No second copy of the data in `js/work.js`.** The script reads the category
   off each tile and the brand and title out of its caption, same rule as the
   showcase wheel, so the data file cannot drift from the behaviour.
