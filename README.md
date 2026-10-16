@@ -182,6 +182,9 @@ Before flipping it, replace the Open Graph image: it currently falls back to
   hover instant. The client logos ship as lossless WebP with a PNG fallback.
 - `MEETING_MAILTO` in `js/meeting-modal.js` is the fallback address used when
   the API is unreachable. Confirm it is the right inbox.
-- `build.py` and `wewave-standalone.html` build a single-file copy for sharing
-  outside a web host. Obsolete now the site is deployed, kept pending a
-  decision to delete them.
+- `build.py` and `wewave-standalone.html` (a single-file copy for sharing
+  outside a web host) were deleted on 2026-10-16. The generator only knew
+  `index.html`, `css/style.css` and `js/main.js`, so it could not produce a
+  current copy -- the last one it made had no case studies, no gallery and the
+  old service cards. Recover from git history if a single-file copy is ever
+  wanted again, but expect to rewrite the generator.

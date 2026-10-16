@@ -53,9 +53,16 @@ TOKEN = token()
 
 # --------------------------------------------------------------- plumbing
 
+# These calls stand in for a visitor's browser, so they have to look like one:
+# the ingest endpoint drops anything whose User-Agent reads as a crawler, and
+# urllib announces itself as python-urllib by default.
+BROWSER_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+              "(KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36")
+
+
 def post(path, payload=None, raw=None, auth=False, ctype="application/json"):
     data = raw if raw is not None else json.dumps(payload or {}).encode()
-    h = {"Content-Type": ctype}
+    h = {"Content-Type": ctype, "User-Agent": BROWSER_UA}
     if auth:
         h["Authorization"] = "Bearer " + TOKEN
     req = urllib.request.Request(BASE + path, data=data, method="POST", headers=h)
@@ -72,7 +79,7 @@ def post(path, payload=None, raw=None, auth=False, ctype="application/json"):
 
 
 def get(path, auth=True, tok=None):
-    h = {}
+    h = {"User-Agent": BROWSER_UA}
     if auth:
         h["Authorization"] = "Bearer " + (tok if tok is not None else TOKEN)
     req = urllib.request.Request(BASE + path, headers=h)
@@ -497,6 +504,57 @@ def t_site_survives():
         check(f"{page} loads the collector", "js/analytics.js" in body)
 
 
+def t_bots():
+    """Crawlers are dropped; real browsers are not.
+
+    The second half matters more than the first: a filter that is too eager
+    silently deletes real visitors, which is far worse than counting a bot.
+    """
+    print(chr(10) + "[14b] bot filtering")
+
+    REAL = {
+        "Chrome/Windows": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+        "Safari/iPhone": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1",
+        "Firefox":       "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0",
+        "Edge":          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36 Edg/129.0.0.0",
+        "Samsung":       "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/23.0 Chrome/115.0.0.0 Mobile Safari/537.36",
+        "Android Chrome":"Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36",
+    }
+    BOTS = {
+        "Googlebot":  "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+        "bingbot":    "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)",
+        "AhrefsBot":  "Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)",
+        "headless":   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/129.0.0.0 Safari/537.36",
+        "Lighthouse": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/129.0.0.0 Safari/537.36 Lighthouse",
+        "facebook":   "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+        "curl":       "curl/8.4.0",
+        "python":     "python-requests/2.32.3",
+        "empty":      "",
+    }
+
+    def send_as(ua, tag):
+        sess = sid("b" + tag)[:40]
+        body = json.dumps({"sid": sess, "test": 1,
+                           "ctx": {"vw": 1280, "vh": 800},
+                           "events": [{"type": "PAGE_VIEW", "path": "/bot-probe"}]}).encode()
+        req = urllib.request.Request(BASE + "/api/a", data=body, method="POST",
+                                     headers={"Content-Type": "application/json",
+                                              "User-Agent": ua})
+        try:
+            urllib.request.urlopen(req, timeout=20).read()
+        except urllib.error.HTTPError:
+            pass
+        return scalar(f"SELECT COUNT(*) FROM a_event WHERE session_id='{sess}'")
+
+    kept = [n for n, ua in REAL.items() if send_as(ua, n[:3].lower()) > 0]
+    check("every real browser is still recorded", len(kept) == len(REAL),
+          "dropped: " + str(sorted(set(REAL) - set(kept))))
+
+    dropped = [n for n, ua in BOTS.items() if send_as(ua, n[:3].lower()) == 0]
+    check("every crawler and tool is dropped", len(dropped) == len(BOTS),
+          "still recorded: " + str(sorted(set(BOTS) - set(dropped))))
+
+
 def t_health():
     print(chr(10) + "[15] health and readiness")
     st, b = get("/api/health", auth=False)
@@ -536,7 +594,7 @@ def main():
     for fn in (t_ingest, t_clock_and_derived, t_validation, t_clamping, t_batch_cap,
                t_session_continuity, t_owner_mid_session, t_concurrency,
                t_api_matches_db, t_counters_match_rows, t_isolation,
-               t_windows, t_trend_and_labels, t_auth, t_no_leaks, t_site_survives, t_health, t_ratelimit):
+               t_windows, t_trend_and_labels, t_auth, t_no_leaks, t_site_survives, t_bots, t_health, t_ratelimit):
         try:
             fn()
         except Exception as e:

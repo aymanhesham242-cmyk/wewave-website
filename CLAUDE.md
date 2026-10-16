@@ -657,6 +657,9 @@ identical to a finished one from here.
   `image-set()` -- 368KB down to 280KB, and `tools/build_client_webp.py`
   refuses to write a file that is not pixel-identical to its PNG. Re-run it
   after changing any logo.
-- `build.py` and `wewave-standalone.html` build a single-file copy for sharing
-  outside a web host. Obsolete now the site is deployed, kept pending the user's
-  decision.
+- `build.py` and `wewave-standalone.html` (a single-file copy for sharing
+  outside a web host) were deleted on 2026-10-16. The generator only knew
+  `index.html`, `css/style.css` and `js/main.js`, so it could not produce a
+  current copy -- the last one it made had no case studies, no gallery and the
+  old service cards. Recover from git history if a single-file copy is ever
+  wanted again, but expect to rewrite the generator.

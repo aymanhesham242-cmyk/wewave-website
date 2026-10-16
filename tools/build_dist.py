@@ -31,12 +31,18 @@ DIST = ROOT / "dist"
 # "https://wewave.example.com" -- and the same build emits canonical and
 # Open Graph tags, writes a sitemap, and opens the site to search engines.
 #
-# Nothing else needs editing. Do not set it to the workers.dev address unless
-# that really is the address the business will publish: a canonical URL is a
-# promise about where a page permanently lives, and moving it afterwards
-# costs more than leaving it unset.
+# Nothing else needs editing.
+#
+# Set on 2026-10-16 to the workers.dev origin, because that IS the address the
+# business publishes -- a custom domain was considered and declined, and
+# wewave.workers.dev was unavailable. Worth knowing what that costs: a
+# canonical URL is a promise about where a page permanently lives. If a real
+# domain is bought later, change this line, re-run the build, and keep the
+# workers.dev host serving 301s to the new origin for as long as the old links
+# are in circulation -- otherwise the ranking earned here does not move with
+# the site.
 # =========================================================================
-SITE_URL = ""
+SITE_URL = "https://wewave-website.aymanhesham242.workers.dev"
 
 # Pages that belong in a sitemap: the homepage and every service page.
 # /admin is deliberately absent and always will be.
@@ -58,7 +64,7 @@ def head_tags(page_path: str, html: str) -> str:
     m = re.search(r'<meta name="description" content="(.*?)"', html, re.S)
     desc = re.sub(r"\s+", " ", m.group(1)).strip() if m else ""
     url = SITE_URL + ("" if page_path == "/" else page_path)
-    img = SITE_URL + "/assets/wewave-mark.png"
+    img = SITE_URL + "/assets/og-card.png"
     return (
         f'\n<link rel="canonical" href="{url}">'
         f'\n<meta property="og:type" content="website">'
@@ -67,7 +73,10 @@ def head_tags(page_path: str, html: str) -> str:
         f'\n<meta property="og:title" content="{title}">'
         + (f'\n<meta property="og:description" content="{desc}">' if desc else "")
         + f'\n<meta property="og:image" content="{img}">'
-        f'\n<meta name="twitter:card" content="summary">'
+        f'\n<meta property="og:image:width" content="1200">'
+        f'\n<meta property="og:image:height" content="630">'
+        f'\n<meta property="og:image:alt" content="WeWave - social and content studio">'
+        f'\n<meta name="twitter:card" content="summary_large_image">'
         f'\n<meta name="twitter:title" content="{title}">'
         + (f'\n<meta name="twitter:description" content="{desc}">' if desc else "")
         + f'\n<meta name="twitter:image" content="{img}">\n'
@@ -121,6 +130,10 @@ if (ROOT / "services").exists():
 # --- assets --------------------------------------------------------------
 (DIST / "assets").mkdir()
 shutil.copy2(ROOT / "assets/wewave-mark.png", DIST / "assets/wewave-mark.png")
+# the 1200x630 social card (tools/make_og.py). Referenced by an absolute
+# URL in head_tags, so it must exist at /assets/og-card.png on the host --
+# scrapers do not follow relative paths and do not retry.
+shutil.copy2(ROOT / "assets/og-card.png", DIST / "assets/og-card.png")
 shutil.copy2(
     ROOT / "assets/wewave-profile-web.pdf", DIST / "assets/wewave-profile-web.pdf"
 )

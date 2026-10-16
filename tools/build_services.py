@@ -80,10 +80,10 @@ SERVICES = [
             dict(name="ZREX", kind="Brand site and product catalogue",
                  url="https://zrexeg.com/",
                  preview="thumb", thumb="../assets/folio/zrex.jpg"),
-            dict(name="Valle", kind="",
+            dict(name="Valle", kind="Womenswear store, seasonal collections",
                  url="https://valle.myeasyorders.com/",
                  preview="thumb", thumb="../assets/folio/valle.jpg"),
-            dict(name="InstaPro", kind="",
+            dict(name="InstaPro", kind="Business profile platform and site",
                  url="https://www.instapro.tech/",
                  preview="live", thumb="../assets/folio/instapro.jpg"),
             dict(name="Laro Cosmetics", kind="Cosmetics e-commerce storefront",
@@ -234,11 +234,9 @@ CASE_SLOT = """
 <section class="case">
   <div class="wrap">
     <p class="sec-label">Case study</p>
-    <h2>Coming soon</h2>
-    <p class="case-note">We have work to show here — it just is not written up yet. Ask us for examples in this area and we will walk you through them.</p>
-    <div class="shot">
-      <p class="shot-hint">Case study slot<br>add results and a screenshot at assets/cases/{slug}.png</p>
-    </div>
+    <h2>Ask us for examples</h2>
+    <p class="case-note">We have work to show in this area &mdash; it is not
+       written up yet. Ask and we will walk you through it.</p>
   </div>
 </section>
 """

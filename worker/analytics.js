@@ -122,6 +122,28 @@ async function ensureSchema(env) {
   ensured = true;
 }
 
+/* ------------------------------------------------------------ bot filter */
+
+/* Most crawlers never run JavaScript and so never reach this endpoint at all.
+   The ones that do -- headless browsers, preview fetchers, uptime monitors,
+   auditing tools -- are not visitors, and counting them inflates every figure
+   on the dashboard while spending the D1 write budget the booking form needs.
+   They are dropped rather than stored: there is no value in a row nobody will
+   ever read, and a row stored is a write charged.
+
+   Deliberately specific. A pattern loose enough to catch "Mozilla" would cost
+   real visitors, which is far worse than counting a crawler. */
+/* Written as one regex literal rather than joined strings: in a string the
+   `\b` of `'bot\b'` is a backspace character, not a word boundary, and the
+   whole pattern silently stops matching Googlebot. That exact bug shipped
+   here for one test run. */
+const BOT_RE = /bot\b|spider|crawler|crawling|slurp|facebookexternalhit|whatsapp|telegrambot|twitterbot|discordbot|linkedinbot|embedly|quora link preview|pinterest|headlesschrome|phantomjs|puppeteer|playwright|selenium|lighthouse|pagespeed|gtmetrix|pingdom|uptimerobot|statuscake|ahrefs|semrush|mj12|dotbot|petalbot|dataforseo|serpstat|applebot|duckduckbot|yandex|baiduspider|sogou|bingpreview|curl\/|wget\/|python-requests|python-urllib|go-http-client|okhttp|axios\/|node-fetch|java\/|libwww-perl|httpclient/i;
+
+function looksLikeBot(ua) {
+  if (!ua || ua.length < 12) return true;   /* no agent string is not a browser */
+  return BOT_RE.test(ua);
+}
+
 /* ------------------------------------------------- request fingerprinting */
 
 /* Coarse buckets only. This is for "do mobile users behave differently", not
@@ -190,6 +212,9 @@ export async function collect(request, env) {
 
   const now = Date.now();
   const ua = request.headers.get('User-Agent') || '';
+  /* answered the same way as any other non-stored request, so a crawler
+     cannot tell it was filtered */
+  if (looksLikeBot(ua)) return noContent();
   const { device, browser, os } = parseUA(ua);
   const country = (request.cf && request.cf.country) || request.headers.get('CF-IPCountry') || null;
   const isTest = body.test ? 1 : 0;
