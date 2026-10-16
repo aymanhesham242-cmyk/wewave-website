@@ -179,24 +179,27 @@ def chapter(num, key, first):
 """
 
 
-def films_section(num):
-    """Motion & film. Only rendered when the files are actually on disk --
-    a play button over nothing is worse than no section."""
-    ready = [f for f in FILMS
-             if (ROOT / "assets" / "work" / f"{f['slug']}.mp4").exists()]
-    if not ready:
-        return ""
+def ready_films():
+    """The films that actually have a file behind them. A play button over a
+    missing video is worse than no section."""
+    return [f for f in FILMS
+            if (ROOT / "assets" / "work" / f"{f['slug']}.mp4").exists()]
 
+
+def film_cards(prefix=""):
+    """The cards themselves, built once and used by both the /work band and
+    the band embedded on a service page. `prefix` is what makes the paths
+    resolve from a page that is not at the root."""
     cards = ""
-    for f in ready:
+    for f in ready_films():
         poster = f"assets/work/{f['slug']}-poster.webp"
         has_poster = (ROOT / poster).exists()
         cards += (
             f'<button class="wk-film" type="button" '
-            f'data-src="assets/work/{esc(f["slug"])}.mp4" '
+            f'data-src="{prefix}assets/work/{esc(f["slug"])}.mp4" '
             f'data-title="{esc(f["title"])}" data-brand="{esc(f.get("brand", ""))}" '
             f'aria-label="Play {esc(f["title"])}, {esc(f["length"])}">'
-            + (f'<img src="{poster}" alt="{esc(f["alt"])}" width="720" height="1280" '
+            + (f'<img src="{prefix}{poster}" alt="{esc(f["alt"])}" width="720" height="1280" '
                f'loading="lazy" decoding="async">' if has_poster else '<span class="wk-film-blank"></span>')
             + '<span class="wk-film-play" aria-hidden="true">'
               '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg></span>'
@@ -205,6 +208,14 @@ def films_section(num):
               f'<span class="wk-film-len">{esc(f["length"])}</span></span>'
             "</button>"
         )
+    return cards
+
+
+def films_section(num):
+    """The Motion & film band on /work."""
+    if not ready_films():
+        return ""
+    cards = film_cards()
 
     return f"""
 <section class="wk-chapter wk-films" data-chapter="film">
@@ -251,6 +262,33 @@ def embed(slugs, title, blurb, prefix="../"):
     </div>
   </div>
   <div class="wk-ch-work">{tiles}</div>
+</section>
+"""
+
+
+def films_embed(prefix="../", title="Motion &amp; film",
+                blurb="Short films cut for brands and campaigns. Shot, edited, "
+                      "graded and scored in house."):
+    """The same film band, for a page that is not /work.
+
+    It is on the service page rather than behind a link because most visitors
+    never follow the link -- the work has to be in front of them.
+    """
+    if not ready_films():
+        return ""
+    return f"""
+<section class="wk-chapter wk-films wk-embed" data-chapter="film">
+  <div class="wrap">
+    <div class="wk-ch-head">
+      <span class="wk-ch-num">&#9679;</span>
+      <div class="wk-ch-id">
+        <h2>{title}</h2>
+        <span class="wk-ch-kind">Production, editing and motion</span>
+      </div>
+      <p class="wk-ch-blurb">{blurb}</p>
+    </div>
+    <div class="wk-film-grid">{film_cards(prefix)}</div>
+  </div>
 </section>
 """
 

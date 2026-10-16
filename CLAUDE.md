@@ -387,6 +387,14 @@ Report: `docs/portfolio-build-report.md`.
   /services/brand-identity one directory down.
 - **Only one video ever exists in the DOM.** It is created on open and removed
   on close, so nothing keeps downloading behind a closed viewer.
+- **`/services/brand-identity` carries the reels too, not just the stills.**
+  The client's reason is the right one: most visitors never follow a "see all
+  the work" link, so anything behind it may as well not exist. `film_cards()`
+  builds the cards once and both `films_section()` (on /work) and
+  `films_embed()` (on the service page) use it.
+- **`.wk-films.wk-embed` restores the top padding `.wk-embed` removes.** An
+  embedded band that changes the ground colour needs its own air, or the dark
+  film band butts straight onto the images above it.
 - **`/services/brand-identity` embeds a band through `embed()` in
   build_work.py** -- the same `piece()`, the same viewer, the same stylesheet.
   One implementation, so the service page and /work cannot drift. That page

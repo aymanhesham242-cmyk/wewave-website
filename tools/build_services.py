@@ -14,7 +14,7 @@ import html
 import pathlib
 
 from case_data import CASES, check, derive
-from build_work import VIEWER, embed
+from build_work import VIEWER, embed, films_embed
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 OUT = ROOT / "services"
@@ -487,6 +487,13 @@ def build(svc, others):
             "banner placements &mdash; one identity each, holding together "
             "wherever it lands.",
         )
+        # The reels go on this page too, not behind the link. Most visitors
+        # never follow a link to see more, so the motion work has to be in
+        # front of them or it may as well not exist.
+        gallery += films_embed(
+            blurb="The same thinking in motion. Short films cut for brands "
+                  "and campaigns &mdash; shot, edited, graded and scored in "
+                  "house.")
 
     # A page with the showcase wheel leads with the work itself. The bullet
     # list and the case-study block both sat between the hero and the wheel,
