@@ -432,6 +432,17 @@ Report: `docs/portfolio-build-report.md`.
   and the originals were 30-60 MB each.
 - **`FILMS` entries only render when the .mp4 is actually in assets/work/.** A
   play button over a missing file is worse than no section.
+- **Films carry a `group`.** `motion` is the campaign and brand film, `bts` is
+  behind the scenes from the shoots. /work renders a band each -- one heading
+  over both would be calling raw set footage a finished film. Brand & Visual
+  Identity asks for `motion`, Photography & Reels asks for `bts`.
+- **Do not re-encode a clip that is already web-sized.** `inside-operations`
+  and `technical` came off the set at 476x848 and ~1 Mbps; they are remuxed
+  with `-c copy -movflags +faststart` so nothing is lost and nothing is
+  upscaled. Only the two 100MB 1080x1920 clips are actually re-encoded.
+- **25 MiB is the hard ceiling and it bites.** `film-cafe` at CRF 27 came out
+  26.8MB and would have been refused by Workers Assets. The long clips use
+  CRF 30 with `-maxrate 2600k`, which lands them around 18MB.
 - **The viewer is scoped to the chapter it was opened from.** Next from a LARO
   piece stays inside LARO. It carries `data-full` on each tile rather than
   building the path in script, which is what lets the same markup work from

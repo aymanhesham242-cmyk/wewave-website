@@ -179,19 +179,20 @@ def chapter(num, key, first):
 """
 
 
-def ready_films():
-    """The films that actually have a file behind them. A play button over a
-    missing video is worse than no section."""
+def ready_films(group=None):
+    """The films that actually have a file behind them, optionally narrowed to
+    one group. A play button over a missing video is worse than no section."""
     return [f for f in FILMS
-            if (ROOT / "assets" / "work" / f"{f['slug']}.mp4").exists()]
+            if (group is None or f.get("group") == group)
+            and (ROOT / "assets" / "work" / f"{f['slug']}.mp4").exists()]
 
 
-def film_cards(prefix=""):
+def film_cards(prefix="", group=None):
     """The cards themselves, built once and used by both the /work band and
     the band embedded on a service page. `prefix` is what makes the paths
     resolve from a page that is not at the root."""
     cards = ""
-    for f in ready_films():
+    for f in ready_films(group):
         poster = f"assets/work/{f['slug']}-poster.webp"
         has_poster = (ROOT / poster).exists()
         cards += (
@@ -205,17 +206,23 @@ def film_cards(prefix=""):
               '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg></span>'
               f'<span class="wk-film-meta">'
               f'<span class="wk-film-title">{esc(f["title"])}</span>'
-              f'<span class="wk-film-len">{esc(f["length"])}</span></span>'
+              + (f'<span class="wk-film-len">{esc(f["length"])}</span>' if f.get("length") else '')
+              + '</span>'
             "</button>"
         )
     return cards
 
 
-def films_section(num):
-    """The Motion & film band on /work."""
-    if not ready_films():
+def films_section(num, group="motion", title="Motion &amp; film",
+                  kind="Production, editing and motion",
+                  blurb=("Short films cut for brands and campaigns. Shot, "
+                         "edited, graded and scored in house.")):
+    """A film band on /work. Campaign films and behind-the-scenes footage are
+    different things and get a band each -- one heading over both would be
+    calling raw set footage a finished film."""
+    if not ready_films(group):
         return ""
-    cards = film_cards()
+    cards = film_cards("", group)
 
     return f"""
 <section class="wk-chapter wk-films" data-chapter="film">
@@ -223,11 +230,10 @@ def films_section(num):
     <div class="wk-ch-head">
       <span class="wk-ch-num">{num:02d}</span>
       <div class="wk-ch-id">
-        <h2>Motion &amp; film</h2>
-        <span class="wk-ch-kind">Production, editing and motion</span>
+        <h2>{title}</h2>
+        <span class="wk-ch-kind">{kind}</span>
       </div>
-      <p class="wk-ch-blurb">Short films cut for brands and campaigns. Shot,
-         edited, graded and scored in house.</p>
+      <p class="wk-ch-blurb">{blurb}</p>
     </div>
     <div class="wk-film-grid">{cards}</div>
   </div>
@@ -266,7 +272,7 @@ def embed(slugs, title, blurb, prefix="../"):
 """
 
 
-def films_embed(prefix="../", title="Motion &amp; film",
+def films_embed(prefix="../", group=None, title="Motion &amp; film",
                 blurb="Short films cut for brands and campaigns. Shot, edited, "
                       "graded and scored in house."):
     """The same film band, for a page that is not /work.
@@ -274,7 +280,7 @@ def films_embed(prefix="../", title="Motion &amp; film",
     It is on the service page rather than behind a link because most visitors
     never follow the link -- the work has to be in front of them.
     """
-    if not ready_films():
+    if not ready_films(group):
         return ""
     return f"""
 <section class="wk-chapter wk-films wk-embed" data-chapter="film">
@@ -287,7 +293,7 @@ def films_embed(prefix="../", title="Motion &amp; film",
       </div>
       <p class="wk-ch-blurb">{blurb}</p>
     </div>
-    <div class="wk-film-grid">{film_cards(prefix)}</div>
+    <div class="wk-film-grid">{film_cards(prefix, group)}</div>
   </div>
 </section>
 """
@@ -313,6 +319,14 @@ def build():
         body += chapter(n, key, first=(n == 1))
         n += 1
     body += films_section(n)
+    if ready_films("bts"):
+        n += 1
+        body += films_section(
+            n, group="bts", title="Behind the scenes",
+            kind="On set",
+            blurb=("From the shoots themselves &mdash; the set, the rig and "
+                   "the crew. Straight off the camera, not cut for a "
+                   "campaign."))
 
     body += TAIL.format(viewer=VIEWER)
 

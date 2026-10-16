@@ -460,7 +460,8 @@ def build(svc, others):
 
     body = HEAD.format(
         work_css=('\n<link rel="stylesheet" href="../css/work.css">'
-                  if svc["slug"] == "brand-identity" else ""),
+                  if svc["slug"] in ("brand-identity", "photography-reels")
+                  else ""),
         title_plain=plain(svc["title"]),
         desc=plain(svc["lead"])[:150],
         icon=ICON[svc["icon"]],
@@ -491,9 +492,19 @@ def build(svc, others):
         # never follow a link to see more, so the motion work has to be in
         # front of them or it may as well not exist.
         gallery += films_embed(
+            group="motion",
             blurb="The same thinking in motion. Short films cut for brands "
                   "and campaigns &mdash; shot, edited, graded and scored in "
                   "house.")
+
+    # Photography & Reels gets the behind-the-scenes clips: that page is about
+    # how the work is made, so the set is the subject rather than the output.
+    if svc["slug"] == "photography-reels":
+        gallery = films_embed(
+            group="bts",
+            title="Behind the scenes",
+            blurb="From the shoots themselves &mdash; the set, the rig and the "
+                  "crew. Straight off the camera, not cut for a campaign.")
 
     # A page with the showcase wheel leads with the work itself. The bullet
     # list and the case-study block both sat between the hero and the wheel,

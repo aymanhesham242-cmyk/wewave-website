@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/service.css">
+<link rel="stylesheet" href="../css/work.css">
 </head>
 <body>
 
@@ -41,14 +42,17 @@
   </div>
 </section>
 
-<section class="case">
+<section class="wk-chapter wk-films wk-embed" data-chapter="film">
   <div class="wrap">
-    <p class="sec-label">Case study</p>
-    <h2>Coming soon</h2>
-    <p class="case-note">We have work to show here — it just is not written up yet. Ask us for examples in this area and we will walk you through them.</p>
-    <div class="shot">
-      <p class="shot-hint">Case study slot<br>add results and a screenshot at assets/cases/photography-reels.png</p>
+    <div class="wk-ch-head">
+      <span class="wk-ch-num">&#9679;</span>
+      <div class="wk-ch-id">
+        <h2>Behind the scenes</h2>
+        <span class="wk-ch-kind">Production, editing and motion</span>
+      </div>
+      <p class="wk-ch-blurb">From the shoots themselves &mdash; the set, the rig and the crew. Straight off the camera, not cut for a campaign.</p>
     </div>
+    <div class="wk-film-grid"><button class="wk-film" type="button" data-src="../assets/work/film-cafe.mp4" data-title="Cafe shoot" data-brand="" aria-label="Play Cafe shoot, 1:08"><img src="../assets/work/film-cafe-poster.webp" alt="Behind the scenes on the cafe shoot." width="720" height="1280" loading="lazy" decoding="async"><span class="wk-film-play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg></span><span class="wk-film-meta"><span class="wk-film-title">Cafe shoot</span><span class="wk-film-len">1:08</span></span></button><button class="wk-film" type="button" data-src="../assets/work/film-inside-operations.mp4" data-title="Inside operations" data-brand="" aria-label="Play Inside operations, 0:28"><img src="../assets/work/film-inside-operations-poster.webp" alt="Behind the scenes: inside the shoot operation." width="720" height="1280" loading="lazy" decoding="async"><span class="wk-film-play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg></span><span class="wk-film-meta"><span class="wk-film-title">Inside operations</span><span class="wk-film-len">0:28</span></span></button><button class="wk-film" type="button" data-src="../assets/work/film-technical.mp4" data-title="Technical setup" data-brand="" aria-label="Play Technical setup, 0:14"><img src="../assets/work/film-technical-poster.webp" alt="Behind the scenes: the technical setup on location." width="720" height="1280" loading="lazy" decoding="async"><span class="wk-film-play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg></span><span class="wk-film-meta"><span class="wk-film-title">Technical setup</span><span class="wk-film-len">0:14</span></span></button><button class="wk-film" type="button" data-src="../assets/work/film-tk.mp4" data-title="On set" data-brand="" aria-label="Play On set, 1:05"><img src="../assets/work/film-tk-poster.webp" alt="Behind the scenes on set." width="720" height="1280" loading="lazy" decoding="async"><span class="wk-film-play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg></span><span class="wk-film-meta"><span class="wk-film-title">On set</span><span class="wk-film-len">1:05</span></span></button></div>
   </div>
 </section>
 
@@ -70,6 +74,31 @@
 </section>
 </main>
 
+<div class="wk-view" id="wkView" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-label="Work viewer">
+  <div class="wk-view-bar">
+    <span class="wk-view-brand" id="wkViewBrand"></span>
+    <button class="wk-view-x" id="wkViewClose" type="button" aria-label="Close viewer">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+
+  <button class="wk-view-nav wk-view-prev" id="wkViewPrev" type="button" aria-label="Previous">
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+  </button>
+  <button class="wk-view-nav wk-view-next" id="wkViewNext" type="button" aria-label="Next">
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+  </button>
+
+  <div class="wk-stage" id="wkStage">
+    <img id="wkViewImg" alt="">
+  </div>
+
+  <div class="wk-view-foot">
+    <p class="wk-view-title" id="wkViewTitle"></p>
+    <div class="wk-strip" id="wkStrip" role="tablist" aria-label="Jump to a piece"></div>
+  </div>
+</div>
+
 <footer class="foot">
   <div class="foot-in">
     <span>&copy; 2026 WeWave</span>
@@ -77,5 +106,6 @@
   </div>
 </footer>
 <script src="../js/analytics.js" defer></script>
+<script src="../js/work.js" defer></script>
 </body>
 </html>

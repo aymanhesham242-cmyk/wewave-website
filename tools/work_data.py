@@ -211,15 +211,31 @@ WORK = [
 #
 #   slug    assets/work/<slug>.mp4 and <slug>-poster.webp
 #   brand   leave empty where the client is not cleared to be named
+#   group   which band a film belongs to. "motion" is the campaign and brand
+#           film; "bts" is behind the scenes from the shoots themselves.
+#           /work shows every group; a service page asks for one.
 FILMS = [
-    dict(slug="film-motion", title="Motion", brand="", length="0:32",
+    dict(slug="film-motion", title="Motion", brand="", length="0:32", group="motion",
          alt="Still from the Motion showreel."),
-    dict(slug="film-we", title="We", brand="", length="0:22",
+    dict(slug="film-we", title="We", brand="", length="0:22", group="motion",
          alt="Still from the We film."),
     dict(slug="film-alkamal", title="Al Kamal Hospital", brand="", length="0:28",
-         alt="Still from the Al Kamal Hospital film."),
+         group="motion", alt="Still from the Al Kamal Hospital film."),
     dict(slug="film-eraasoft", title="Eraa Soft", brand="", length="0:50",
-         alt="Still from the Eraa Soft film."),
+         group="motion", alt="Still from the Eraa Soft film."),
+
+    # Behind the scenes, from the shoots. Lower resolution than the campaign
+    # films because that is what came off the set -- they are not upscaled.
+    dict(slug="film-cafe", title="Cafe shoot", brand="", length="1:08", group="bts",
+         alt="Behind the scenes on the cafe shoot."),
+    dict(slug="film-inside-operations", title="Inside operations", brand="",
+         length="0:28", group="bts",
+         alt="Behind the scenes: inside the shoot operation."),
+    dict(slug="film-technical", title="Technical setup", brand="",
+         length="0:14", group="bts",
+         alt="Behind the scenes: the technical setup on location."),
+    dict(slug="film-tk", title="On set", brand="", length="1:05", group="bts",
+         alt="Behind the scenes on set."),
 ]
 
 
