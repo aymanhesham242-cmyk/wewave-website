@@ -246,10 +246,17 @@ CSP = (
 )
 
 # Only this line of the header block depends on the launch switch.
-ROBOTS_LINE = (
-    "  X-Robots-Tag: index, follow\n" if SITE_URL
-    else "  X-Robots-Tag: noindex, nofollow, noarchive\n"
-)
+#
+# When the site IS open, this emits nothing at all. `index, follow` is what a
+# crawler assumes anyway, so it buys nothing -- and it actively hurt: Cloudflare
+# appends the rules of every matching block rather than letting the narrower one
+# win, so /admin/ went out carrying BOTH `index, follow` from /* and
+# `noindex, nofollow, noarchive` from /admin/*. Search engines resolve that
+# conflict toward the restrictive directive, but shipping a header that
+# contradicts itself on the one path that must never be indexed is not
+# something to leave resting on a tie-breaker rule. Saying nothing here leaves
+# /admin/* with a single unambiguous noindex.
+ROBOTS_LINE = "" if SITE_URL else "  X-Robots-Tag: noindex, nofollow, noarchive\n"
 
 (DIST / "_headers").write_text(
     "/*\n"
