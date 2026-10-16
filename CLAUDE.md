@@ -166,6 +166,33 @@ produces the position you want and call `scrollToProgress()` — that is what th
 nav links and the sideways swipe both do, which is why they cannot disagree.
 `easeIOInv()` exists to convert a wanted rail offset back into progress.
 
+## The service cards
+
+Redesigned October 2026. The cards live in `index.html` (hand-written, not
+generated) and their styles are one block in `css/style.css`.
+
+- **The lift uses `translate`, not `transform`.** The cards carry `data-anim`
+  for the entrance, and `.stage.in [data-anim]{transform:none}` is specificity
+  0,3,0 -- higher than `.scard:hover` at 0,2,0. A `transform` on hover is
+  silently cancelled once the stage settles. `translate` is its own property
+  and composes with the entrance instead of fighting it. This cost a real
+  debugging session; do not "simplify" it back to transform.
+- **The action is visible by default.** It used to be `.scard-more` at .75
+  opacity, revealed on hover -- so nobody who did not hover ever learned the
+  card was a link, and nobody hovers on a phone. `.scard-go` is always on.
+- **The photograph is lightened, not darkened.** The type on these cards is
+  dark, so `.scard-shot` is brightened and blurred and `::after` lays a *cream*
+  scrim over it. web-development's shot is a dark code screen and at the old
+  26-76% scrim it swallowed the body copy.
+- **`::before` is the accent rule, `.scard-shot` is the photograph.** They
+  used to share `::before`; the bar needed a third layer, so the photo moved to
+  a real element. `--shot` is still set only by `css/service-shots.css`, and
+  only for slugs whose file exists, so a missing image is never requested.
+- The card is a plain `<a href>` with nothing interactive inside it. Keep it
+  that way: no nested buttons, no click handlers, Enter works natively.
+- Cards in a stage that is not live are `visibility:hidden`, so they are
+  correctly out of the tab order until you scroll to them.
+
 ## Analytics
 
 `js/analytics.js` collects behaviour into the D1 tables `a_event` / `a_session`

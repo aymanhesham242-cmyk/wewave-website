@@ -511,104 +511,174 @@ canvas{display:block;}
   touch-action:pan-y;
 }
 .scard{
-  flex:0 0 clamp(230px,25vw,310px);
-  border:1px solid var(--line);border-radius:14px;
-  padding:clamp(20px,2.2vw,30px);
-  background:color-mix(in srgb,var(--ink) 4%,transparent);
-  transition:border-color .4s,transform .5s var(--ease),background-color .4s,box-shadow .5s var(--ease);
-  /* now a button: reset UA styling, keep the card look */
+  flex:0 0 clamp(248px,26vw,330px);
+  border-radius:16px;
+  padding:clamp(22px,2.4vw,32px);
+  /* A real surface rather than a 4% tint of the ink. On the cream ground of
+     this stage a card has to be lighter than what it sits on, or it reads as
+     a rectangle of text rather than something you can pick up. */
+  background:linear-gradient(180deg,
+    color-mix(in srgb,#FFFFFF 72%,transparent),
+    color-mix(in srgb,#FFFFFF 46%,transparent));
+  border:1px solid color-mix(in srgb,var(--ink) 11%,transparent);
+  box-shadow:
+    0 1px 2px color-mix(in srgb,var(--deep) 5%,transparent),
+    0 14px 30px -22px color-mix(in srgb,var(--deep) 42%,transparent);
+  transition:
+    border-color .45s var(--ease),
+    translate .5s var(--ease),
+    scale .5s var(--ease),
+    box-shadow .5s var(--ease),
+    background-color .45s var(--ease);
   position:relative;overflow:hidden;isolation:isolate;
   font:inherit;color:inherit;text-align:left;cursor:pointer;
+  text-decoration:none;
   display:flex;flex-direction:column;align-items:flex-start;
+  min-height:clamp(250px,25vw,300px);
 }
-.scard:hover{border-color:var(--glow);transform:translateY(-8px);}
-.scard:focus-visible{outline:2px solid var(--glow);outline-offset:3px;}
-.scard-num{font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;color:var(--glow);}
-.scard h3{
-  font-family:var(--display);font-weight:400;text-transform:uppercase;letter-spacing:.02em;
-  font-size:clamp(19px,2vw,26px);line-height:1.05;margin:14px 0 10px;
-}
-.scard p{font-size:13.5px;line-height:1.6;color:var(--dim);}
 
-/* Watermark illustration. Single-colour line art at low opacity, so it can
-   never fight the palette the way a photograph would. */
+/* the accent rule across the top: the card's one piece of chrome, and the
+   fastest signal that something happens when you touch it */
+.scard::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;z-index:2;
+  background:linear-gradient(90deg,var(--glow),color-mix(in srgb,var(--glow) 35%,transparent));
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .55s var(--ease);
+  pointer-events:none;
+}
+.scard:hover::before,
+.scard:focus-visible::before,
+.scard.is-active::before{transform:scaleX(1);}
+
+/* The lift uses `translate`, not `transform`, on purpose. These cards carry
+   `data-anim` for the entrance, and `.stage.in [data-anim]{transform:none}`
+   has higher specificity than `.scard:hover` -- so a transform here is
+   silently cancelled once the stage has settled. `translate` is its own
+   property and composes with the entrance instead of fighting it. */
+.scard:hover,
+.scard.is-active{
+  translate:0 -10px;
+  border-color:color-mix(in srgb,var(--glow) 46%,transparent);
+  box-shadow:
+    0 2px 4px color-mix(in srgb,var(--deep) 7%,transparent),
+    0 30px 56px -30px color-mix(in srgb,var(--deep) 60%,transparent);
+}
+.scard:focus-visible{outline:2px solid var(--glow);outline-offset:4px;}
+/* a pressed state for touch, where there is no hover to lean on */
+.scard:active{translate:0 -4px;scale:.994;}
+
+/* ---------- the number, as an editorial accent ---------- */
+
+.scard-num{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.24em;
+  color:var(--glow);
+  display:inline-flex;align-items:center;gap:10px;
+}
+.scard-num::after{
+  content:'';width:22px;height:1px;
+  background:color-mix(in srgb,var(--glow) 55%,transparent);
+  transition:width .5s var(--ease);
+}
+.scard:hover .scard-num::after,
+.scard.is-active .scard-num::after{width:38px;}
+
+/* ---------- type ---------- */
+
+.scard h3{
+  font-family:var(--display);font-weight:400;text-transform:uppercase;
+  letter-spacing:.015em;
+  font-size:clamp(21px,2.25vw,29px);line-height:1.08;
+  margin:15px 0 11px;
+  color:var(--ink);
+  /* long titles break between words, never mid-word */
+  overflow-wrap:break-word;hyphens:none;
+}
+.scard p{
+  font-size:13.8px;line-height:1.62;
+  /* was --dim, which on the cream ground sat too close to the background to
+     read comfortably at this size */
+  color:color-mix(in srgb,var(--ink) 74%,transparent);
+  margin:0;
+}
+
+/* ---------- the action: the point of the whole card ---------- */
+
+.scard-go{
+  margin-top:auto;padding-top:20px;
+  display:inline-flex;align-items:center;gap:11px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--glow);
+  /* Always visible. It used to sit at .75 opacity and only come up on hover,
+     which meant a visitor who never hovered never learned the card was a
+     link -- and on a phone, nobody hovers. */
+  opacity:1;
+}
+.scard-go-arrow{
+  width:28px;height:28px;border-radius:50%;flex:0 0 28px;
+  display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid color-mix(in srgb,var(--glow) 42%,transparent);
+  background:color-mix(in srgb,var(--glow) 8%,transparent);
+  transition:background-color .4s var(--ease),border-color .4s var(--ease),
+             transform .45s var(--ease);
+}
+.scard-go-arrow svg{width:13px;height:13px;transition:transform .45s var(--ease);}
+.scard:hover .scard-go-arrow,
+.scard:focus-visible .scard-go-arrow,
+.scard.is-active .scard-go-arrow{
+  background:var(--glow);border-color:var(--glow);
+  transform:translateX(4px);
+}
+.scard:hover .scard-go-arrow svg,
+.scard:focus-visible .scard-go-arrow svg,
+.scard.is-active .scard-go-arrow svg{color:var(--bg);transform:translateX(1px);}
+
+/* ---------- the decorative mark ---------- */
+
 .scard-art{
-  position:absolute;right:-14px;bottom:-16px;z-index:-1;
-  width:clamp(112px,11vw,150px);height:auto;
-  color:var(--glow);opacity:.13;
-  transition:opacity .45s var(--ease),transform .55s var(--ease);
+  position:absolute;right:-12px;bottom:-14px;z-index:-1;
+  width:clamp(116px,11.5vw,156px);height:auto;
+  color:var(--glow);opacity:.17;
+  transition:opacity .45s var(--ease),transform .6s var(--ease);
   pointer-events:none;
 }
 .scard:hover .scard-art,
-.scard.is-active .scard-art{opacity:.22;transform:translate(-4px,-4px) rotate(-4deg);}
+.scard.is-active .scard-art{opacity:.3;transform:translate(-6px,-6px) rotate(-5deg);}
 
-/* Photo revealed on hover. Graded rather than drained: the previous treatment
-   ran grayscale(1) at half opacity, which is why the pictures read as flat grey
-   shapes. Colour now stays, contrast and saturation lift a little, exposure
-   comes down slightly so the scrim above has less work to do, and a 2px
-   softness stops fine detail fighting the copy.
+/* ---------- the photograph, revealed on hover ---------- */
 
-   A missing file paints nothing -- no broken-image state -- so a card without
-   photography simply keeps its icon. */
-.scard::before{
+/* --shot is set per card by css/service-shots.css, and only for slugs whose
+   file actually exists, so this never requests a missing image. */
+.scard-shot{
   content:'';position:absolute;inset:0;z-index:-3;
   background-image:var(--shot);background-size:cover;background-position:center;
-  filter:saturate(1.14) contrast(1.08) brightness(.86) blur(2px);
-  opacity:0;transform:scale(1.06);
-  transition:opacity .55s var(--ease),transform .8s var(--ease);
+  /* Lightened and softened, not darkened. The photograph is atmosphere
+     behind dark type, so it has to sit back -- web-development's shot is a
+     dark code screen and at full contrast it swallowed the body copy. */
+  filter:saturate(1.05) contrast(.96) brightness(1.08) blur(3px);
+  opacity:0;transform:scale(1.07);
+  transition:opacity .55s var(--ease),transform .9s var(--ease);
   pointer-events:none;
 }
-/* Readability scrim, in two layers.
-
-   The first leans on --bg rather than a fixed dark, because the page is cream
-   with near-black copy while Services is on screen -- a dark overlay would bury
-   the text instead of lifting it. It is lighter at the head of the card and
-   firmer at the foot, where the description and the link sit.
-
-   The second is the brand tint: a little --glow gathered in one corner, so the
-   photograph is connected to the identity without being washed green. */
+/* A cream scrim, not a dark one: the type on this card is dark, so the
+   photograph has to be lightened under it rather than dimmed. */
 .scard::after{
   content:'';position:absolute;inset:0;z-index:-2;
   background:
     linear-gradient(168deg,
-      color-mix(in srgb,var(--bg) 26%,transparent) 0%,
-      color-mix(in srgb,var(--bg) 54%,transparent) 48%,
-      color-mix(in srgb,var(--bg) 76%,transparent) 100%),
-    linear-gradient(205deg,
-      transparent 42%,
-      color-mix(in srgb,var(--glow) 20%,transparent) 100%);
+      color-mix(in srgb,var(--bg) 78%,transparent) 0%,
+      color-mix(in srgb,var(--bg) 88%,transparent) 46%,
+      color-mix(in srgb,var(--bg) 95%,transparent) 100%),
+    linear-gradient(205deg, transparent 40%,
+      color-mix(in srgb,var(--glow) 16%,transparent) 100%);
   opacity:0;transition:opacity .55s var(--ease);
   pointer-events:none;
 }
-/* Hover is gated behind a real pointer: on a phone :hover sticks after a tap,
-   which would leave a second photo showing alongside the scroll-activated one.
-   Desktop matches (hover:hover), so its behaviour is unchanged. */
-@media (hover:hover){
-  .scard:hover::before{opacity:.94;transform:scale(1);}
-  .scard:hover::after{opacity:1;}
-  .scard:hover{box-shadow:0 20px 44px -26px rgba(0,0,0,.5),
-                          inset 0 0 0 1px color-mix(in srgb,var(--glow) 20%,transparent);}
-}
-/* Touch equivalent. Set by servicesRail() on the card nearest the viewport
-   centre, and on tap. Deliberately no translateY lift here -- on a phone the
-   card is already moving past, and lifting it as well reads as a wobble. */
-.scard.is-active{
-  border-color:var(--glow);
-  box-shadow:0 20px 44px -26px rgba(0,0,0,.5),
-             inset 0 0 0 1px color-mix(in srgb,var(--glow) 20%,transparent);
-}
-.scard.is-active::before{opacity:.94;transform:scale(1);}
+.scard:hover .scard-shot,
+.scard:focus-visible .scard-shot,
+.scard.is-active .scard-shot{opacity:1;transform:scale(1);}
+.scard:hover::after,
+.scard:focus-visible::after,
 .scard.is-active::after{opacity:1;}
-
-
-.scard-more{
-  margin-top:auto;padding-top:16px;
-  font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;
-  color:var(--glow);opacity:.75;transition:opacity .35s;
-}
-.scard-more::after{content:' →';}
-.scard:hover .scard-more,
-.scard.is-active .scard-more{opacity:1;}
 
 
 /* ---------- Process ---------- */
@@ -1057,6 +1127,15 @@ canvas{display:block;}
   .rail{flex-wrap:wrap;padding-left:0;transform:none!important;}
   .scard{flex-basis:280px;}
   .scard-art{transition:none;}
+  /* Reduced motion removes the movement, not the feedback: the card still
+     changes colour, still reveals its photograph and still fills the arrow,
+     it just does not slide or lift while doing it. */
+  .scard{transition:border-color .2s linear,box-shadow .2s linear;}
+  .scard:hover,.scard.is-active,.scard:active{translate:none;scale:none;}
+  .scard::before,.scard::after,.scard-shot,
+  .scard-num::after,.scard-go-arrow,.scard-go-arrow svg{transition:none;}
+  .scard:hover .scard-go-arrow,.scard.is-active .scard-go-arrow{transform:none;}
+  .scard:hover .scard-art,.scard.is-active .scard-art{transform:none;}
   /* no drift: let the logos wrap into a static wall instead */
   .ticker{width:auto;-webkit-mask-image:none;mask-image:none;}
   .ticker-row{flex-wrap:wrap;width:auto;justify-content:center;transform:none!important;}
