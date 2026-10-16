@@ -682,21 +682,111 @@ canvas{display:block;}
 
 
 /* ---------- Process ---------- */
-.steps{margin-top:clamp(26px,3.6vw,48px);max-width:760px;}
-.steps li{
-  display:flex;gap:clamp(18px,2.4vw,34px);
-  padding:clamp(15px,1.9vw,24px) 0;
-  border-top:1px solid var(--line);
-  opacity:.32;transform:translateX(-8px);
-  transition:opacity .6s var(--ease),transform .6s var(--ease);
+.steps{
+  margin-top:clamp(26px,3.6vw,48px);
+  max-width:780px;
+  /* a grid rather than stacked list items, so the row gap is one number the
+     connecting spine below can bridge exactly */
+  display:grid;
+  gap:clamp(20px,2.6vw,36px);
+  --step-dot:42px;
+  --step-gap:clamp(20px,2.6vw,36px);
 }
-.steps li.on{opacity:1;transform:none;}
-.step-n{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--glow);padding-top:5px;flex:none;}
+.steps li{
+  position:relative;
+  display:grid;
+  grid-template-columns:var(--step-dot) 1fr;
+  gap:0 clamp(18px,2.4vw,32px);
+  align-items:start;
+  /* was a hairline between every row; the spine carries the rhythm now */
+  border-top:0;
+  padding:0;
+  opacity:.34;
+  translate:-8px 0;
+  transition:opacity .6s var(--ease),translate .6s var(--ease);
+}
+.steps li.on{opacity:1;translate:none;}
+
+/* ---------- the spine ---------- */
+
+/* One segment per step, reaching down through the row gap to the next
+   marker, so five separate elements read as one continuous line. The last
+   step has nothing below it to reach. */
+.steps li::before{
+  content:'';position:absolute;z-index:0;
+  left:calc(var(--step-dot) / 2);
+  translate:-50% 0;
+  top:var(--step-dot);
+  bottom:calc(-1 * var(--step-gap));
+  width:1px;
+  background:color-mix(in srgb,var(--ink) 16%,transparent);
+  transition:background-color .6s var(--ease);
+}
+.steps li:last-child::before{display:none;}
+.steps li.on::before{background:color-mix(in srgb,var(--glow) 42%,transparent);}
+
+/* ---------- the marker ---------- */
+
+.step-n{
+  position:relative;z-index:1;
+  width:var(--step-dot);height:var(--step-dot);
+  border-radius:50%;
+  display:grid;place-items:center;
+  font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+  /* sits on its own ground so the spine passes behind, not through */
+  background:var(--bg);
+  border:1px solid color-mix(in srgb,var(--ink) 18%,transparent);
+  color:color-mix(in srgb,var(--ink) 55%,transparent);
+  padding-top:0;flex:none;
+  transition:border-color .5s var(--ease),color .5s var(--ease),
+             background-color .5s var(--ease),box-shadow .5s var(--ease);
+}
+.steps li.on .step-n{
+  border-color:var(--glow);
+  color:var(--glow);
+  background:color-mix(in srgb,var(--glow) 9%,var(--bg));
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--glow) 10%,transparent);
+}
+
+/* ---------- type ---------- */
+
 .steps h3{
   font-family:var(--display);font-weight:400;text-transform:uppercase;
-  font-size:clamp(21px,2.5vw,32px);line-height:1;margin-bottom:7px;letter-spacing:.02em;
+  font-size:clamp(21px,2.5vw,32px);line-height:1.06;
+  margin:0 0 8px;letter-spacing:.02em;
+  /* lines the cap height up with the centre of the marker beside it */
+  padding-top:4px;
 }
-.steps p{font-size:14.5px;line-height:1.6;color:var(--dim);max-width:52ch;}
+/* Five steps plus a heading is taller than a short laptop viewport. The
+   stage centres its content, so anything taller than the box overflows both
+   ways -- the heading slid up behind the fixed brand mark and the last two
+   steps fell below the fold. Compress rather than clip. */
+@media (max-height:820px) and (min-width:760px){
+  .steps{gap:clamp(12px,1.4vw,18px);--step-dot:34px;margin-top:clamp(16px,2vw,26px);}
+  .steps h3{font-size:clamp(18px,1.9vw,23px);margin-bottom:5px;padding-top:2px;}
+  .steps p{font-size:13px;line-height:1.5;}
+}
+@media (max-height:680px) and (min-width:760px){
+  .steps{gap:8px;--step-dot:30px;margin-top:12px;}
+  .steps h3{font-size:18px;margin-bottom:3px;}
+  .steps p{font-size:12.5px;line-height:1.42;}
+}
+@media (max-height:600px) and (min-width:760px){
+  /* the floor: below this the copy would stop being readable, so the
+     description drops to one line and the heading carries the step */
+  .steps{gap:6px;--step-dot:28px;margin-top:8px;}
+  .steps h3{font-size:17px;margin-bottom:2px;}
+  .steps p{font-size:12px;line-height:1.38;}
+}
+
+.steps p{
+  font-size:14.5px;line-height:1.65;
+  /* was --dim, the same wash that made the service card copy hard to read
+     on this cream ground */
+  color:color-mix(in srgb,var(--ink) 72%,transparent);
+  max-width:52ch;
+  margin:0;
+}
 
 /* ---------- Clients ticker ---------- */
 .ticker{
@@ -890,7 +980,10 @@ canvas{display:block;}
   .lamp-cast{display:none;}
 }
 @media (max-width:560px){
-  .steps li{gap:14px;}
+  /* a 42px marker plus a 14px gutter eats a phone's width, so the
+     marker shrinks and the spine follows it */
+  .steps{--step-dot:34px;}
+  .steps li{gap:0 14px;}
   .steps p{font-size:13.5px;}
   .body-copy{font-size:15px;}
   .scard{flex-basis:76vw;}
@@ -1121,7 +1214,8 @@ canvas{display:block;}
   }
   [data-anim],.display .ln i{opacity:1!important;transform:none!important;transition:none!important;}
   .ways.is-open{animation:none;}
-  .steps li{opacity:1;transform:none;}
+  .steps li{opacity:1;translate:none;transform:none;}
+  .steps li::before,.step-n{transition:none;}
   .chrome-top,.chrome-bottom{position:static;opacity:1;transform:none;}
   .chrome-top{background:var(--deep);}
   .rail{flex-wrap:wrap;padding-left:0;transform:none!important;}

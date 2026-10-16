@@ -193,6 +193,30 @@ generated) and their styles are one block in `css/style.css`.
 - Cards in a stage that is not live are `visibility:hidden`, so they are
   correctly out of the tab order until you scroll to them.
 
+## The process steps
+
+Redesigned October 2026, in the same pass as the service cards.
+
+- **The spine is five segments, not one line.** Each `li::before` reaches from
+  its own marker down through the row gap to the next one, which is why
+  `.steps` is a grid with a known `--step-gap` the segment can bridge with a
+  negative `bottom`. The last step has nothing below it and hides its segment.
+- **`.step-n` sits on `var(--bg)`** so the spine passes behind the marker
+  rather than through it. If the stage ground ever changes, that has to change
+  with it.
+- **The reveal is cumulative and scroll-driven** -- `processSteps()` toggles
+  `.on` for every `i <= active`, so the spine and markers light up in order.
+  Do not make it a per-element observer; it is already in the one rAF loop.
+- **The reveal uses `translate`, not `transform`,** for the same reason the
+  service cards do.
+- **Short viewports were the real bug.** The stage centres its content, so
+  content taller than the box overflows *both* ways: the heading slid up
+  behind the fixed brand mark and the last two steps fell below the fold.
+  Three `max-height` tiers compress the steps instead. They are ordered
+  820 -> 680 -> 600, tightest last, because at 560px tall all three match and
+  the cascade gives it to whichever comes last. Verified fitting at 560, 640,
+  760, 900 and 1000.
+
 ## Analytics
 
 `js/analytics.js` collects behaviour into the D1 tables `a_event` / `a_session`
