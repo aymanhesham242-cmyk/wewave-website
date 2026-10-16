@@ -298,11 +298,15 @@ body.wk-locked{overflow:hidden;}
 .wk-embed{padding-top:0;border-top:0;}
 .wk-embed .wk-ch-head{margin-bottom:clamp(24px,3vw,38px);}
 /* An embedded band that changes the ground colour needs its own air back --
-   without this the dark film band butts straight onto the images above it. */
+   without this the dark film band butts straight onto the images above it.
+   The margin is only right when something light sits above: following the
+   hero directly, as on Photography & Reels, it showed a sliver of page
+   background between two dark sections and read as a seam. */
 .wk-films.wk-embed{
   padding-top:clamp(44px,6vw,86px);
-  margin-top:clamp(34px,4.5vw,64px);
+  margin-top:0;
 }
+.wk-chapter + .wk-films.wk-embed{margin-top:clamp(34px,4.5vw,64px);}
 
 /* --------------------------------------------------- responsive */
 

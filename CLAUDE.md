@@ -456,7 +456,15 @@ Report: `docs/portfolio-build-report.md`.
   `films_embed()` (on the service page) use it.
 - **`.wk-films.wk-embed` restores the top padding `.wk-embed` removes.** An
   embedded band that changes the ground colour needs its own air, or the dark
-  film band butts straight onto the images above it.
+  film band butts straight onto the images above it. The *margin* is only
+  applied by `.wk-chapter + .wk-films.wk-embed`, i.e. when a band of stills
+  sits above it. Following the hero directly, as on Photography & Reels, that
+  margin showed a sliver of cream between two dark sections and read as a seam.
+- **Photography & Reels has no "What it includes" list.** A page that shows the
+  work leads with it; the bullets sat between the hero and the reels saying
+  less than they do. Same reasoning as the wheel on web-development. Pages with
+  nothing else on them keep the list -- without it they would be a hero and
+  nothing more.
 - **`/services/brand-identity` embeds a band through `embed()` in
   build_work.py** -- the same `piece()`, the same viewer, the same stylesheet.
   One implementation, so the service page and /work cannot drift. That page

@@ -506,12 +506,13 @@ def build(svc, others):
             blurb="From the shoots themselves &mdash; the set, the rig and the "
                   "crew. Straight off the camera, not cut for a campaign.")
 
-    # A page with the showcase wheel leads with the work itself. The bullet
-    # list and the case-study block both sat between the hero and the wheel,
-    # pushing it below the fold and saying less than it does. Pages without a
-    # wheel keep both -- without them there would be nothing left on the page.
+    # A page that shows the work leads with it. The bullet list sat between
+    # the hero and the work, pushing it below the fold and saying less than it
+    # does -- true of the wheel on web-development and of the reels here.
+    # Pages with nothing else on them keep the list; without it there would be
+    # a hero and nothing more.
     wheel_page = bool(svc.get("folio"))
-    if not wheel_page:
+    if not wheel_page and svc["slug"] != "photography-reels":
         body += INCLUDES.format(items=items)
 
     cases = [c for c in CASES if c.get("service") == svc["slug"]] or (
