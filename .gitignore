@@ -7,3 +7,6 @@ node_modules/
 
 # local Worker secrets — never committed
 .dev.vars
+
+# database exports -- visitor data, never committed
+backup/
