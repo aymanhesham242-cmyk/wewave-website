@@ -41,8 +41,16 @@ def check(name, got, want):
     print(("  PASS  " if got == want else "  FAIL  ") + f"{name:52} got {got!r}")
 
 
+# Analytics ingest drops crawlers by User-Agent, and urllib announces itself as
+# `python-urllib/3.x`, which the filter correctly treats as one. Without this
+# every ingest test here silently gets the crawler's empty 204 and the suite
+# reads it as a broken endpoint. Same reason tools/test_analytics.py sets one.
+BROWSER_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+              "(KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36")
+
+
 def req(path, method="GET", body=None, headers=None, ip=IP):
-    h = {"CF-Connecting-IP": ip}
+    h = {"CF-Connecting-IP": ip, "User-Agent": BROWSER_UA}
     if body is not None:
         h["Content-Type"] = "application/json"
     h.update(headers or {})
@@ -72,9 +80,21 @@ for key, frag in [("content-security-policy", "frame-ancestors 'none'"),
                   ("x-frame-options", "DENY"),
                   ("strict-transport-security", "max-age=31536000"),
                   ("permissions-policy", "camera=()"),
-                  ("x-content-type-options", "nosniff"),
-                  ("x-robots-tag", "noindex")]:
+                  ("x-content-type-options", "nosniff")]:
     check(f"/ has {key}: {frag[:34]}", frag in hl.get(key, ""), True)
+
+# The homepage must NOT carry a robots header. It used to assert `noindex`,
+# from when the site was closed to search engines; that flipped on 2026-10-16
+# when SITE_URL was filled in. It is not simply inverted to `index, follow`
+# either: Cloudflare's _headers appends every matching block, so anything set
+# on /* also lands on /admin/*, and /admin/ ended up carrying both `index,
+# follow` and its own `noindex`. /* now says nothing, which is what a crawler
+# assumes anyway. These two checks are the pair that keeps that honest.
+check("/ carries no robots header", "x-robots-tag" in hl, False)
+_, _, ah = req("/admin/")
+check("/admin/ is noindex, and says it once",
+      [v for k, v in ah.items() if k.lower() == "x-robots-tag"],
+      ["noindex, nofollow, noarchive"])
 
 _, _, h = req("/assets/clients/nasaq.png")
 hl = {k.lower(): v for k, v in h.items()}
