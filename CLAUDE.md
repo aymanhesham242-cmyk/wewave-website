@@ -289,6 +289,20 @@ Full report: `docs/analytics-qa-audit.md`. Regression tests:
   the raw rows and compares with the API -- run it after touching any query.
   Two integrity rows still FAIL against production data until the repair in
   `docs/admin-analytics-test-report.md` is approved and run.
+- **Run it against real data or its result is a lie.** Against a fresh local
+  database it reports "63 matched, 0 mismatched" while 23 of those 63 compared
+  `0` to `0` -- the whole heatmap section included. That is not a passing
+  check, it is an absent one, and it was reported as a clean bill of health on
+  2026-10-19. Before trusting a run, copy production in first (SELECT-only; the
+  dump belongs in a scratch directory, never the repo) and check how many rows
+  of the generated table are zero on both sides. With real data loaded the
+  vacuous count drops to 6, and those six are genuinely zero: nobody has
+  submitted the booking form yet.
+- The booking funnel is wired from `js/analytics.js`, not from
+  `js/meeting-modal.js` -- the tracker watches the modal rather than the modal
+  knowing about analytics. Grepping the modal for `MEETING_FORM_START` finds
+  nothing and looks like a dead funnel; it is not. Verified by typing into the
+  form and watching the event land.
 
 ## The case study simulator
 
