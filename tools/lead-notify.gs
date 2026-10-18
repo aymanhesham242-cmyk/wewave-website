@@ -37,7 +37,13 @@
  * and give me the new URL. Nothing else needs touching.
  */
 
-var TO_ADDRESS   = '';              // blank = the Gmail running this script
+// Must be a real address, written out in full. Do NOT use
+// Session.getActiveUser().getEmail() here: when a web app is deployed with
+// access set to "Anyone", the caller is anonymous, so that returns an empty
+// string, MailApp is handed an empty recipient and the send fails with
+// nothing in the inbox to show for it. getEffectiveUser() would work, but a
+// literal address is one less thing that can silently resolve to nothing.
+var TO_ADDRESS   = 'aymanhesham242@gmail.com';
 var SHARED_SECRET = 'change-me';    // must match ?key= on the URL you hand over
 
 
@@ -54,8 +60,6 @@ function doPost(e) {
     return ContentService.createTextOutput('bad json');
   }
 
-  var to = TO_ADDRESS || Session.getActiveUser().getEmail();
-
   // The Worker deliberately leaves the phone number and the visitor's message
   // out of this payload -- they stay in D1 behind the admin token. That is why
   // the mail ends with a pointer to the panel rather than the full record.
@@ -70,7 +74,7 @@ function doPost(e) {
     'Reference: ' + String(lead.id || '').slice(0, 8) + '\n';
 
   MailApp.sendEmail({
-    to: to,
+    to: TO_ADDRESS,
     subject: 'WeWave lead - ' + (lead.name || 'new request'),
     body: body
   });
@@ -84,7 +88,6 @@ function doPost(e) {
  * to prove the Gmail permission works before wiring anything up.
  */
 function sendTestEmail() {
-  var to = TO_ADDRESS || Session.getActiveUser().getEmail();
-  MailApp.sendEmail(to, 'WeWave lead notifier - test',
+  MailApp.sendEmail(TO_ADDRESS, 'WeWave lead notifier - test',
                     'If you are reading this, the notifier can send mail.');
 }
